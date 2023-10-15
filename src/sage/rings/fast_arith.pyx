@@ -103,10 +103,12 @@ cpdef prime_range(start, stop=None, algorithm=None, bint py_ints=False):
 
     .. NOTE::
 
-        ``start`` and ``stop`` should be integers, but real numbers will also be accepted
-        as input. In this case, they will be rounded to nearby integers start\* and
-        stop\*, so the output will be the primes between start\* and stop\* - 1, which may
-        not be exactly the same as the primes between ``start`` and ``stop - 1``.
+        ``start`` and ``stop`` should be integers, but real numbers
+        will also be accepted as input. In this case, they will be
+        rounded to nearby integers start\* and stop\*, so the output
+        will be the primes between start\* and stop\* - 1, which may
+        not be exactly the same as the primes between ``start`` and
+        ``stop - 1``.
 
     TESTS::
 
@@ -116,7 +118,8 @@ cpdef prime_range(start, stop=None, algorithm=None, bint py_ints=False):
         sage: len(L)
         180310
         sage: L[-10:]
-        [2499923, 2499941, 2499943, 2499947, 2499949, 2499953, 2499967, 2499983, 2499989, 2499997]
+        [2499923, 2499941, 2499943, 2499947, 2499949, 2499953, 2499967,
+         2499983, 2499989, 2499997]
 
     A non-trivial range without primes::
 
@@ -146,10 +149,11 @@ cpdef prime_range(start, stop=None, algorithm=None, bint py_ints=False):
     - Kevin Stueve (added primes iterator option) 2010-10-16
     - Robert Bradshaw (speedup using Pari prime table, py_ints option)
     """
-    # input to pari.init_primes cannot be greater than 436273290 (hardcoded bound)
+    # input to pari.init_primes cannot be greater
+    # than 436273290 (hardcoded bound)
     DEF init_primes_max = 436273290
-    DEF small_prime_max = 436273009  #  a prime < init_primes_max (preferably the largest)
-    DEF prime_gap_bound = 250        #  upper bound for gap between primes <= small_prime_max
+    DEF small_prime_max = 436273009  # a prime < init_primes_max (preferably the largest)
+    DEF prime_gap_bound = 250        # upper bound for gap between primes <= small_prime_max
 
     # make sure that start and stop are integers
     # First try coercing them. If that does not work, then try rounding them.
@@ -159,8 +163,7 @@ cpdef prime_range(start, stop=None, algorithm=None, bint py_ints=False):
         try:
             start = Integer(round(float(start)))
         except (ValueError, TypeError) as real_error:
-            raise TypeError(str(integer_error)
-                + "\nand argument is also not real: " + str(real_error))
+            raise TypeError(f"{integer_error} \nand argument is also not real: {real_error}")
     if stop is not None:
         try:
             stop = Integer(stop)
@@ -168,11 +171,11 @@ cpdef prime_range(start, stop=None, algorithm=None, bint py_ints=False):
             try:
                 stop = Integer(round(float(stop)))
             except (ValueError, TypeError) as real_error:
-                raise ValueError(str(integer_error)
-                    + "\nand argument is also not real: " + str(real_error))
+                raise ValueErrorr(f"{integer_error} \nand argument is also not real: {real_error}")
 
     if algorithm is None:
-        # if 'stop' is 'None', need to change it to an integer before comparing with 'start'
+        # if 'stop' is 'None', need to change it to an integer
+        # before comparing with 'start'
         if max(start, stop or 0) <= small_prime_max:
             algorithm = "pari_primes"
         else:
@@ -183,8 +186,7 @@ cpdef prime_range(start, stop=None, algorithm=None, bint py_ints=False):
         from sage.libs.pari import pari
 
         if max(start, stop or 0) > small_prime_max:
-            raise ValueError('algorithm "pari_primes" is limited to primes larger than'
-                + ' {}'.format(small_prime_max - 1))
+            raise ValueError(f'algorithm "pari_primes" is limited to primes larger than {small_prime_max - 1}')
 
         if stop is None:
             # In this case, "start" is really stop
@@ -227,12 +229,14 @@ cdef class arith_int:
 
     cdef int c_gcd_int(self, int a, int b) except -1:
         cdef int c
-        if a==0:
+        if a == 0:
             return self.abs_int(b)
-        if b==0:
+        if b == 0:
             return self.abs_int(a)
-        if a<0: a=-a
-        if b<0: b=-b
+        if a < 0:
+            a = -a
+        if b < 0:
+            b = -b
         while b:
             c = a % b
             a = b
@@ -240,7 +244,7 @@ cdef class arith_int:
         return a
 
     def gcd_int(self, int a, int b):
-        return self.c_gcd_int(a,b)
+        return self.c_gcd_int(a, b)
 
     cdef int c_xgcd_int(self, int a, int b, int* ss, int* tt) except -1:
         cdef int psign, qsign, p, q, r, s, c, quot, new_r, new_s
@@ -255,36 +259,49 @@ cdef class arith_int:
             tt[0] = 0
             return self.abs_int(a)
 
-        psign = 1; qsign = 1
+        psign = 1
+        qsign = 1
 
-        if a<0: a = -a; psign = -1
-        if b<0: b = -b; qsign = -1
+        if a < 0:
+            a = -a
+            psign = -1
+        if b < 0:
+            b = -b
+            qsign = -1
 
-        p = 1; q = 0; r = 0; s = 1
+        p = 1
+        q = 0
+        r = 0
+        s = 1
         while b:
-            c = a % b; quot = a/b
-            a = b; b = c
-            new_r = p - quot*r
-            new_s = q - quot*s
-            p = r; q = s
-            r = new_r; s = new_s
+            c = a % b
+            quot = a // b
+            a = b
+            b = c
+            new_r = p - quot * r
+            new_s = q - quot * s
+            p = r
+            q = s
+            r = new_r
+            s = new_s
 
-        ss[0] = p*psign
-        tt[0] = q*qsign
+        ss[0] = p * psign
+        tt[0] = q * qsign
 
         return a
 
     def xgcd_int(self, int a, int b):
         cdef int g, s, t
-        g = self.c_xgcd_int(a,b, &s, &t)
-        return (g,s,t)
+        g = self.c_xgcd_int(a, b, &s, &t)
+        return (g, s, t)
 
     cdef int c_inverse_mod_int(self, int a, int m) except -1:
-        if a == 1 or m<=1: return a%m   # common special case
+        if a == 1 or m <= 1:
+            return a % m  # common special case
         cdef int g, s, t
-        g = self.c_xgcd_int(a,m, &s, &t)
+        g = self.c_xgcd_int(a, m, &s, &t)
         if g != 1:
-            raise ArithmeticError("The inverse of %s modulo %s is not defined." % (a, m))
+            raise ArithmeticError(f"The inverse of {a} modulo {m} is not defined.")
         s = s % m
         if s < 0:
             s = s + m
@@ -297,37 +314,51 @@ cdef class arith_int:
         cdef int u, v, u0, u1, u2, v0, v1, v2, q, t0, t1, t2, x, y
         cdef float bnd
 
-        if m>46340:
-            raise OverflowError("The modulus m(=%s) should be at most 46340"%m)
+        if m > 46340:
+            raise OverflowError(f"The modulus m(={m}) should be at most 46340")
 
         a = a % m
 
-        if a==0 or m == 0:
+        if a == 0 or m == 0:
             n[0] = 0
             d[0] = 1
             return 0
 
-        if m<0: m = -m
-        if a<0: a = m - a
-        if a==1:
+        if m < 0:
+            m = -m
+        if a < 0:
+            a = m - a
+        if a == 1:
             n[0] = 1
             d[0] = 1
             return 0
 
         u = m
         v = a
-        bnd = sqrt(m/2.0)
-        u0=1; u1=0; u2=u
-        v0=0; v1=1; v2=v
+        bnd = sqrt(m / 2.0)
+        u0 = 1
+        u1 = 0
+        u2 = u
+        v0 = 0
+        v1 = 1
+        v2 = v
         while self.abs_int(v2) > bnd:
             q = u2/v2   # floor is implicit
-            t0=u0-q*v0; t1=u1-q*v1; t2=u2-q*v2
-            u0=v0; u1=v1; u2=v2
-            v0=t0; v1=t1; v2=t2
+            t0 = u0 - q * v0
+            t1 = u1 - q * v1
+            t2 = u2 - q * v2
+            u0 = v0
+            u1 = v1
+            u2 = v2
+            v0 = t0
+            v1 = t1
+            v2 = t2
 
-        x = self.abs_int(v1); y = v2
-        if v1<0:  y = -1*y
-        if x<=bnd and self.c_gcd_int(x,y)==1:
+        x = self.abs_int(v1)
+        y = v2
+        if v1 < 0:
+            y = -1*y
+        if x <= bnd and self.c_gcd_int(x, y) == 1:
             n[0] = y
             d[0] = x
             return 0
@@ -342,7 +373,7 @@ cdef class arith_int:
         """
         cdef int n, d
         self.c_rational_recon_int(a, m, &n, &d)
-        return (n,d)
+        return (n, d)
 
 
 # The long long versions are next.
@@ -375,7 +406,7 @@ cdef class arith_llong:
         return a
 
     def gcd_longlong(self, long long a, long long b):
-        return self.c_gcd_longlong(a,b)
+        return self.c_gcd_longlong(a, b)
 
     cdef long long c_xgcd_longlong(self, long long a, long long b,
                                    long long *ss,
@@ -392,30 +423,42 @@ cdef class arith_llong:
             tt[0] = 0
             return self.abs_longlong(a)
 
-        psign = 1; qsign = 1
+        psign = 1
+        qsign = 1
 
-        if a<0: a = -a; psign = -1
-        if b<0: b = -b; qsign = -1
+        if a < 0:
+            a = -a
+            psign = -1
+        if b < 0:
+            b = -b
+            qsign = -1
 
-        p = 1; q = 0; r = 0; s = 1
+        p = 1
+        q = 0
+        r = 0
+        s = 1
         while b:
-            c = a % b; quot = a/b
-            a = b; b = c
+            c = a % b
+            quot = a // b
+            a = b
+            b = c
             new_r = p - quot*r
             new_s = q - quot*s
-            p = r; q = s
-            r = new_r; s = new_s
+            p = r
+            q = s
+            r = new_r
+            s = new_s
 
-        ss[0] = p*psign
-        tt[0] = q*qsign
+        ss[0] = p * psign
+        tt[0] = q * qsign
 
         return a
 
     cdef long long c_inverse_mod_longlong(self, long long a, long long m) except -1:
         cdef long long g, s, t
-        g = self.c_xgcd_longlong(a,m, &s, &t)
+        g = self.c_xgcd_longlong(a, m, &s, &t)
         if g != 1:
-            raise ArithmeticError("The inverse of %s modulo %s is not defined."%(a,m))
+            raise ArithmeticError(f"The inverse of {a} modulo {m} is not defined.")
         s = s % m
         if s < 0:
             s = s + m
@@ -430,18 +473,20 @@ cdef class arith_llong:
         cdef float bnd
 
         if m > 2147483647:
-            raise OverflowError("The modulus m(=%s) must be at most 2147483647"%m)
+            raise OverflowError(f"The modulus m(={m}) must be at most 2147483647")
 
         a = a % m
 
-        if a==0 or m == 0:
+        if a == 0 or m == 0:
             n[0] = 0
             d[0] = 1
             return 0
 
-        if m<0: m = -m
-        if a<0: a = m - a
-        if a==1:
+        if m < 0:
+            m = -m
+        if a < 0:
+            a = m - a
+        if a == 1:
             n[0] = 1
             d[0] = 1
             return 0
@@ -449,17 +494,29 @@ cdef class arith_llong:
         u = m
         v = a
         bnd = sqrt(m/2.0)
-        u0=1; u1=0; u2=u
-        v0=0; v1=1; v2=v
+        u0 = 1
+        u1 = 0
+        u2 = u
+        v0 = 0
+        v1 = 1
+        v2 = v
         while self.abs_longlong(v2) > bnd:
             q = u2/v2   # floor is implicit
-            t0=u0-q*v0; t1=u1-q*v1; t2=u2-q*v2
-            u0=v0; u1=v1; u2=v2
-            v0=t0; v1=t1; v2=t2
+            t0 = u0 - q * v0
+            t1 = u1 - q * v1
+            t2 = u2 - q * v2
+            u0 = v0
+            u1 = v1
+            u2 = v2
+            v0 = t0
+            v1 = t1
+            v2 = t2
 
-        x = self.abs_longlong(v1); y = v2
-        if v1<0:  y = -1*y
-        if x<=bnd and self.gcd_longlong(x,y)==1:
+        x = self.abs_longlong(v1)
+        y = v2
+        if v1 < 0:
+            y = -1*y
+        if x <= bnd and self.gcd_longlong(x, y) == 1:
             n[0] = y
             d[0] = x
             return 0
@@ -474,4 +531,4 @@ cdef class arith_llong:
         """
         cdef long long n, d
         self.c_rational_recon_longlong(a, m, &n, &d)
-        return (n,d)
+        return (n, d)
