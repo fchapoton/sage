@@ -263,4 +263,4 @@ def rebuild(dirname, force=False, interpreters=None, distribution=None):
         build_interp(interp(), dirname)
 
     with open(os.path.join(dirname, all_py), 'w') as f:
-        f.write("# " + AUTOGEN_WARN)
+        f.write("# " + AUTOGEN_WARN + "\n")
