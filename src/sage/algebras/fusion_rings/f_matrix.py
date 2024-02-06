@@ -41,6 +41,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polydict import ETuple
 from sage.rings.qqbar import AA, QQbar, number_field_elements_from_algebraics
 
+
 class FMatrix(SageObject):
     r"""
     An F-matrix for a :class:`FusionRing`.
@@ -297,7 +298,7 @@ class FMatrix(SageObject):
         self.pool = None
 
     #######################
-    ### Class utilities ###
+    #   Class utilities   #
     #######################
 
     def _repr_(self):
@@ -434,8 +435,8 @@ class FMatrix(SageObject):
              (-zeta60^14 + zeta60^6 + zeta60^4 - 1),
              (zeta60^14 - zeta60^6 - zeta60^4 + 1)]
         """
-        if (self._FR.Nk_ij(a, b, x) == 0 or self._FR.Nk_ij(x, c, d) == 0
-            or self._FR.Nk_ij(b, c, y) == 0 or self._FR.Nk_ij(a, y, d) == 0):
+        if 0 in (self._FR.Nk_ij(a, b, x), self._FR.Nk_ij(x, c, d),
+                 self._FR.Nk_ij(b, c, y), self._FR.Nk_ij(a, y, d)):
             return 0
 
         # Some known zero F-symbols
@@ -649,7 +650,7 @@ class FMatrix(SageObject):
                 if self._FR.Nk_ij(b, c, y) != 0 and self._FR.Nk_ij(a, y, d) != 0]
 
     ####################
-    ### Data getters ###
+    #   Data getters   #
     ####################
 
     def get_fvars(self):
@@ -855,7 +856,7 @@ class FMatrix(SageObject):
         return {sextuple: val.radical_expression() for sextuple, val in self.get_fvars_in_alg_field().items()}
 
     #######################
-    ### Private helpers ###
+    #   Private helpers   #
     #######################
 
     def _get_known_vals(self):
@@ -899,7 +900,7 @@ class FMatrix(SageObject):
         return ETuple(nonz, self._poly_ring.ngens())
 
     ##############################
-    ### Variables partitioning ###
+    #   Variables partitioning   #
     ##############################
 
     def largest_fmat_size(self):
@@ -967,7 +968,7 @@ class FMatrix(SageObject):
         return var_set
 
     ############################
-    ### Checkpoint utilities ###
+    #   Checkpoint utilities   #
     ############################
 
     def save_fvars(self, filename):
@@ -1014,7 +1015,7 @@ class FMatrix(SageObject):
             self._non_cyc_roots,
             self.get_coerce_map_from_fr_cyclotomic_field(),
             self._qqbar_embedding,
-            ]
+        ]
         with open(filename, 'wb') as f:
             pickle.dump(final_state, f)
 
@@ -1212,7 +1213,7 @@ class FMatrix(SageObject):
         self._update_reduction_params()
 
     #################
-    ### MapReduce ###
+    #   MapReduce   #
     #################
 
     def start_worker_pool(self, processes=None):
@@ -1394,7 +1395,7 @@ class FMatrix(SageObject):
         return results
 
     ########################
-    ### Equations set up ###
+    #   Equations set up   #
     ########################
 
     def get_orthogonality_constraints(self, output=True):
@@ -1494,7 +1495,7 @@ class FMatrix(SageObject):
             self._reset_solver_state()
         n_proc = self.pool._processes if self.pool is not None else 1
         params = [(child_id, n_proc, output) for child_id in range(n_proc)]
-        eqns = self._map_triv_reduce('get_reduced_'+option, params, worker_pool=self.pool, chunksize=1, mp_thresh=0)
+        eqns = self._map_triv_reduce('get_reduced_' + option, params, worker_pool=self.pool, chunksize=1, mp_thresh=0)
         if output:
             F = self._field
             for i, eq_tup in enumerate(eqns):
@@ -1503,7 +1504,7 @@ class FMatrix(SageObject):
         self.ideal_basis.extend(eqns)
 
     ############################
-    ### Equations processing ###
+    #   Equations processing   #
     ############################
 
     def _tup_to_fpoly(self, eq_tup):
@@ -1611,7 +1612,7 @@ class FMatrix(SageObject):
         self.ideal_basis = eqns
 
     #####################
-    ### Graph methods ###
+    #   Graph methods   #
     #####################
 
     def equations_graph(self, eqns=None):
@@ -1820,7 +1821,7 @@ class FMatrix(SageObject):
         return [{inv_idx_map[i]: value for i, (key, value) in enumerate(sorted(soln.items()))} for soln in var_in_R]
 
     #######################
-    ### Solution method ###
+    #   Solution method   #
     #######################
 
     # TODO: this can probably be improved by constructing a set of defining polynomials
@@ -1962,14 +1963,14 @@ class FMatrix(SageObject):
                 self._field = QQbar
                 bf_elts = [self._qqbar_embedding(F.gen())]
                 bf_elts += [rhs for fx, rhs in non_cyclotomic_roots]
-                self._qqbar_embedding = lambda x : x
+                self._qqbar_embedding = lambda x: x
             self._non_cyc_roots = bf_elts[1:]
 
             # Embed cyclotomic field into newly constructed base field
             cyc_gen_as_bf_elt = bf_elts.pop(0)
             phi = self._FR.field().hom([cyc_gen_as_bf_elt], self._field)
             self._coerce_map_from_cyc_field = phi
-            numeric_fvars = {k : phi(v) for k, v in numeric_fvars.items()}
+            numeric_fvars = {k: phi(v) for k, v in numeric_fvars.items()}
             for i, elt in enumerate(bf_elts):
                 numeric_fvars[non_cyclotomic_roots[i][0]] = elt
             # Update polynomial ring
@@ -1996,7 +1997,7 @@ class FMatrix(SageObject):
 
     def find_orthogonal_solution(self, checkpoint=False, save_results="", warm_start="", use_mp=True, verbose=True):
         r"""
-        Solve the the hexagon and pentagon relations, along with
+        Solve the hexagon and pentagon relations, along with
         orthogonality constraints, to evaluate an orthogonal F-matrix.
 
         INPUT:
@@ -2114,7 +2115,7 @@ class FMatrix(SageObject):
                 print("Set up {} hex and orthogonality constraints...".format(len(self.ideal_basis)))
 
         # Unzip _fvars and link to shared_memory structure if using multiprocessing
-        if use_mp:# and loads_shared_memory:
+        if use_mp:  # and loads_shared_memory:
             self._fvars = self._shared_fvars
         else:
             n = self._poly_ring.ngens()
@@ -2169,7 +2170,7 @@ class FMatrix(SageObject):
             self.save_fvars(save_results)
 
     #########################
-    ### Cyclotomic method ###
+    #   Cyclotomic method   #
     #########################
 
     def _fix_gauge(self, algorithm=""):
@@ -2352,7 +2353,7 @@ class FMatrix(SageObject):
             return self._fvars
 
     #####################
-    ### Verifications ###
+    #   Verifications   #
     #####################
 
     def fmats_are_orthogonal(self):

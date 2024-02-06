@@ -33,7 +33,6 @@ from sage.structure.list_clone import NormalizedClonableList
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.structure.unique_representation import UniqueRepresentation
 from .root_system.coxeter_matrix import CoxeterMatrix
-from collections import deque
 from sage.combinat.posets.posets import Poset
 from sage.categories.coxeter_groups import CoxeterGroups
 from sage.combinat.root_system.coxeter_group import CoxeterGroup
@@ -739,7 +738,7 @@ class FullyCommutativeElements(UniqueRepresentation, Parent):
     Class for the set of fully commutative (FC) elements of a Coxeter system.
 
     Coxeter systems with finitely many FC elements, or *FC-finite* Coxeter
-    systems, are classfied by Stembridge in [Ste1996]_. They fall into seven
+    systems, are classified by Stembridge in [Ste1996]_. They fall into seven
     families, namely the groups of types `A_n, B_n, D_n, E_n, F_n, H_n` and
     `I_2(m)`.
 

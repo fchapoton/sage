@@ -11,7 +11,7 @@ of undirected graphs.
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
 from enum import Enum
@@ -470,7 +470,7 @@ def habib_maurer_algorithm(graph, g_classes=None):
     by the components. Otherwise, the root is ``PRIME`` and the modules are
     identified by having identical neighborhoods in the gamma class that spans
     the vertices of the subgraph (exactly one is guaranteed to exist). The gamma
-    classes only need to be computed once, as the algorithm computes the the
+    classes only need to be computed once, as the algorithm computes the
     classes for the current root and each of the submodules. See also [BM1983]_
     for an equivalent algorithm described in greater detail.
 

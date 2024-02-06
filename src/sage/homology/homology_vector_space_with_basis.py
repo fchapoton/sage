@@ -1287,7 +1287,7 @@ class CohomologyRing_mod2(CohomologyRing):
           the action as a left module action or a right module
 
         We will write this with respect to the left action;
-        for the right action, just switch all of the the tensors.
+        for the right action, just switch all of the tensors.
         Writing `m` for ``deg_domain`` and `n` for ``deg_codomain``, this
         returns `A^{n-m} \otimes H^{m} \to H^{n}`, one single
         component of the map making `H` into an `A`-module.

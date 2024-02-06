@@ -2369,7 +2369,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: gg=E.gens(lim3=13); gg  # long time (about 4s)
             [(... : 1)]
 
-        Check that the the point found has infinite order, and that it is on the curve::
+        Check that the point found has infinite order, and that it is on the curve::
 
             sage: P=gg[0]; P.order()  # long time
             +Infinity
