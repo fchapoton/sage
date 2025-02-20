@@ -302,7 +302,7 @@ class DeltaComplex(GenericCellComplex):
                         new_data[-1] = ((),)  # add the empty cell
                 else:
                     # else a dictionary indexed by simplices
-                    dimension = max([f.dimension() for f in data])
+                    dimension = max(f.dimension() for f in data)
                     old_data_by_dim = {}
                     for dim in range(dimension + 1):
                         old_data_by_dim[dim] = []

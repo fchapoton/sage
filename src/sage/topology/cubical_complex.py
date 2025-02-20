@@ -1103,7 +1103,7 @@ class CubicalComplex(GenericCellComplex):
             Cells = {}
             # sub_facets is the dictionary of facets in the subcomplex
             sub_facets = {}
-            dimension = max([cube.dimension() for cube in self._facets])
+            dimension = max(cube.dimension() for cube in self._facets)
             # initialize the lists: add each maximal cube to Cells and sub_facets
             for i in range(-1, dimension+1):
                 Cells[i] = set()

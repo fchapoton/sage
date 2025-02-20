@@ -1352,7 +1352,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             Faces = {}
             # sub_facets is the dictionary of facets in the subcomplex
             sub_facets = {}
-            dimension = max([face.dimension() for face in self._facets])
+            dimension = max(face.dimension() for face in self._facets)
             for i in range(-1, dimension + 1):
                 Faces[i] = set()
                 sub_facets[i] = set()

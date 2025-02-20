@@ -79,7 +79,7 @@ class GenericCellComplex(SageObject):
         sage: from sage.topology.cell_complex import GenericCellComplex
         sage: A = GenericCellComplex()
     """
-    def __eq__(self, right):
+    def __eq__(self, right) -> bool:
         """
         Comparisons of cell complexes are not implemented.
 
@@ -94,7 +94,7 @@ class GenericCellComplex(SageObject):
         """
         raise NotImplementedError
 
-    def __ne__(self, right):
+    def __ne__(self, right) -> bool:
         """
         Comparisons of cell complexes are not implemented.
 
@@ -151,9 +151,9 @@ class GenericCellComplex(SageObject):
 
         .. WARNING::
 
-          If the :meth:`cells` method calls :meth:`dimension`,
-          then you'll get an infinite loop.  So either don't use
-          :meth:`dimension` or override :meth:`dimension`.
+            If the :meth:`cells` method calls :meth:`dimension`,
+            then you'll get an infinite loop.  So either don't use
+            :meth:`dimension` or override :meth:`dimension`.
 
         EXAMPLES::
 
@@ -166,16 +166,15 @@ class GenericCellComplex(SageObject):
             4
         """
         try:
-            return max([x.dimension() for x in self._facets])
+            return max(x.dimension() for x in self._facets)
         except AttributeError:
-            if len(self.cells()) == 0:
-                # The empty cell complex has dimension -1.
-                return -1
-            return max(self.cells())
+            # The empty cell complex has dimension -1.
+            return max(self.cells(), default=-1)
 
-    def n_cells(self, n, subcomplex=None):
+    def n_cells(self, n, subcomplex=None) -> list:
         """
         List of cells of dimension `n` of this cell complex.
+
         If the optional argument ``subcomplex`` is present, then
         return the `n`-dimensional cells which are *not* in the
         subcomplex.
@@ -200,13 +199,15 @@ class GenericCellComplex(SageObject):
         """
         if n in self.cells(subcomplex):
             return list(self.cells(subcomplex)[n])
-        else:
-            # don't barf if someone asks for n_cells in a dimension where there are none
-            return []
 
-    def _n_cells_sorted(self, n, subcomplex=None):
+        # don't barf if someone asks for n_cells in a dimension
+        # where there are none
+        return []
+
+    def _n_cells_sorted(self, n, subcomplex=None) -> list:
         """
         Sorted list of cells of dimension `n` of this cell complex.
+
         If the optional argument ``subcomplex`` is present, then
         return the `n`-dimensional cells which are *not* in the
         subcomplex.
@@ -240,7 +241,7 @@ class GenericCellComplex(SageObject):
         except TypeError:
             return sorted(n_cells, key=str)
 
-    def f_vector(self):
+    def f_vector(self) -> list:
         """
         The `f`-vector of this cell complex: a list whose `n`-th
         item is the number of `(n-1)`-cells.  Note that, like all
@@ -259,7 +260,7 @@ class GenericCellComplex(SageObject):
         """
         return [self._f_dict()[n] for n in range(-1, self.dimension() + 1)]
 
-    def _f_dict(self):
+    def _f_dict(self) -> dict:
         """
         The `f`-vector of this cell complex as a dictionary: the
         item associated to an integer `n` is the number of the
@@ -293,7 +294,8 @@ class GenericCellComplex(SageObject):
             sage: cubical_complexes.KleinBottle().euler_characteristic()
             0
         """
-        return sum((-1)**n * self.f_vector()[n + 1] for n in range(self.dimension() + 1))
+        return sum((-1)**n * self.f_vector()[n + 1]
+                   for n in range(self.dimension() + 1))
 
     ############################################################
     # end of methods using self.cells()
@@ -721,7 +723,7 @@ class GenericCellComplex(SageObject):
         else:
             return dic
 
-    def is_acyclic(self, base_ring=ZZ):
+    def is_acyclic(self, base_ring=ZZ) -> bool:
         """
         Return ``True`` if the reduced homology with coefficients in
         ``base_ring`` of this cell complex is zero.
@@ -758,9 +760,9 @@ class GenericCellComplex(SageObject):
         H = self.homology(base_ring=base_ring)
         if base_ring == ZZ:
             return all(len(x.invariants()) == 0 for x in H.values())
-        else:
-            # base_ring is a field.
-            return all(x.dimension() == 0 for x in H.values())
+
+        # base_ring is a field.
+        return all(x.dimension() == 0 for x in H.values())
 
     def n_chains(self, n, base_ring=ZZ, cochains=False):
         r"""
@@ -1104,7 +1106,7 @@ class GenericCellComplex(SageObject):
         """
         raise NotImplementedError
 
-    def is_connected(self):
+    def is_connected(self) -> bool:
         """
         Return ``True`` if this cell complex is connected.
 
@@ -1184,7 +1186,7 @@ class GenericCellComplex(SageObject):
         """
         return ('Cell', 'cell', 'cells')
 
-    def _repr_(self):
+    def _repr_(self) -> str:
         """
         Print representation.
 
