@@ -1262,7 +1262,7 @@ class TransducerGenerators:
             raise ValueError("%s is not a polynomial of degree 1."
                              % (polynomial_left,))
 
-        [r, base_power_K] = list(polynomial_left)
+        r, base_power_K = list(polynomial_left)
         try:
             K = log(base_power_K, base=base)
         except RuntimeError:
@@ -1313,7 +1313,7 @@ class TransducerGenerators:
         if polynomial_right.degree() != 1:
             raise ValueError("%s is not a polynomial of degree 1."
                              % (polynomial_right,))
-        [s, base_power_k] = list(polynomial_right)
+        s, base_power_k = list(polynomial_right)
         k = log(base_power_k, base=base)
         try:
             k = k.simplify()
@@ -1940,7 +1940,7 @@ class TransducerGenerators:
             """
             if n in initial_values:
                 return initial_values[n]
-            [(m, offset)] = edge_recursion_digraph(n)
+            (m, offset), = edge_recursion_digraph(n)
             return offset + f(m)
 
         carries = set(state.label()[0] for state in T.iter_states())

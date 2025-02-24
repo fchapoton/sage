@@ -770,16 +770,15 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             [[2], [1, 3], [2, 4], [3]]
         """
         if not isinstance(i, tuple):
-            return DiGraph.__getitem__(self,i)
-        [i,j] = i
+            return DiGraph.__getitem__(self, i)
+        i, j = i
         if i == j:
             if i in self._odd_isotropic_roots:
                 return 0
             return 2
-        elif self.has_edge(j, i):
+        if self.has_edge(j, i):
             return -self.edge_label(j, i)
-        else:
-            return 0
+        return 0
 
     def column(self, j):
         """

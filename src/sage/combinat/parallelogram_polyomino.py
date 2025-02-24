@@ -695,8 +695,9 @@ class _drawing_tool:
 
             The rotated position.
             """
-            [x, y] = pos
-            return [x*cos(angle) - y*sin(angle), x*sin(angle) + y*cos(angle)]
+            x, y = pos
+            return [x * cos(angle) - y * sin(angle),
+                    x * sin(angle) + y * cos(angle)]
 
         def mirror(pos, axe):
             r"""
@@ -770,8 +771,8 @@ class _drawing_tool:
             color = self._color_line
         if size is None:
             size = self._line_size
-        [x1, y1] = self.XY(v1)
-        [x2, y2] = self.XY(v2)
+        x1, y1 = self.XY(v1)
+        x2, y2 = self.XY(v2)
         return "\n  \\draw[color=%s, line width=%s] (%f, %f) -- (%f, %f);" % (
             color, size, float(x1), float(y1), float(x2), float(y2)
         )
@@ -844,7 +845,7 @@ class _drawing_tool:
             color = self._color_point
         if size is None:
             size = self._point_size
-        [x1, y1] = self.XY(p1)
+        x1, y1 = self.XY(p1)
         return "\n  \\filldraw[color=%s] (%f, %f) circle (%spt);" % (
             color, float(x1), float(y1), size
         )

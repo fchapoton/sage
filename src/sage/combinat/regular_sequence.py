@@ -2857,7 +2857,7 @@ class RecurrenceParser:
                                      % (function(polynomial_left)))
                 initial_values.update({polynomial_left: right_side})
             else:
-                [r, base_power_M] = list(polynomial_left)
+                r, base_power_M = list(polynomial_left)
                 M_new = log(base_power_M, base=k)
                 try:
                     M_new = ZZ(M_new)
