@@ -882,7 +882,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 PHI = PHI(fm._polys) / PHI(fm1._polys)
         #even when the ring can be passed to singular in quo_rem,
         #it can't always do the division, so we call Maxima
-        if period != [0,1]: #period==[0,1] we don't need to do any division
+        if period != [0,1]:  # period==[0,1] we don't need to do any division
             BR = self.domain().base_ring().base_ring()
             if not isinstance(BR, (sage.rings.abc.pAdicRing, sage.rings.abc.pAdicField)):
                 try:
@@ -894,7 +894,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     if not isinstance(PHI, FractionFieldElement):
                         from sage.symbolic.expression_conversions import polynomial
                         PHI = polynomial(PHI, ring=self.coordinate_ring())
-                except (TypeError, NotImplementedError): #something Maxima, or the conversion, can't handle
+                except (TypeError, NotImplementedError):  # something Maxima, or the conversion, can't handle
                     pass
         return PHI
 
@@ -978,7 +978,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         F = copy(self)
         Coord_ring = self.codomain().coordinate_ring()
         if isinstance(Coord_ring, QuotientRing_generic):
-            PHI = H([Coord_ring.gen(i).lift() for i in range(N)])#makes a mapping
+            PHI = H([Coord_ring.gen(i).lift() for i in range(N)])  # makes a mapping
         else:
             PHI = H([Coord_ring.gen(i) for i in range(N)])
         while D:
@@ -986,7 +986,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 PHI = PHI*F
                 if normalize:
                     PHI.normalize_coordinates()
-            if D > 1: #avoid extra iterate
+            if D > 1:  # avoid extra iterate
                 F = F*F
             if normalize:
                 F.normalize_coordinates()
@@ -1738,7 +1738,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         #Otherwise, use Macaulay
         R = F[0].parent()
         res = R.macaulay_resultant(list(F._polys))
-        return res #Coercion here is not necessary as it is already done in Macaulay Resultant
+        return res  # Coercion here is not necessary as it is already done in Macaulay Resultant
 
     @cached_method
     def primes_of_bad_reduction(self, check=True):
@@ -1853,7 +1853,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 #check to return only the truly bad primes
                 if check:
                     index = 0
-                    while index < len(badprimes):  #figure out which primes are really bad primes...
+                    while index < len(badprimes):  # figure out which primes are really bad primes...
                         S = PolynomialRing(GF(badprimes[index]), R.gens(), R.ngens())
                         J = S.ideal([S.coerce(F[j]) for j in range(R.ngens())])
                         if J.dimension() == 0:
@@ -1971,7 +1971,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         try:
             F = [R(f) for f in F]
             PS = self.codomain()
-        except TypeError: #no longer defined over same ring
+        except TypeError:  # no longer defined over same ring
             R = R.change_ring(N.base_ring())
             F = [R(f) for f in F]
             PS = self.codomain().change_ring(N.base_ring())
@@ -2056,13 +2056,13 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.green_function(P.point([1,1], False), 0, N=30)
             0.43288629610862338612700146098
         """
-        N = kwds.get('N', 10)                       #Get number of iterates (if entered)
-        err = kwds.get('error_bound', None)         #Get error bound (if entered)
-        prec = kwds.get('prec', 100)                #Get precision (if entered)
+        N = kwds.get('N', 10)  # Get number of iterates (if entered)
+        err = kwds.get('error_bound', None)  # Get error bound (if entered)
+        prec = kwds.get('prec', 100)  # Get precision (if entered)
         R = RealField(prec)
         localht = R(0)
         BR = FractionField(P.codomain().base_ring())
-        GBR = self.change_ring(BR) #so the heights work
+        GBR = self.change_ring(BR)  # so the heights work
 
         if BR not in NumberFields():
             raise NotImplementedError("must be over a number field or a number field order")
@@ -2094,15 +2094,15 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             #if doing error estimates, compute needed number of iterates
             D = (dim + 1) * (d - 1) + 1
             # compute upper bound
-            if isinstance(v, RingHomomorphism_im_gens): #archimedean
+            if isinstance(v, RingHomomorphism_im_gens):  # archimedean
                 vindex = BR.places(prec=prec).index(v)
                 emb = BR.places(prec=prec)[vindex]
                 U = GBR.local_height_arch(vindex, prec=prec) + R(binomial(dim + d, d)).log()
-            else: #non-archimedean
+            else:  # non-archimedean
                 U = GBR.local_height(v, prec=prec)
 
             #compute lower bound - from explicit polynomials of Nullstellensatz
-            CR = GBR.codomain().ambient_space().coordinate_ring() #.lift() only works over fields
+            CR = GBR.codomain().ambient_space().coordinate_ring()  # .lift() only works over fields
             I = CR.ideal(GBR.defining_polynomials())
             maxh = 0
             for k in range(dim + 1):
@@ -2110,22 +2110,22 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 h = 1
                 for poly in CoeffPolys:
                     if poly != 0:
-                        if isinstance(v, RingHomomorphism_im_gens): #archimedean
+                        if isinstance(v, RingHomomorphism_im_gens):  # archimedean
                             if BR == QQ:
                                 h = max([R(K(c).abs()) for c in poly.coefficients()])
                             else:
                                 h = max([R(emb(c).abs()) for c in poly.coefficients()])
-                        else: #non-archimedean
+                        else:  # non-archimedean
                             if BR == QQ:
                                 h = max(R(v)**(-R(c.valuation(v))) for c in poly.coefficients())
                             else:
                                 h = max(R(c.abs_non_arch(v, prec=prec)) for c in poly.coefficients())
                         maxh = max(h, maxh)
             if maxh == 0:
-                maxh = 1  #avoid division by 0
-            if isinstance(v, RingHomomorphism_im_gens): #archimedean
+                maxh = 1  # avoid division by 0
+            if isinstance(v, RingHomomorphism_im_gens):  # archimedean
                 L = R(1 / ((dim + 1) * binomial(dim + D - d, D - d) * maxh)).log().abs()
-            else: #non-archimedean
+            else:  # non-archimedean
                 if BR == QQ:
                     L = ((-self.resultant().valuation(v))*R(v).log()).abs()
                 else:
@@ -2133,11 +2133,11 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             C = max([U, L])
             if C != 0:
                 N = R(C / (err*(d-1))).log(d).abs().ceil()
-            else: #we just need log||P||_v
+            else:  # we just need log||P||_v
                 N = 1
 
         #START GREEN FUNCTION CALCULATION
-        if isinstance(v, RingHomomorphism_im_gens):  #embedding for archimedean local height
+        if isinstance(v, RingHomomorphism_im_gens):  # embedding for archimedean local height
             for i in range(N+1):
                 Qv = [ (v(t).abs()) for t in Q ]
                 m = -1
@@ -2391,7 +2391,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 dv = R.one()
             else:
                 dv = R(2)
-            h += dv * f.green_function(Q, v, **kwds)     #arch Green function
+            h += dv * f.green_function(Q, v, **kwds)  # arch Green function
 
         # Non-Archimedean local heights
         for v in bad_primes:
@@ -2399,7 +2399,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 dv = R.one()
             else:
                 dv = R(v.residue_class_degree() * v.absolute_ramification_index())
-            h += dv * f.green_function(Q, v, **kwds)  #non-arch Green functions
+            h += dv * f.green_function(Q, v, **kwds)  # non-arch Green functions
         return h
 
     def height_difference_bound(self, prec=None):
@@ -2460,7 +2460,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.height_difference_bound(prec=100)                                   # needs sage.symbolic
             5.3375380797013179737224159274
         """
-        FF = FractionField(self.domain().base_ring()) #lift will only work over fields, so coercing into FF
+        FF = FractionField(self.domain().base_ring())  # lift will only work over fields, so coercing into FF
         if FF not in NumberFields():
             if isinstance(FF, sage.rings.abc.AlgebraicField):
                 #since this is absolute height, we can choose any number field over which the
@@ -2488,7 +2488,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             h = max([g.global_height(prec) for g in CoeffPolys])
             maxh = max(maxh, h)
         L = R((N + 1) * binomial(N + D - d, D - d)).log() + maxh
-        C = max(U, L) #height difference dh(P) - L <= h(f(P)) <= dh(P) +U
+        C = max(U, L)  # height difference dh(P) - L <= h(f(P)) <= dh(P) +U
         return C / (d - 1)
 
     def multiplier(self, P, n, check=True):
@@ -2568,7 +2568,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         Q = P
         Q.normalize_coordinates()
         index = N
-        indexlist = [] #keep track of which dehomogenizations are needed
+        indexlist = []  # keep track of which dehomogenizations are needed
         while Q[index] == 0:
             index -= 1
         indexlist.append(index)
@@ -2630,10 +2630,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         BR = FractionField(self.codomain().base_ring())
         l = identity_matrix(BR, N, N)
         Q = copy(P)
-        g = gcd(Q._coords) #we can't use normalize_coordinates since it can cause denominators
+        g = gcd(Q._coords)  # we can't use normalize_coordinates since it can cause denominators
         Q.scale_by(1 / g)
         index = N
-        indexlist = [] #keep track of which dehomogenizations are needed
+        indexlist = []  # keep track of which dehomogenizations are needed
         while Q[index] % p == 0:
             index -= 1
         indexlist.append(index)
@@ -4537,7 +4537,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             R = self.base_ring()
         else:
             f_sub = self.change_ring(R)
-            R = f_sub.base_ring() #in the case when R is an embedding
+            R = f_sub.base_ring()  # in the case when R is an embedding
         if isinstance(R, FractionField_1poly_field) or R in FunctionFields():
             raise NotImplementedError('Periodic points not implemented for function fields; '
                 'clear denominators and use the polynomial ring instead')
@@ -4635,7 +4635,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 return good_points
             else:
                 raise NotImplementedError("ring must a number field or finite field")
-        else: #a higher dimensional scheme
+        else:  # a higher dimensional scheme
             raise TypeError("use return_scheme=True")
 
     def periodic_points(self, n, minimal=True, formal=False, R=None, algorithm='variety',
@@ -4876,7 +4876,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             R = self.base_ring()
         else:
             f_sub = self.change_ring(R)
-            R = f_sub.base_ring() #in the case when R is an embedding
+            R = f_sub.base_ring()  # in the case when R is an embedding
         if isinstance(R, FractionField_1poly_field) or R in FunctionFields():
             raise NotImplementedError('periodic points not implemented for fraction function fields; '
                 'clear denominators and use the polynomial ring instead')
@@ -4988,7 +4988,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     return good_points
                 else:
                     raise NotImplementedError("ring must be a number field or finite field")
-            else: #a higher dimensional scheme
+            else:  # a higher dimensional scheme
                 raise TypeError("use return_scheme=True")
         else:
             raise ValueError("algorithm must be either 'variety' or 'cyclegraph'")
@@ -5907,18 +5907,18 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         R = fn.domain().coordinate_ring()
         S = PolynomialRing(FractionField(self.base_ring()), 'z', 2)
         phi = R.hom([S.gen(0)], S)
-        psi = dom.coordinate_ring().hom([S.gen(0), 1], S)  #dehomogenize
+        psi = dom.coordinate_ring().hom([S.gen(0), 1], S)  # dehomogenize
         dfn = fn[0].derivative(R.gen())
 
         #polynomial to be evaluated at the periodic points
-        mult_poly = phi(dfn.denominator())*S.gen(1) - phi(dfn.numerator()) #w-f'(z)
+        mult_poly = phi(dfn.denominator())*S.gen(1) - phi(dfn.numerator())  # w-f'(z)
 
         #polynomial defining the periodic points
         x,y = dom.gens()
         if formal:
-            fix_poly = self.dynatomic_polynomial(n)  #f(z)-z
+            fix_poly = self.dynatomic_polynomial(n)  # f(z)-z
         else:
-            fix_poly = Fn[0]*y - Fn[1]*x #f(z) - z
+            fix_poly = Fn[0]*y - Fn[1]*x  # f(z) - z
 
         #check infinity
         inf = dom(1,0)
@@ -5971,7 +5971,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     for pd,ed in Ld:
                         good_res *= pd**(ed/d)
             res = good_res
-        else: #type is 'point'
+        else:  # type is 'point'
             #evaluate the resultant
             fix_poly = psi(fix_poly)
             res = fix_poly.resultant(mult_poly, S.gen(0))
@@ -6265,7 +6265,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             d = ZZ(pts_poly.degree())
             try:
                 max_mult = max([ex for p,ex in pts_poly.factor()])
-            except NotImplementedError: #not factorization in numerical rings
+            except NotImplementedError:  # not factorization in numerical rings
                 CF = ComplexField(prec=prec)
                 if pts_poly.base_ring() != CF:
                     if emb is None:
@@ -6285,7 +6285,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 d = ZZ(pts_poly.degree())
                 try:
                     max_mult = max([ex for p,ex in pts_poly.factor()])
-                except NotImplementedError: #not factorization in numerical rings
+                except NotImplementedError:  # not factorization in numerical rings
                     CF = ComplexField(prec=prec)
                     if pts_poly.base_ring() != CF:
                         if emb is None:
@@ -6439,7 +6439,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     raise ValueError('orbit of point leaves domain')
                 H = Q.global_height()
                 n += 1
-            if H <= B: #it must have been in the cycle
+            if H <= B:  # it must have been in the cycle
                 if return_period:
                     m = orbit.index(Q)
                     return (m, n - m)
@@ -7133,12 +7133,12 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             T = q[0]
             n = q[1]
             k = q[2]
-            T.scale_by(1 / T[qindex]) #normalize
+            T.scale_by(1 / T[qindex])  # normalize
             bad = 0
             #stop where we reach the needed precision or the point is bad
             while k < L and bad == 0:
                 l = self._multipliermod(T, n, p, 2*k)
-                l -= l.parent().one() #f^n(x) - x
+                l -= l.parent().one()  # f^n(x) - x
                 lp = l.change_ring(Zmod(p**k))
                 ldet = lp.determinant()
                 # if the matrix is invertible then we can Hensel lift
@@ -7162,14 +7162,14 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     S.scale_by(-1 / p**k)
                     vecs = [Zmod(p**k)(S._coords[iS]) for iS in range(N + 1)]
                     vecs.pop(qindex)
-                    newvecs = list((lp.inverse()) * vector(vecs)) #l.inverse should be mod p^k!!
+                    newvecs = list((lp.inverse()) * vector(vecs))  # l.inverse should be mod p^k!!
                     newS = []
                     [newS.append(QQ(newvecs[i])) for i in range(qindex)]
                     newS.append(0)
                     [newS.append(QQ(newvecs[i])) for i in range(qindex, N)]
                     for i in range(N + 1):
                         newS[i] = newS[i] % (p**k)
-                    S = PS.point(newS, False) #don't check for [0,...,0]
+                    S = PS.point(newS, False)  # don't check for [0,...,0]
                     newT = list(T)
                     for i in range(N + 1):
                         newT[i] += S[i] * (p**k)
@@ -7187,7 +7187,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     if shifts is None:
                         shifts = xmrange([p for i in range(N)])
                     for shift in shifts:
-                        newT = [RQ(t) for t in T]  #T.change_ring(RQ, check = False)
+                        newT = [RQ(t) for t in T]  # T.change_ring(RQ, check = False)
                         shiftindex = 0
                         for i in range(N + 1):
                             if i != qindex:
@@ -7772,14 +7772,14 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 periods = DS.possible_periods(prime_bound=primebound,
                                                 bad_primes=badprimes, ncpus=num_cpus)
             if periods == []:
-                return []  #no rational preperiodic points
+                return []  # no rational preperiodic points
             else:
                 p = kwds.pop("lifting_prime", 23)
                 #find the rational preperiodic points
                 T = DS.all_periodic_points(prime_bound=primebound, lifting_prime=p,
                                                   periods=periods, bad_primes=badprimes,
                                                   ncpus=num_cpus, **kwds)
-                preper = DS.all_rational_preimages(T) #find the preperiodic points
+                preper = DS.all_rational_preimages(T)  # find the preperiodic points
                 preper = list(preper)
         return preper
 
@@ -8181,7 +8181,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 det_ratio = m1.det()/m2.det()
                 try:
                     det_root = det_ratio.nth_root(M)
-                except ValueError: #no root in field
+                except ValueError:  # no root in field
                     return []
                 #matrices must have same determinant to be similar, but were in PGL
                 #so we can scale so the determinants are equal
@@ -8197,7 +8197,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                                 minimal=True)
                     if K == base:
                         return [matrix(K, M, M, mK)]
-                    else: #may be a subfield
+                    else:  # may be a subfield
                         embeds = K.embeddings(base)
                         if len(embeds) == 0:
                             #not a subfield
@@ -8208,7 +8208,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                                 #check that it is the right embedding
                                 if f.conjugate(m_emb) == g:
                                     return [m_emb]
-                else: #finite field case
+                else:  # finite field case
                     #always comes from prime field so can coerce
                     m = matrix(base, M, M, [base(u.as_finite_field_element()[1]) for t in list(m) for u in t])
                     return [m]
@@ -8402,7 +8402,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 det_ratio = m1.det()/m2.det()
                 try:
                     det_root = det_ratio.nth_root(M)
-                except ValueError: #no root in field
+                except ValueError:  # no root in field
                     return False
                 # matrices must have same determinant to be similar, but were in PGL
                 # so we can scale to have the determinants equal
@@ -8507,7 +8507,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         #which contain the fixed points. We do
         #this successively so we can exit early if
         #we find one and not go all the way to the splitting field
-        i = 0 #field index
+        i = 0  # field index
         if G.degree() != 0:
             G = G.polynomial(G.variable(0))
         while G.degree() != 0:
@@ -8520,7 +8520,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                         return True
                     G = R(G/(p**exp)) # we already checked this root
                 else:
-                    u = p #need to extend to get these roots
+                    u = p  # need to extend to get these roots
             if G.degree() != 0:
                 #create the next extension
                 if K == QQ:
@@ -8643,7 +8643,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             raise NotImplementedError("must be over an absolute number field or finite field")
         if K in FiniteFields():
             q = K.characteristic()
-        psi = K.hom([K.gen()]) #identity hom for return_embedding
+        psi = K.hom([K.gen()])  # identity hom for return_embedding
         g = self
         G = self.dehomogenize(1).dynatomic_polynomial(1)
         done = False
@@ -8739,7 +8739,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 gc = gc.change_ring(phi)
             m = matrix(M, 2, 2, [phi(s) for t in list(m) for s in t])
             rv = phi(v).nth_root(d-1)
-        else: #root is already in the field
+        else:  # root is already in the field
             M = N
             rv = v.nth_root(d-1)
         mc = matrix(M, 2, 2, [rv,0,0,1])
@@ -9306,7 +9306,7 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
                     Q = self(P)
                     Q.normalize_coordinates()
                     E.append([Q])
-                except ValueError: #indeterminacy
+                except ValueError:  # indeterminacy
                     E.append([])
         else:
             X = self.domain()
@@ -9318,7 +9318,7 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
                         Q = self(XP)
                         Q.normalize_coordinates()
                         E.append([Q])
-                    except ValueError: #indeterminacy
+                    except ValueError:  # indeterminacy
                         E.append([])
                 except TypeError:  # not a point on the scheme
                     pass
@@ -9550,5 +9550,5 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
             DS = self
         else:
             DS = self.change_ring(R)
-            return DS.all_periodic_points(**kwds)  #ensures that the correct method is run, in case user switches to infinite fields
+            return DS.all_periodic_points(**kwds)  # ensures that the correct method is run, in case user switches to infinite fields
         return _all_periodic_points(DS)

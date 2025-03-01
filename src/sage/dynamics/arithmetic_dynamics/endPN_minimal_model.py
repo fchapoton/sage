@@ -319,7 +319,7 @@ def affine_minimal(vp, return_transformation=False, D=None, quick=False):
         if quick and not flag:
             break
 
-    if quick: #only return whether the model is minimal
+    if quick:  # only return whether the model is minimal
         return flag
 
     if return_transformation:
@@ -544,7 +544,7 @@ def BM_all_minimal(vp, return_transformation=False, D=None):
     BR = mp.domain().base_ring()
     MS = MatrixSpace(QQ, 2)
     M_Id = MS.one()
-    F, G = list(mp)  #coordinate polys
+    F, G = list(mp)  # coordinate polys
     aff_map = mp.dehomogenize(1)
     f, g = aff_map[0].numerator(), aff_map[0].denominator()
     z = aff_map.domain().gen(0)

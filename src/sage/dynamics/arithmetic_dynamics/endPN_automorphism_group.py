@@ -134,7 +134,7 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False,
     min_poly = 1
 
     #check if infinity is a fixed point
-    if g.degree() < d: #then infinity is a fixed point
+    if g.degree() < d:  # then infinity is a fixed point
         #find elements in W of the form (infinity, y)
         #where W is the set of F-rational points (x,y) such that
         #x is fixed by phi and phi(y)=x
@@ -151,7 +151,7 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False,
     for S in h.roots():
         min_poly = min_poly*(z - S[0])**(S[1])
 
-        if g.degree() < d: #then infinity is a fixed point so (infinity, S[0])
+        if g.degree() < d:  # then infinity is a fixed point so (infinity, S[0])
             alpha = S[0]  # is in Z_(1,1)**2
             zeta = -1
             s = (zeta*z + alpha*(1 - zeta))
@@ -163,7 +163,7 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False,
 
         #now compute points in W
         preimage = f - g*S[0]
-        if preimage.degree() < d: #infinity is in W
+        if preimage.degree() < d:  # infinity is in W
             zeta = -1
             alpha = S[0]
             s = (zeta*z + alpha*(1 - zeta))
@@ -219,7 +219,7 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False,
                 elements.append(matrix(F, 2,
                     [(alpha - zeta*beta), - (alpha*beta)*(1 - zeta),
                      (1 - zeta), (alpha*zeta - beta)]))
-    if g2.degree() < f2.degree() and g.degree() == d: #infinity has period 2
+    if g2.degree() < f2.degree() and g.degree() == d:  # infinity has period 2
         for alpha in period2_points:
             zeta = -1
             s = (zeta*z + alpha*(1 - zeta))
@@ -245,7 +245,7 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False,
                     elements.append(K(s))
                 else:
                     elements.append(matrix(F, 2, [-b,-2*c, 2*a, b]))
-            if is_square(-disc): #psi[0] generates Q(i)
+            if is_square(-disc):  # psi[0] generates Q(i)
                 alpha = psi[0].change_ring(L1).roots()[0][0]
                 beta = alpha.trace() - alpha
                 for zeta in [i, -i]:
@@ -261,7 +261,7 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False,
                                 elements.append(K(s))
                             else:
                                 elements.append(matrix(F, 2, [a,b, 1, d]))
-            elif is_square(-3*disc): #psi[0] generates Q(zeta_3)
+            elif is_square(-3*disc):  # psi[0] generates Q(zeta_3)
                 alpha = psi[0].change_ring(L2).roots()[0][0]
                 beta = alpha.trace() - alpha
                 for zeta in [F(1)/F(2)*(1 + isqrt3), F(1)/F(2)*(1 - isqrt3),F(1)/F(2)*(-1 + isqrt3), F(1)/F(2)*(-1 - isqrt3)]:
@@ -714,9 +714,9 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_fun
 
     #Determining the set that is used to obtain the height bound
     h = R(prod(x[0] for x in (R(f - g*z)).factor()))# take minimal polynomial of fixed points
-    if h.degree() == 2: #if there are only 2 finite fixed points, take preimage of fixed points
+    if h.degree() == 2:  # if there are only 2 finite fixed points, take preimage of fixed points
         h = h[2]*f**2 + h[1]*f*g + h[0]*g**2
-    elif h.degree() == 1: #if there is just 1 finite fixed point, take preimages under phi^2
+    elif h.degree() == 1:  # if there is just 1 finite fixed point, take preimages under phi^2
         psi = phi(phi(z))
         f2 = psi.numerator()
         g2 = psi.denominator()
@@ -749,7 +749,7 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_fun
     # the only possible groups are C_n, D_2n for n|6 or n|4
     # all of these groups have order dividing 24
     while (congruence < (2*MaxH**2)) and len(elements) < gcd(orderaut + [24]):
-        if badprimes % p != 0:  #prime of good reduction
+        if badprimes % p != 0:  # prime of good reduction
             # compute automorphisms mod p
             phi_p = f.change_ring(GF(p))/g.change_ring(GF(p))
             sorted_automorphisms = automorphism_group_FF(phi_p)
@@ -809,14 +809,14 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_fun
                             # attempt to lift that element again unnecessarily
                             automorphisms = remove_redundant_automorphisms(automorphisms,
                                 orderelts, primepowers, temp)
-                            if order == 4: #have some elements of order 4
+                            if order == 4:  # have some elements of order 4
                                 # so possible aut group is Z/4 or D_4
                                 badorders.extend([3, 6])
-                            elif order == 3 or order == 6:#have some elements of
+                            elif order == 3 or order == 6:  # have some elements of
                                 # order 3 or 6 so possible aut groups are Z/3,
                                 # D_3, Z/6, or D_6
                                 badorders.append(4)
-                    else: #no elements of order d in some F_v
+                    else:  # no elements of order d in some F_v
                         for m in divisors(N):
                             if m % order == 0:
                                 badorders.append(m)
@@ -1241,7 +1241,7 @@ def automorphism_group_FF_alg2(rational_function):
 
         T_poly = R(prod(x[0] for x in preimage.factor()))
 
-    else: #case n=1
+    else:  # case n=1
         # Infinity is the fixed point
         if bool(fix.degree() < D+1):
             minimal_preimage = R(prod(x[0] for x in g.factor()))
