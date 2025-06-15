@@ -77,11 +77,11 @@ cdef int *hamming_weights() noexcept:
     ham_wts[1] = 1
     ham_wts[2] = 1
     ham_wts[3] = 2
-    for i from 4 <= i < 16:
+    for i in range(4, 16):
         ham_wts[i] = ham_wts[i & 3] + ham_wts[(i>>2) & 3]
-    for i from 16 <= i < 256:
+    for i in range(16, 256):
         ham_wts[i] = ham_wts[i & 15] + ham_wts[(i>>4) & 15]
-    for i from 256 <= i < 65536:
+    for i in range(256, 65536):
         ham_wts[i] = ham_wts[i & 255] + ham_wts[(i>>8) & 255]
     return ham_wts
 
@@ -121,12 +121,12 @@ def weight_dist(M):
         [1, 0, 0, 0, 0, 0, 68, 0, 85, 0, 68, 0, 34, 0, 0, 0, 0, 0]
     """
     cdef bitset_t word
-    cdef int i,j,k, dim=M.nrows(), deg=M.ncols()
+    cdef int i, j, k, dim=M.nrows(), deg=M.ncols()
     cdef list L
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef int *LL = <int *> mem.malloc((deg+1) * sizeof(int))
     cdef bitset_s *basis = <bitset_s *> mem.malloc(dim * sizeof(bitset_s))
-    for i from 0 <= i < dim:
+    for i in range(dim):
         bitset_init(&basis[i], deg)
         bitset_zero(&basis[i])
         for j in M.row(i).nonzero_positions():
@@ -150,8 +150,8 @@ def weight_dist(M):
         j ^= (1 << k)
         bitset_xor(word, word, &basis[k])
     bitset_free(word)
-    L = [int(LL[i]) for i from 0 <= i < deg+1]
-    for i from 0 <= i < dim:
+    L = [int(LL[i]) for i in range(deg + 1)]
+    for i in range(dim):
         bitset_free(&basis[i])
     return L
 
@@ -210,32 +210,32 @@ def test_word_perms(t_limit=5.0):
     while cputime(t) < t_limit:
         word = [randint(0, 1) for _ in range(n)]
         cw1 = 0
-        for j from 0 <= j < n:
+        for j in range(n):
             cw1 += (<codeword>word[j]) << (<codeword>j)
         # 1. test create_word_perm
         gg = S.random_element()
         g = create_word_perm(gg)
         word2 = [0]*n
-        for j from 0 <= j < n:
+        for j in range(n):
             word2[gg[j]] = word[j]
         cw2 = permute_word_by_wp(g, cw1)
         cw3 = 0
-        for j from 0 <= j < n:
+        for j in range(n):
             cw3 += (<codeword>word2[j]) << (<codeword>j)
         if cw3 != cw2:
             print("ERROR1")
         dealloc_word_perm(g)
         # 1b. test create_array_word_perm
         gg = S.random_element()
-        for j from 0 <= j < n:
+        for j in range(n):
             arr[j] = gg[j]
         g = create_array_word_perm(arr, 0, n)
         word2 = [0]*n
-        for j from 0 <= j < n:
+        for j in range(n):
             word2[gg[j]] = word[j]
         cw2 = permute_word_by_wp(g, cw1)
         cw3 = 0
-        for j from 0 <= j < n:
+        for j in range(n):
             cw3 += (<codeword>word2[j]) << (<codeword>j)
         if cw3 != cw2:
             print("ERROR1b")
@@ -247,11 +247,11 @@ def test_word_perms(t_limit=5.0):
         h = create_word_perm(hh)
         i = create_comp_word_perm(g, h)
         word2 = [0]*n
-        for j from 0 <= j < n:
+        for j in range(n):
             word2[gg[hh[j]]] = word[j]
         cw2 = permute_word_by_wp(i, cw1)
         cw3 = 0
-        for j from 0 <= j < n:
+        for j in range(n):
             cw3 += (<codeword>word2[j]) << (<codeword>j)
         if cw3 != cw2:
             print("ERROR2")
@@ -304,16 +304,16 @@ cdef WordPermutation *create_word_perm(object list_perm) noexcept:
     word_perm.gate = ((<codeword>1) << chunk_size) - 1
     list_perm += list(range(len(list_perm), chunk_size*num_chunks))
     word_perm.chunk_words = words_per_chunk
-    for i from 0 <= i < num_chunks:
+    for i in range(num_chunks):
         images_i = <codeword *> sig_malloc(words_per_chunk * sizeof(codeword))
         if images_i is NULL:
-            for j from 0 <= j < i:
+            for j in range(i):
                 sig_free(word_perm.images[j])
             sig_free(word_perm.images)
             sig_free(word_perm)
             raise RuntimeError("Error allocating memory.")
         word_perm.images[i] = images_i
-        for j from 0 <= j < chunk_size:
+        for j in range(chunk_size):
             images_i[1 << j] = (<codeword>1) << list_perm[chunk_size*i + j]
         image = <codeword> 0
         parity = 0
@@ -353,17 +353,17 @@ cdef WordPermutation *create_array_word_perm(int *array, int start, int degree) 
     words_per_chunk = 1 << chunk_size
     word_perm.gate = ((<codeword>1) << chunk_size) - 1
     word_perm.chunk_words = words_per_chunk
-    for i from 0 <= i < num_chunks:
+    for i in range(num_chunks):
         images_i = <codeword *> sig_malloc(words_per_chunk * sizeof(codeword))
         if images_i is NULL:
-            for j from 0 <= j < i:
+            for j in range(i):
                 sig_free(word_perm.images[j])
             sig_free(word_perm.images)
             sig_free(word_perm)
             raise RuntimeError("Error allocating memory.")
         word_perm.images[i] = images_i
         cslim = min(chunk_size, degree - i*chunk_size)
-        for j from 0 <= j < cslim:
+        for j in range(cslim):
             images_i[1 << j] = (<codeword>1) << array[start + chunk_size*i + j]
         image = <codeword> 0
         parity = 0
@@ -403,16 +403,16 @@ cdef WordPermutation *create_id_word_perm(int degree) noexcept:
     words_per_chunk = 1 << chunk_size
     word_perm.gate = ((<codeword>1) << chunk_size) - 1
     word_perm.chunk_words = words_per_chunk
-    for i from 0 <= i < num_chunks:
+    for i in range(num_chunks):
         images_i = <codeword *> sig_malloc(words_per_chunk * sizeof(codeword))
         if images_i is NULL:
-            for j from 0 <= j < i:
+            for j in range(i):
                 sig_free(word_perm.images[j])
             sig_free(word_perm.images)
             sig_free(word_perm)
             raise RuntimeError("Error allocating memory.")
         word_perm.images[i] = images_i
-        for j from 0 <= j < chunk_size:
+        for j in range(chunk_size):
             images_i[1 << j] = (<codeword>1) << (chunk_size*i + j)
         image = <codeword> 0
         parity = 0
@@ -452,10 +452,10 @@ cdef WordPermutation *create_comp_word_perm(WordPermutation *g, WordPermutation 
     words_per_chunk = 1 << chunk_size
     word_perm.gate = ((<codeword>1) << chunk_size) - 1
     word_perm.chunk_words = words_per_chunk
-    for i from 0 <= i < num_chunks:
+    for i in range(num_chunks):
         images_i = <codeword *> sig_malloc(words_per_chunk * sizeof(codeword))
         if images_i is NULL:
-            for j from 0 <= j < i:
+            for j in range(i):
                 sig_free(word_perm.images[j])
             sig_free(word_perm.images)
             sig_free(word_perm)
@@ -491,7 +491,7 @@ cdef WordPermutation *create_inv_word_perm(WordPermutation *g) noexcept:
     cdef int *array = <int *> sig_malloc(g.degree * sizeof(int))
     cdef codeword temp
     cdef WordPermutation *w
-    for i from 0 <= i < g.degree:
+    for i in range(g.degree):
         j = 0
         temp = permute_word_by_wp(g, (<codeword>1) << i)
         while not ((<codeword>1) << j) & temp:
@@ -506,7 +506,7 @@ cdef int dealloc_word_perm(WordPermutation *wp) noexcept:
     Free the memory used by a word permutation.
     """
     cdef int i
-    for i from 0 <= i < wp.chunk_num:
+    for i in range(wp.chunk_num):
         sig_free(wp.images[i])
     sig_free(wp.images)
     sig_free(wp)
@@ -520,7 +520,7 @@ cdef codeword permute_word_by_wp(WordPermutation *wp, codeword word) noexcept:
     cdef codeword gate = wp.gate
     cdef codeword image = 0
     cdef codeword **images = wp.images
-    for i from 0 <= i < num_chunks:
+    for i in range(num_chunks):
         image += images[i][(word >> i*chunk_size) & gate]
     return image
 
@@ -574,7 +574,7 @@ def test_expand_to_ortho_basis(B=None):
     print("Basis:")
     while output[k]:
         k += 1
-    for i from 0 <= i < k:
+    for i in range(k):
         print(''.join(reversed(Integer(output[i]).binary().zfill(C.ncols))))
     sig_free(output)
 
@@ -602,7 +602,7 @@ cdef codeword *expand_to_ortho_basis(BinaryCode B, int n) noexcept:
     basis = <codeword *> sig_malloc((n + 1) * sizeof(codeword))
     if basis is NULL:
         raise MemoryError()
-    for i from 0 <= i < k:
+    for i in range(k):
         basis[i] = B.basis[i]
         word ^= basis[i]
     # If 11...1 is already a word of the code,
@@ -616,7 +616,7 @@ cdef codeword *expand_to_ortho_basis(BinaryCode B, int n) noexcept:
         while not word & temp:
             temp = temp << 1
             i += 1
-        for j from 0 <= j < k:
+        for j in range(k):
             if temp & basis[j]:
                 basis[j] ^= word
         temp += (<codeword>1 << k) - 1
@@ -635,7 +635,7 @@ cdef codeword *expand_to_ortho_basis(BinaryCode B, int n) noexcept:
         # word has a 1 in the ith place, and
         # j is the current row we are putting in basis
         new = 0
-        for m from 0 <= m < k:
+        for m in range(k):
             if basis[m] & word:
                 new ^= basis[m]
         basis[j] = (new & temp) + word
@@ -643,7 +643,7 @@ cdef codeword *expand_to_ortho_basis(BinaryCode B, int n) noexcept:
         i += 1
         word = word << 1
     temp = (<codeword>1 << B.nrows) - 1
-    for i from k <= i < n:
+    for i in range(k, n):
         basis[i-k] = basis[i] ^ B.words[basis[i] & temp]
     k = n-k
     i = 0
@@ -658,7 +658,7 @@ cdef codeword *expand_to_ortho_basis(BinaryCode B, int n) noexcept:
                 new = basis[i]
                 basis[i] = basis[m]
                 basis[m] = new
-            for j from 0 <= j < i:
+            for j in range(i):
                 if basis[j] & word:
                     basis[j] ^= basis[i]
             for j from i < j < k:
@@ -679,12 +679,12 @@ cdef codeword *expand_to_ortho_basis(BinaryCode B, int n) noexcept:
     perm.extend(perm_c)
     perm.extend(list(range(B.ncols, n)))
     perm_c = [0]*n
-    for j from 0 <= j < n:
+    for j in range(n):
         perm_c[perm[j]] = j
     wp = create_word_perm(perm_c)
-    for j from 0 <= j < i:
+    for j in range(i):
         basis[j] = permute_word_by_wp(wp, basis[j])
-    for j from 0 <= j < B.nrows:
+    for j in range(B.nrows):
         B.basis[j] = permute_word_by_wp(wp, B.basis[j])
     dealloc_word_perm(wp)
     word = 0
@@ -800,7 +800,7 @@ cdef class BinaryCode:
 
         if isinstance(arg1, Matrix):
             rows = arg1.rows()
-            for i from 0 <= i < nrows:
+            for i in range(nrows):
                 word = <codeword> 0
                 for j in rows[i].nonzero_positions():
                     word += (1<<j)
@@ -825,14 +825,14 @@ cdef class BinaryCode:
 
         else:  # isinstance(arg1, BinaryCode)
             other_basis = other.basis
-            for i from 0 <= i < nrows-1:
+            for i in range(nrows - 1):
                 self_basis[i] = other_basis[i]
             i = nrows - 1
             self_basis[i] = glue_word
 
             memcpy(self_words, other.words, other_nwords*(self.radix>>3))
 
-            for combination from 0 <= combination < other_nwords:
+            for combination in range(other_nwords):
                 self_words[combination+other_nwords] = self_words[combination] ^ glue_word
 
     def __reduce__(self):
@@ -884,9 +884,9 @@ cdef class BinaryCode:
         from sage.matrix.constructor import matrix
         from sage.rings.finite_rings.finite_field_constructor import GF
         rows = []
-        for i from 0 <= i < self.nrows:
-            row = [0]*self.ncols
-            for j from 0 <= j < self.ncols:
+        for i in range(self.nrows):
+            row = [0] * self.ncols
+            for j in range(self.ncols):
                 if self.basis[i] & ((<codeword>1) << j):
                     row[j] = 1
             rows.append(row)
@@ -984,13 +984,13 @@ cdef class BinaryCode:
         s += "\nnwords:" + str(self.nwords)
         s += "\nradix:" + str(self.radix)
         s += "\nbasis:\n"
-        for i from 0 <= i < self.nrows:
+        for i in range(self.nrows):
             b = list(int_to_binary_string(self.basis[i]).zfill(self.ncols))
             b.reverse()
             b.append('\n')
             s += ''.join(b)
         s += "\nwords:\n"
-        for ui from 0 <= ui < self.nwords:
+        for ui in range(self.nwords):
             b = list(int_to_binary_string(self.words[ui]).zfill(self.ncols))
             b.reverse()
             b.append('\n')
@@ -1109,9 +1109,9 @@ cdef class BinaryCode:
             if _col_gamma is not NULL:
                 sig_free(_col_gamma)
             raise MemoryError("Memory.")
-        for i from 0 <= i < self.nwords:
+        for i in range(self.nwords):
             _word_gamma[i] = word_gamma[i]
-        for i from 0 <= i < self.ncols:
+        for i in range(self.ncols):
             _col_gamma[i] = col_gamma[i]
         result = self.is_automorphism(_col_gamma, _word_gamma)
         sig_free(_col_gamma)
@@ -1122,7 +1122,7 @@ cdef class BinaryCode:
         cdef int i, j, self_nwords = self.nwords, self_ncols = self.ncols
         i = 1
         while i < self_nwords:
-            for j from 0 <= j < self_ncols:
+            for j in range(self_ncols):
                 if self.is_one(i, j) != self.is_one(word_gamma[i], col_gamma[j]):
                     return 0
             i = i << 1
@@ -1180,7 +1180,7 @@ cdef class BinaryCode:
         cdef WordPermutation *wp
         cdef int i
         wp = create_word_perm(labeling)
-        for i from 0 <= i < self.nrows:
+        for i in range(self.nrows):
             self.basis[i] = permute_word_by_wp(wp, self.basis[i])
         dealloc_word_perm(wp)
 
@@ -1236,7 +1236,7 @@ cdef class BinaryCode:
                     swap = self.basis[row]
                     self.basis[row] = self.basis[i]
                     self.basis[i] = swap
-                for j from 0 <= j < row:
+                for j in range(row):
                     if self.basis[j] & current:
                         self.basis[j] ^= self.basis[row]
                 for j from row < j < self.nrows:
@@ -1247,7 +1247,7 @@ cdef class BinaryCode:
         perm = [0]*self.ncols
         j = 0
         k = self.nrows
-        for i from 0 <= i < self.ncols:
+        for i in range(self.ncols):
             if ((<codeword>1) << i) & pivots:
                 perm[i] = j
                 j += 1
@@ -1293,18 +1293,18 @@ cdef class OrbitPartition:
         self.col_rank = <int *> self.mem.malloc(ncols * sizeof(int))
         self.col_min_cell_rep = <int *> self.mem.malloc(ncols * sizeof(int))
         self.col_size = <int *> self.mem.malloc(ncols * sizeof(int))
-        for word from 0 <= word < nwords:
+        for word in range(nwords):
             self.wd_parent[word] = word
             self.wd_rank[word] = 0
             self.wd_min_cell_rep[word] = word
             self.wd_size[word] = 1
-        for col from 0 <= col < ncols:
+        for col in range(ncols):
             self.col_parent[col] = col
             self.col_rank[col] = 0
             self.col_min_cell_rep[col] = col
             self.col_size[col] = 1
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Return a string representation of the orbit partition.
 
@@ -1326,10 +1326,10 @@ cdef class OrbitPartition:
                                                                     self.ncols)
 #        s += 'Parents::\n'
         s += 'Words:\n'
-        for i from 0 <= i < self.nwords:
+        for i in range(self.nwords):
             s += '%d,' % self.wd_parent[i]
         s = s[:-1] + '\nColumns:\n'
-        for j from 0 <= j < self.ncols:
+        for j in range(self.ncols):
             s += '%d,' % self.col_parent[j]
 #        s = s[:-1] + '\n'
 #        s += 'Min Cell Reps::\n'
@@ -1401,15 +1401,18 @@ cdef class OrbitPartition:
         y_root = self.wd_find(y)
         if self.wd_rank[x_root] > self.wd_rank[y_root]:
             self.wd_parent[y_root] = x_root
-            self.wd_min_cell_rep[x_root] = min(self.wd_min_cell_rep[x_root],self.wd_min_cell_rep[y_root])
+            self.wd_min_cell_rep[x_root] = min(self.wd_min_cell_rep[x_root],
+                                               self.wd_min_cell_rep[y_root])
             self.wd_size[x_root] += self.wd_size[y_root]
         elif self.wd_rank[x_root] < self.wd_rank[y_root]:
             self.wd_parent[x_root] = y_root
-            self.wd_min_cell_rep[y_root] = min(self.wd_min_cell_rep[x_root],self.wd_min_cell_rep[y_root])
+            self.wd_min_cell_rep[y_root] = min(self.wd_min_cell_rep[x_root],
+                                               self.wd_min_cell_rep[y_root])
             self.wd_size[y_root] += self.wd_size[x_root]
         elif x_root != y_root:
             self.wd_parent[y_root] = x_root
-            self.wd_min_cell_rep[x_root] = min(self.wd_min_cell_rep[x_root],self.wd_min_cell_rep[y_root])
+            self.wd_min_cell_rep[x_root] = min(self.wd_min_cell_rep[x_root],
+                                               self.wd_min_cell_rep[y_root])
             self.wd_size[x_root] += self.wd_size[y_root]
             self.wd_rank[x_root] += 1
 
@@ -1473,15 +1476,18 @@ cdef class OrbitPartition:
         y_root = self.col_find(y)
         if self.col_rank[x_root] > self.col_rank[y_root]:
             self.col_parent[y_root] = x_root
-            self.col_min_cell_rep[x_root] = min(self.col_min_cell_rep[x_root],self.col_min_cell_rep[y_root])
+            self.col_min_cell_rep[x_root] = min(self.col_min_cell_rep[x_root],
+                                                self.col_min_cell_rep[y_root])
             self.col_size[x_root] += self.col_size[y_root]
         elif self.col_rank[x_root] < self.col_rank[y_root]:
             self.col_parent[x_root] = y_root
-            self.col_min_cell_rep[y_root] = min(self.col_min_cell_rep[x_root],self.col_min_cell_rep[y_root])
+            self.col_min_cell_rep[y_root] = min(self.col_min_cell_rep[x_root],
+                                                self.col_min_cell_rep[y_root])
             self.col_size[y_root] += self.col_size[x_root]
         elif x_root != y_root:
             self.col_parent[y_root] = x_root
-            self.col_min_cell_rep[x_root] = min(self.col_min_cell_rep[x_root],self.col_min_cell_rep[y_root])
+            self.col_min_cell_rep[x_root] = min(self.col_min_cell_rep[x_root],
+                                                self.col_min_cell_rep[y_root])
             self.col_size[x_root] += self.col_size[y_root]
             self.col_rank[x_root] += 1
 
@@ -3039,7 +3045,7 @@ cdef class BinaryCodeClassifier:
         """
         self.radix = sizeof(codeword) << 3
         self.ham_wts = hamming_weights()
-        self.L = 100 # memory limit for Phi and Omega- multiply by 8KB
+        self.L = 100  # memory limit for Phi and Omega- multiply by 8KB
         self.aut_gens_size = self.radix * 100
 
         self.w_gamma_size = 1 << (self.radix/2)
@@ -3054,7 +3060,7 @@ cdef class BinaryCodeClassifier:
         self.W = <unsigned int *> self.mem.malloc(self.Phi_size * self.radix * 2 * sizeof(unsigned int))
 
         self.base = <int *> self.mem.malloc(self.radix * sizeof(int))
-        self.aut_gp_gens = <int *> self.mem.malloc(self.aut_gens_size  * sizeof(int))
+        self.aut_gp_gens = <int *> self.mem.malloc(self.aut_gens_size * sizeof(int))
         self.c_gamma = <int *> self.mem.malloc(self.radix * sizeof(int))
         self.labeling = <int *> self.mem.malloc(self.radix * 3 * sizeof(int))
         self.Lambda1 = <int *> self.mem.malloc(self.radix * 2 * sizeof(int))
@@ -3250,40 +3256,56 @@ cdef class BinaryCodeClassifier:
     cdef void aut_gp_and_can_label(self, BinaryCode C, int verbosity) noexcept:
 
         # declare variables:
-        cdef int i, j, ii, jj, iii, jjj, iiii # local variables
+        cdef int i, j, ii, jj, iii, jjj, iiii  # local variables
 
-        cdef PartitionStack nu, zeta, rho # nu is the current position in the tree,
-                                          # zeta the first terminal position,
-                                          # and rho the best-so-far guess at canonical labeling position
+        cdef PartitionStack nu, zeta, rho
+        # nu is the current position in the tree,
+        # zeta the first terminal position,
+        # and rho the best-so-far guess at canonical labeling position
+
         cdef int k = 0  # the number of partitions in nu
         cdef int k_rho  # the number of partitions in rho
         cdef int *v = self.v    # list of vertices determining nu
-        cdef int h = -1 # longest common ancestor of zeta and nu: zeta[h] == nu[h], zeta[h+1] != nu[h+1]
-                        # -1 indicates that zeta is not yet defined
-        cdef int hb     # longest common ancestor of rho and nu:
-                        # rho[hb] == nu[hb], rho[hb+1] != nu[hb+1]
-        cdef int hh = 1 # the height of the oldest ancestor of nu satisfying Lemma 2.25 in [1]:
-                        # if nu does not satisfy it at k, then hh = k
-        cdef int ht # smallest such that all descendants of zeta[ht] are equivalent under
-                    # the portion of the automorphism group so far discovered
-        cdef int *alpha # for storing pointers to cells of nu[k]
-        cdef int tvc    # tvc keeps track of which vertex is the first where nu and zeta differ-
-                        # zeta was defined by splitting one vertex, and nu was defined by splitting tvc
+        cdef int h = -1
+        # longest common ancestor of zeta and nu: zeta[h] == nu[h], zeta[h+1] != nu[h+1]
+        # -1 indicates that zeta is not yet defined
 
-        cdef OrbitPartition Theta # keeps track of which vertices have been discovered to be equivalent
+        cdef int hb
+        # longest common ancestor of rho and nu:
+        # rho[hb] == nu[hb], rho[hb+1] != nu[hb+1]
+
+        cdef int hh = 1
+        # the height of the oldest ancestor of nu satisfying Lemma 2.25 in [1]:
+        # if nu does not satisfy it at k, then hh = k
+
+        cdef int ht
+        # smallest such that all descendants of zeta[ht] are equivalent under
+        # the portion of the automorphism group so far discovered
+
+        cdef int *alpha  # for storing pointers to cells of nu[k]
+        cdef int tvc
+        # tvc keeps track of which vertex is the first where nu and zeta differ-
+        # zeta was defined by splitting one vertex, and nu was defined by splitting tvc
+
+        cdef OrbitPartition Theta  # keeps track of which vertices have been discovered to be equivalent
         cdef unsigned int *Phi      # Phi stores the fixed point sets of each automorphism
         cdef unsigned int *Omega    # Omega stores the minimal elements of each cell of the orbit partition
-        cdef int l = -1    # current index for storing values in Phi and Omega- we start at -1 so that when
-                           # we increment first, the first place we write to is 0.
-        cdef unsigned int *W    # for each k, W[k] is a list (as int mask) of the vertices to be searched down from
-                       # the current partition, at k. Phi and Omega are ultimately used to make the size of
-                       # W as small as possible
+        cdef int l = -1
+        # current index for storing values in Phi and Omega- we start at -1 so that when
+        # we increment first, the first place we write to is 0.
+
+        cdef unsigned int *W
+        # for each k, W[k] is a list (as int mask) of the vertices to be searched down from
+        # the current partition, at k. Phi and Omega are ultimately used to make the size of
+        # W as small as possible
+
         cdef int *e  # 0 or 1, whether or not we have used Omega and Phi to narrow down W[k] yet: see states 12 and 17
 
-        cdef int index = 0 # Define $\Gamma^{(-1)} := \text{Aut}(C)$, and
-                           # $\Gamma^{(i)} := \Gamma^{(-1)}_{v_0,...,v_i}$.
-                           # Then index = $|\Gamma^{(k-1)}|/|\Gamma^{(k)}|$ at (POINT A)
-                           # and size = $|\Gamma^{(k-1)}|$ at (POINT A) and (POINT B).
+        cdef int index = 0
+        # Define $\Gamma^{(-1)} := \text{Aut}(C)$, and
+        # $\Gamma^{(i)} := \Gamma^{(-1)}_{v_0,...,v_i}$.
+        # Then index = $|\Gamma^{(k-1)}|/|\Gamma^{(k)}|$ at (POINT A)
+        # and size = $|\Gamma^{(k-1)}|$ at (POINT A) and (POINT B).
 
         cdef int *Lambda = self.Lambda1             # for tracking indicator values- zf and zb are
         cdef int *zf__Lambda_zeta = self.Lambda2    # indicator vectors remembering Lambda[k] for
@@ -3293,7 +3315,7 @@ cdef class BinaryCodeClassifier:
         cdef int hzb__h_rho = -1  # the max height for which Lambda and zb agree
 
         cdef int *word_gamma
-        cdef int *col_gamma = self.c_gamma # used for storing permutations
+        cdef int *col_gamma = self.c_gamma  # used for storing permutations
         cdef int nwords = C.nwords, ncols = C.ncols, nrows = C.nrows
         cdef int *ham_wts = self.ham_wts
         cdef int state  # keeps track of position in algorithm - see sage/graphs/graph_isom.pyx, search for "STATE DIAGRAM"
@@ -3315,7 +3337,7 @@ cdef class BinaryCodeClassifier:
         for i from 0 <= i < self.Phi_size * self.L:
             self.Omega[i] = 0
         word_gamma = self.w_gamma
-        alpha = self.alpha # think of alpha as of length exactly nwords + ncols
+        alpha = self.alpha  # think of alpha as of length exactly nwords + ncols
         Phi = self.Phi
         Omega = self.Omega
         W = self.W
@@ -3330,7 +3352,7 @@ cdef class BinaryCodeClassifier:
         state = 1
         while state != -1:
 
-            if state == 1: # Entry point: once only
+            if state == 1:  # Entry point: once only
                 alpha[0] = 0
                 alpha[1] = nu.flag
                 nu.refine(k, alpha, 2, C, ham_wts)
@@ -3348,13 +3370,16 @@ cdef class BinaryCodeClassifier:
                 e[k] = 0
                 state = 2
 
-            elif state == 2: # Move down the search tree one level by refining nu:
-                             # split out a vertex, and refine nu against it
+            elif state == 2:
+                # Move down the search tree one level by refining nu:
+                # split out a vertex, and refine nu against it
                 k += 1
                 nu.clear(k)
 
                 alpha[0] = nu.split_vertex(v[k-1], k)
-                Lambda[k] = nu.refine(k, alpha, 1, C, ham_wts) # store the invariant to Lambda[k]
+                Lambda[k] = nu.refine(k, alpha, 1, C, ham_wts)
+                # store the invariant to Lambda[k]
+
                 # only if this is the first time moving down the search tree:
                 if h == -1:
                     state = 5
@@ -3382,11 +3407,15 @@ cdef class BinaryCodeClassifier:
                     zb__Lambda_rho[k] = Lambda[k]
                 state = 3
 
-            elif state == 3:  # attempt to rule out automorphisms while moving down the tree
-                # if k > hzf, then we know that nu currently does not look like zeta, the first
-                # terminal node encountered, thus there is no automorphism to discover. If qzb < 0,
-                # i.e. Lambda[k] < zb[k], then the indicator is not maximal, and we can't reach a
-                # canonical leaf. If neither of these is the case, then proceed to state 4.
+            elif state == 3:
+                # attempt to rule out automorphisms while moving down
+                # the tree if k > hzf, then we know that nu currently
+                # does not look like zeta, the first terminal node
+                # encountered, thus there is no automorphism to
+                # discover. If qzb < 0, i.e. Lambda[k] < zb[k], then
+                # the indicator is not maximal, and we can't reach a
+                # canonical leaf. If neither of these is the case,
+                # then proceed to state 4.
                 if hzf__h_zeta <= k or qzb >= 0:
                     state = 4
                 else:
@@ -3456,7 +3485,8 @@ cdef class BinaryCodeClassifier:
 
                 state = 12
 
-            elif state == 7: # we have just arrived at a terminal node of the search tree T(G, Pi)
+            elif state == 7:
+                # we have just arrived at a terminal node of the search tree T(G, Pi)
                 # if this is the first terminal node, go directly to 18, to
                 # process zeta
                 if h == -1:
@@ -3477,8 +3507,11 @@ cdef class BinaryCodeClassifier:
                 else:
                     state = 8
 
-            elif state == 8: # we have just ruled out the presence of automorphism and have not yet
-                             # considered whether nu improves on rho
+            elif state == 8:
+                # we have just ruled out the presence of automorphism
+                # and have not yet considered whether nu improves on
+                # rho
+
                 # if qzb < 0, then rho already has larger indicator tuple
                 if qzb < 0:
                     state = 6
@@ -3518,7 +3551,8 @@ cdef class BinaryCodeClassifier:
 
             elif state == 10:  # we have an automorphism to process
                 # increment l
-                if l < self.L-1: l += 1
+                if l < self.L-1:
+                    l += 1
                 # store information about the automorphism to Omega and Phi
                 ii = self.Phi_size*l
                 jj = 1 + nwords/self.radix
@@ -3588,20 +3622,26 @@ cdef class BinaryCodeClassifier:
                 k = h
                 state = 13
 
-            elif state == 11: # We have just found a new automorphism, and deduced that there may
-                # be a better canonical label below the current branch off of zeta. So go to where
-                # nu meets rho
+            elif state == 11:
+                # We have just found a new automorphism, and deduced
+                # that there may be a better canonical label below the
+                # current branch off of zeta. So go to where nu meets
+                # rho
                 k = hb
                 state = 12
 
-            elif state == 12: # Coming here from either state 6 or 11, the algorithm has discovered
-                              # some new information. 11 came from 10, where a new line in Omega and
-                              # Phi was just recorded, and 6 stored information about implicit auto-
-                              # morphisms in Omega and Phi
+            elif state == 12:
+                # Coming here from either state 6 or 11, the algorithm
+                # has discovered some new information. 11 came from
+                # 10, where a new line in Omega and Phi was just
+                # recorded, and 6 stored information about implicit
+                # auto- morphisms in Omega and Phi
                 if e[k] == 1:
-                    # this means that the algorithm has come upward to this position (in state 17)
-                    # before, so we have already intersected W[k] with the bulk of Omega and Phi, but
-                    # we should still catch up with the latest ones
+                    # this means that the algorithm has come upward to
+                    # this position (in state 17) before, so we have
+                    # already intersected W[k] with the bulk of Omega
+                    # and Phi, but we should still catch up with the
+                    # latest ones
                     ii = self.Phi_size*l
                     jj = self.Phi_size*k
                     j = 1 + nwords/self.radix
@@ -3849,7 +3889,7 @@ cdef class BinaryCodeClassifier:
             [000000000010001011110101]
             [000000000001001101101110]
         """
-        aut_gp_gens, labeling, size, base = self._aut_gp_and_can_label(B)
+        _, labeling, _, _ = self._aut_gp_and_can_label(B)
         B._apply_permutation_to_basis(labeling)
         B.put_in_std_form()
 
@@ -3912,30 +3952,25 @@ cdef class BinaryCodeClassifier:
         cdef codeword *ortho_basis
         cdef codeword *B_can_lab
         cdef codeword current, swap
-        cdef codeword word, temp, gate, nonzero_gate, orbit, bwd, k_gate
+        cdef codeword word, temp, gate, nonzero_gate, k_gate
         cdef codeword *temp_basis
         cdef codeword *orbit_checks
-        cdef codeword orb_chx_size, orb_chx_shift, radix_gate
-        cdef WordPermutation *gwp
+        cdef codeword orb_chx_size, radix_gate
         cdef WordPermutation *hwp
         cdef WordPermutation *can_lab
         cdef WordPermutation *can_lab_inv
         cdef WordPermutation **parent_generators
         cdef BinaryCode B_aug
-        cdef int i, ii, j, jj, ij, k = 0, parity, combo, num_gens
-        cdef int base_size, row
-        cdef int *multimod2_index
+        cdef int i, ii, j, jj, k = 0, parity, combo
+        cdef int row
         cdef int *ham_wts = self.ham_wts
-        cdef int *num_inner_gens
-        cdef int *num_outer_gens
-        cdef int *v
         cdef int log_2_radix
-        cdef bint bingo, bingo2, bingo3
+        cdef bint bingo2
 
         B.put_in_std_form()
-        ortho_basis = expand_to_ortho_basis(B, n) # modifies B!
+        ortho_basis = expand_to_ortho_basis(B, n)  # modifies B!
 
-        aut_gp_gens, labeling, size, base = self._aut_gp_and_can_label(B)
+        aut_gp_gens, labeling, _, _ = self._aut_gp_and_can_label(B)
         B_can_lab = <codeword *> sig_malloc(B.nrows * sizeof(codeword))
         can_lab = create_word_perm(labeling[:B.ncols])
         if B_can_lab is NULL or can_lab is NULL:
@@ -3945,7 +3980,7 @@ cdef class BinaryCodeClassifier:
             if can_lab is not NULL:
                 sig_free(can_lab)
             raise MemoryError()
-        for i from 0 <= i < B.nrows:
+        for i in range(B.nrows):
             B_can_lab[i] = permute_word_by_wp(can_lab, B.basis[i])
         dealloc_word_perm(can_lab)
         row = 0
@@ -3967,8 +4002,6 @@ cdef class BinaryCodeClassifier:
                         B_can_lab[j] ^= B_can_lab[row]
                 row += 1
             current = current << 1
-        num_gens = len(aut_gp_gens)
-        base_size = len(base)
 
         parent_generators = <WordPermutation **> sig_malloc(len(aut_gp_gens) * sizeof(WordPermutation*))
         temp_basis = <codeword *> sig_malloc(self.radix * sizeof(codeword))
@@ -4013,7 +4046,7 @@ cdef class BinaryCodeClassifier:
                 temp = (word >> B.nrows) & ((<codeword>1 << k) - 1)
                 if not orbit_checks[temp >> log_2_radix] & ((<codeword>1) << (temp & radix_gate)):
                     B_aug = BinaryCode(B, word)
-                    aug_aut_gp_gens, aug_labeling, aug_size, aug_base = self._aut_gp_and_can_label(B_aug)
+                    aug_aut_gp_gens, aug_labeling, _, _ = self._aut_gp_and_can_label(B_aug)
 
                     # check if (B, B_aug) ~ (m(B_aug), B_aug)
 
@@ -4045,7 +4078,7 @@ cdef class BinaryCodeClassifier:
                         i += 1
                     # done row reduction
 
-                    for j from 0 <= j < B.nrows:
+                    for j in range(B.nrows):
                         temp_basis[j] = permute_word_by_wp(can_lab_inv, temp_basis[j])
                     from sage.matrix.constructor import matrix
                     from sage.rings.integer_ring import ZZ
@@ -4053,14 +4086,14 @@ cdef class BinaryCodeClassifier:
                     from sage.groups.perm_gps.constructor import PermutationGroupElement
                     from sage.libs.gap.libgap import libgap
                     rs = []
-                    for i from 0 <= i < B.nrows:
+                    for i in range(B.nrows):
                         r = []
-                        for j from 0 <= j < n:
+                        for j in range(n):
                             r.append((((<codeword>1)<<j)&temp_basis[i])>>j)
                         rs.append(r)
                     m = BinaryCode(matrix(ZZ, rs))
 
-                    m_aut_gp_gens, m_labeling, m_size, m_base = self._aut_gp_and_can_label(m)
+                    m_aut_gp_gens, _, _, _ = self._aut_gp_and_can_label(m)
                     if True:  # size*factorial(n-B.ncols) == m_size:
 
                         if len(m_aut_gp_gens) == 0:
@@ -4094,9 +4127,9 @@ cdef class BinaryCodeClassifier:
                             from sage.matrix.constructor import matrix
                             from sage.rings.finite_rings.finite_field_constructor import GF
                             M = matrix(GF(2), B_aug.nrows, B_aug.ncols)
-                            for i from 0 <= i < B_aug.ncols:
+                            for i in range(B_aug.ncols):
                                 for j from 0 <= j < B_aug.nrows:
-                                    M[j,i] = B_aug.is_one(1 << j, i)
+                                    M[j, i] = B_aug.is_one(1 << j, i)
                             output.append(M)
                     dealloc_word_perm(can_lab)
                     dealloc_word_perm(can_lab_inv)
@@ -4105,7 +4138,7 @@ cdef class BinaryCodeClassifier:
                     orbits = [word]
                     j = 0
                     while j < len(orbits):
-                        for i from 0 <= i < len(aut_gp_gens):
+                        for i in range(len(aut_gp_gens)):
                             temp = <codeword> orbits[j]
                             temp = permute_word_by_wp(parent_generators[i], temp)
                             temp ^= B.words[temp & gate]
@@ -4128,7 +4161,7 @@ cdef class BinaryCodeClassifier:
                 combo ^= (1 << i)
                 word ^= ortho_basis[i]
 
-        for i from 0 <= i < len(aut_gp_gens):
+        for i in range(len(aut_gp_gens)):
             dealloc_word_perm(parent_generators[i])
         sig_free(B_can_lab)
         sig_free(parent_generators)
