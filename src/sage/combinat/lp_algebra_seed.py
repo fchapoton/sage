@@ -44,15 +44,15 @@ from sage.symbolic.ring import SR
 
 class LPASeed(SageObject):
     r"""
-    Initialise a Laurent phenomenon algebra seed.
+    A Laurent phenomenon algebra seed.
 
     INPUT:
 
     - ``data`` -- can be one of the following:
 
-        * dict - dictionary of initial variable names to their
+        * a dictionary of initial variable names to their
             corresponding exchange polynomials
-        * LPASeed object
+        * a :class:`LPASeed` object
 
     - ``coefficients`` -- tuple of symbolic variables (default: ``()``); the
         labels of, if any, the coefficients of the exchange polynomials. If no
@@ -288,13 +288,12 @@ class LPASeed(SageObject):
 
                     # calculate maximal power of exchange_polys[j] that
                     # divides sub_poly
-                    counter = 0
-                    while True:
+                    counter = -1
+                    r = 1  # a generic value to run the loop
+                    while r != 0:
+                        counter += 1
                         (q, r) = sub_poly.quo_rem(
                             exchange_polys[j] ** (counter + 1))
-                        if r != 0:
-                            break
-                        counter = counter + 1
 
                     # divide exchange polynomial by this maximal power
                     laurent_polys[i] = laurent_polys[i] / (
@@ -507,20 +506,15 @@ class LPASeed(SageObject):
             depth: 2     found: 10
             depth: 3     found: 16
         """
-
         if algorithm == 'BFS':
-
             return self._mutation_class_iter_bfs(
                 depth=depth, verbose=verbose, return_paths=return_paths)
 
         elif algorithm == 'DFS':
-
             return self._mutation_class_iter_dfs(
                 depth=depth, verbose=verbose, return_paths=return_paths)
 
-        else:
-
-            raise ValueError('nonsupported search algorithm: %s' % (algorithm))
+        raise ValueError('nonsupported search algorithm: %s' % (algorithm))
 
     def _mutation_class_iter_bfs(self, depth=infinity, verbose=False,
                                  return_paths=False):
@@ -788,9 +782,9 @@ class LPASeed(SageObject):
             sage: LPASeed({x1: 2},base_ring=ZZ).cluster_class()
             [[x1], [2/x1]]
         """
-        return [c for c in self.cluster_class_iter(depth=depth,
-                                                   verbose=verbose,
-                                                   algorithm=algorithm)]
+        return list(self.cluster_class_iter(depth=depth,
+                                            verbose=verbose,
+                                            algorithm=algorithm))
 
     def variable_class_iter(self, depth=infinity, algorithm='BFS'):
         r"""
@@ -1195,13 +1189,7 @@ class LPASeed(SageObject):
         r"""
         Return whether this seed has Laurent polynomials with nontrivial denominators.
         """
-        for poly in self.laurent_polys():
-
-            if poly.denominator() != 1:
-
-                return False
-
-        return True
+        return all(poly.denominator() == 1 for poly in self.laurent_polys())
 
     def is_mutation_infinite(self, give_reason=True):
         r"""
@@ -1267,7 +1255,7 @@ class LPASeed(SageObject):
 
             coefficients = []
             M = polys[i].monomials()
-            new_coeffs = list(var('a_%d%d' % (i, j) for j in range(len(M))))
+            new_coeffs = list(SR.var('a_%d%d' % (i, j) for j in range(len(M))))
             coefficients += new_coeffs
             new_poly = 0
             for j in range(len(M)):
