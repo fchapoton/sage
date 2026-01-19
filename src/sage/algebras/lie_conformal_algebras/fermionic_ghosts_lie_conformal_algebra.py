@@ -18,17 +18,18 @@ AUTHORS:
 
 - Reimundo Heluani (2020-06-03): Initial implementation.
 """
-#******************************************************************************
+# ***************************************************************************
 #       Copyright (C) 2020 Reimundo Heluani <heluani@potuz.net>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ***************************************************************************
 
 from .graded_lie_conformal_algebra import GradedLieConformalAlgebra
+
 
 class FermionicGhostsLieConformalAlgebra(GradedLieConformalAlgebra):
     r"""
@@ -36,15 +37,15 @@ class FermionicGhostsLieConformalAlgebra(GradedLieConformalAlgebra):
 
     INPUT:
 
-    - ``R`` --  a commutative ring; the base ring of this Lie
+    - ``R`` -- a commutative ring; the base ring of this Lie
       conformal algebra
-    - ``ngens`` -- an even positive Integer (default: ``2``); The
+    - ``ngens`` -- an even positive Integer (default: ``2``); the
       number of non-central generators of this Lie conformal
-      algebra.
-    - ``names`` -- a tuple of ``str``; alternative names for the
+      algebra
+    - ``names`` -- tuple of strings; alternative names for the
       generators
     - ``index_set`` -- an enumerated set; alternative indexing
-      set for the generators.
+      set for the generators
 
     OUTPUT:
 
@@ -71,9 +72,9 @@ class FermionicGhostsLieConformalAlgebra(GradedLieConformalAlgebra):
         sage: R.structure_coefficients()
         Finite family {('a', 'c'): ((0, K),),  ('b', 'd'): ((0, K),),  ('c', 'a'): ((0, K),),  ('d', 'b'): ((0, K),)}
     """
-    def __init__(self,R,ngens=2,names=None,index_set=None):
+    def __init__(self, R, ngens=2, names=None, index_set=None) -> None:
         """
-        Initialize self.
+        Initialize ``self``.
 
         TESTS::
 
@@ -116,7 +117,7 @@ class FermionicGhostsLieConformalAlgebra(GradedLieConformalAlgebra):
                          parity=parity,
                          central_elements=('K',))
 
-    def _repr_(self):
+    def _repr_(self) -> str:
         """
         String representation.
 
@@ -126,4 +127,4 @@ class FermionicGhostsLieConformalAlgebra(GradedLieConformalAlgebra):
             The Fermionic ghosts Lie conformal algebra with generators (b, c, K) over Rational Field
         """
         return "The Fermionic ghosts Lie conformal algebra with generators {} "\
-               "over {}".format(self.gens(),self.base_ring())
+            "over {}".format(self.gens(), self.base_ring())

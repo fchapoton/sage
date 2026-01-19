@@ -1,4 +1,3 @@
-# coding: utf-8
 r"""
 Solution of polynomial systems using msolve
 
@@ -34,6 +33,7 @@ from sage.rings.real_mpfr import RealField_class
 from sage.rings.real_mpfi import RealIntervalField_class, RealIntervalField
 from sage.structure.sequence import Sequence
 
+
 def _run_msolve(ideal, options):
     r"""
     Internal utility function
@@ -63,6 +63,7 @@ def _run_msolve(ideal, options):
     msolve_out.check_returncode()
 
     return msolve_out.stdout
+
 
 def groebner_basis_degrevlex(ideal, proof=True):
     r"""
@@ -105,12 +106,13 @@ def groebner_basis_degrevlex(ideal, proof=True):
     """
 
     if ideal.base_ring() is QQ and sage.structure.proof.proof.get_flag(proof, "polynomial"):
-            raise ValueError("msolve relies on heuristics; please use proof=False")
+        raise ValueError("msolve relies on heuristics; please use proof=False")
 
     drlpolring = ideal.ring().change_ring(order='degrevlex')
     msolve_out = _run_msolve(ideal, ["-g", "2"])
     gbasis = sage_eval(msolve_out[:-2], locals=drlpolring.gens_dict())
     return Sequence(gbasis)
+
 
 def variety(ideal, ring, *, proof=True):
     r"""
@@ -125,7 +127,7 @@ def variety(ideal, ring, *, proof=True):
         sage: p = 536870909
         sage: R.<x, y> = PolynomialRing(GF(p), 2, order='lex')
         sage: I = Ideal([ x*y - 1, (x-2)^2 + (y-1)^2 - 1])
-        sage: sorted(variety(I, GF(p^2), proof=False), key=str) # optional - msolve
+        sage: sorted(variety(I, GF(p^2), proof=False), key=lambda d: str(sorted(d.items()))) # optional - msolve
         [{x: 1, y: 1},
          {x: 254228855*z2 + 114981228, y: 232449571*z2 + 402714189},
          {x: 267525699, y: 473946006},
@@ -137,18 +139,18 @@ def variety(ideal, ring, *, proof=True):
         sage: R.<x, y> = PolynomialRing(GF(p), 2, order='lex')
         sage: I = Ideal([ x*y - 1, (x-2)^2 + (y-1)^2 - 1])
 
-        sage: sorted(I.variety(algorithm="msolve", proof=False), key=str) # optional - msolve
+        sage: sorted(I.variety(algorithm='msolve', proof=False), key=lambda d: str(sorted(d.items()))) # optional - msolve
         [{x: 1, y: 1}, {x: 267525699, y: 473946006}]
 
         sage: K.<a> = GF(p^2)
-        sage: sorted(I.variety(K, algorithm="msolve", proof=False), key=str) # optional - msolve
+        sage: sorted(I.variety(K, algorithm='msolve', proof=False), key=lambda d: str(sorted(d.items()))) # optional - msolve
         [{x: 1, y: 1},
          {x: 118750849*a + 194048031, y: 510295713*a + 18174854},
          {x: 267525699, y: 473946006},
          {x: 418120060*a + 75297182, y: 26575196*a + 44750050}]
 
         sage: R.<x, y> = PolynomialRing(GF(2147483659), 2, order='lex')
-        sage: ideal([x, y]).variety(algorithm="msolve", proof=False)
+        sage: ideal([x, y]).variety(algorithm='msolve', proof=False)
         Traceback (most recent call last):
         ...
         NotImplementedError: unsupported base field: Finite Field of size 2147483659
@@ -186,7 +188,7 @@ def variety(ideal, ring, *, proof=True):
         sage: Ideal(x^2 + y^2 - 1, x - y).variety(RBF, algorithm='msolve', proof=False) # optional - msolve
         [{x: [-0.707106781186547 +/- 6.29e-16], y: [-0.707106781186547 +/- 6.29e-16]},
          {x: [0.707106781186547 +/- 6.29e-16], y: [0.707106781186547 +/- 6.29e-16]}]
-        sage: sorted(Ideal(x^2 - 1, y^2 - 1).variety(QQ, algorithm='msolve', proof=False), key=str) # optional - msolve
+        sage: sorted(Ideal(x^2 - 1, y^2 - 1).variety(QQ, algorithm='msolve', proof=False), key=lambda d: str(sorted(d.items()))) # optional - msolve
         [{x: -1, y: -1}, {x: -1, y: 1}, {x: 1, y: -1}, {x: 1, y: 1}]
         sage: Ideal(x^2-1, y^2-2).variety(CC, algorithm='msolve', proof=False) # optional - msolve
         [{x: 1.00000000000000, y: 1.41421356237310},
@@ -265,7 +267,7 @@ def variety(ideal, ring, *, proof=True):
             return upol(p[1])/d
 
         try:
-            [char, nvars, deg, vars, _, [one, [elim, den, param]]] = data[1]
+            char, nvars, deg, vars, _, [one, [elim, den, param]] = data[1]
         except (IndexError, ValueError):
             raise NotImplementedError(
                 f"unsupported msolve output format: {data}")

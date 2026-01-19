@@ -8,7 +8,7 @@ Ambient spaces
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
 from sage.rings.integer import Integer
@@ -17,32 +17,15 @@ from sage.categories.commutative_rings import CommutativeRings
 from sage.schemes.generic.scheme import Scheme
 
 
-def is_AmbientSpace(x):
-    """
-    Return True if `x` is an ambient space.
-
-    EXAMPLES::
-
-        sage: from sage.schemes.generic.ambient_space import is_AmbientSpace
-        sage: is_AmbientSpace(ProjectiveSpace(3, ZZ))
-        True
-        sage: is_AmbientSpace(AffineSpace(2, QQ))
-        True
-        sage: P.<x, y, z> = ProjectiveSpace(2, ZZ)
-        sage: is_AmbientSpace(P.subscheme([x + y + z]))
-        False
-    """
-    return isinstance(x, AmbientSpace)
-
 class AmbientSpace(Scheme):
     """
     Base class for ambient spaces over a ring.
 
     INPUT:
 
-    -  ``n`` - dimension
+    - ``n`` -- dimension
 
-    -  ``R`` - ring
+    - ``R`` -- ring
     """
     def __init__(self, n, R=ZZ):
         """
@@ -117,7 +100,7 @@ class AmbientSpace(Scheme):
     def _check_satisfies_equations(self, v):
         """
         Verify that the coordinates of v define a point on this scheme, or
-        raise a TypeError.
+        raise a :exc:`TypeError`.
 
         TESTS::
 
@@ -132,17 +115,15 @@ class AmbientSpace(Scheme):
 
     def _validate(self, polynomials):
         """
-        If ``polynomials`` is a tuple of valid polynomial functions on self,
-        return ``polynomials``, otherwise raise TypeError.
+        If ``polynomials`` is a tuple of valid polynomial functions on
+        ``self``, return ``polynomials``, otherwise raise :exc:`TypeError`.
 
         INPUT:
 
         - ``polynomials`` -- tuple of polynomials in the coordinate ring of
-            self
+          ``self``
 
-        OUTPUT:
-
-        - tuple of polynomials in the coordinate ring of self
+        OUTPUT: tuple of polynomials in the coordinate ring of ``self``
 
         TESTS::
 
@@ -158,15 +139,13 @@ class AmbientSpace(Scheme):
 
     def change_ring(self, R):
         r"""
-        Return an ambient space over ring `R` and otherwise the same as self.
+        Return an ambient space over ring `R` and otherwise the same as ``self``.
 
         INPUT:
 
         - ``R`` -- commutative ring
 
-        OUTPUT:
-
-        - ambient space over ``R``
+        OUTPUT: ambient space over ``R``
 
         .. NOTE::
 
@@ -211,15 +190,13 @@ class AmbientSpace(Scheme):
         INPUT:
 
         - ``R`` -- a commutative ring, such that there is a natural map from
-          the base ring of self to ``R``.
+          the base ring of ``self`` to ``R``
 
-        OUTPUT:
-
-        - an ambient space over ``R`` of the same structure as ``self``.
+        OUTPUT: an ambient space over ``R`` of the same structure as ``self``
 
         .. NOTE::
 
-            A :class:`ValueError` is raised if there is no such natural map.
+            A :exc:`ValueError` is raised if there is no such natural map.
             If you need to drop this condition, use ``self.change_ring(R)``.
 
         EXAMPLES::
@@ -265,8 +242,8 @@ class AmbientSpace(Scheme):
 
     def defining_polynomials(self):
         """
-        Return the defining polynomials of the scheme self.  Since
-        self is an ambient space, this is an empty list.
+        Return the defining polynomials of the scheme ``self``.  Since
+        ``self`` is an ambient space, this is an empty list.
 
         EXAMPLES::
 
@@ -305,7 +282,7 @@ class AmbientSpace(Scheme):
     def gen(self, n=0):
         """
         Return the `n`-th generator of the coordinate ring of the
-        scheme self.
+        scheme ``self``.
 
         EXAMPLES::
 
@@ -315,10 +292,10 @@ class AmbientSpace(Scheme):
         """
         return self.coordinate_ring().gen(n)
 
-    def gens(self):
+    def gens(self) -> tuple:
         """
         Return the generators of the coordinate ring of the scheme
-        self.
+        ``self``.
 
         EXAMPLES::
 
@@ -334,7 +311,7 @@ class AmbientSpace(Scheme):
     def ngens(self):
         """
         Return the number of generators of the coordinate ring of the
-        scheme self.
+        scheme ``self``.
 
         EXAMPLES::
 

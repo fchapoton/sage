@@ -116,7 +116,7 @@ class PermutationGroupMorphism(Morphism):
             sage: G.is_isomorphic(pr1.image(G))
             True
 
-        Check that :trac:`28324` is fixed::
+        Check that :issue:`28324` is fixed::
 
             sage: # needs sage.rings.number_field
             sage: R.<x> = QQ[]
@@ -247,8 +247,8 @@ class PermutationGroupMorphism_im_gens(PermutationGroupMorphism):
         r"""
         Some python code for wrapping GAP's ``GroupHomomorphismByImages``
         function but only for permutation groups. Can be expensive if G is
-        large. This returns "fail" if gens does not generate self or if the map
-        does not extend to a group homomorphism, self - other.
+        large. This returns "fail" if gens does not generate ``self`` or if the map
+        does not extend to a group homomorphism, ``self`` - ``other``.
 
         EXAMPLES::
 
@@ -308,19 +308,3 @@ class PermutationGroupMorphism_im_gens(PermutationGroupMorphism):
             [ (1,2,3,4) ] -> [ (1,2,3,4) ]
         """
         return self.domain()._libgap_().GroupHomomorphismByImages(self.codomain(), self.domain().gens(), self._images)
-
-
-def is_PermutationGroupMorphism(f) -> bool:
-    r"""
-    Return ``True`` if the argument ``f`` is a :class:`PermutationGroupMorphism`.
-
-    EXAMPLES::
-
-        sage: from sage.groups.perm_gps.permgroup_morphism import is_PermutationGroupMorphism
-        sage: G = CyclicPermutationGroup(4)
-        sage: H = DihedralGroup(4)
-        sage: phi = PermutationGroupMorphism_im_gens(G, H, map(H, G.gens()))
-        sage: is_PermutationGroupMorphism(phi)
-        True
-    """
-    return isinstance(f, PermutationGroupMorphism)

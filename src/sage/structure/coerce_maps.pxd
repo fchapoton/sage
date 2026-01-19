@@ -1,11 +1,7 @@
 from sage.categories.map cimport Map
 
 
-cdef class DefaultConvertMap(Map):
-    pass
-
-
-cdef class DefaultConvertMap_unique(DefaultConvertMap):
+cdef class DefaultConvertMap_unique(Map):
     pass
 
 
@@ -24,4 +20,4 @@ cdef class CallableConvertMap(Map):
     cdef _func
 
 
-cdef Map CCallableConvertMap(domain, codomain, void* func, name) noexcept
+cdef Map CCallableConvertMap(domain, codomain, void* func, name)

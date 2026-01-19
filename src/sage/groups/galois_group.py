@@ -1,7 +1,9 @@
 r"""
 Galois groups of field extensions.
 
-We don't necessarily require extensions to be normal, but we do require them to be separable.
+We do not necessarily require extensions to be normal, but we do
+require them to be separable.
+
 When an extension is not normal, the Galois group refers to
 the automorphism group of the normal closure.
 
@@ -17,17 +19,20 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.lazy_import import lazy_import
 from sage.rings.integer_ring import ZZ
 
-lazy_import('sage.groups.galois_group_perm', ['GaloisGroup_perm', 'GaloisSubgroup_perm'])
+lazy_import('sage.groups.galois_group_perm',
+            ['GaloisGroup_perm', 'GaloisSubgroup_perm'])
 lazy_import('sage.groups.perm_gps.permgroup', 'PermutationGroup')
 
 
-def _alg_key(self, algorithm=None, recompute=False):
+def _alg_key(self, algorithm=None, recompute=False) -> str | None:
     r"""
     Return a key for use in cached_method calls.
 
-    If recompute is false, will cache using ``None`` as the key, so no recomputation will be done.
+    If recompute is false, will cache using ``None`` as the key, so no
+    recomputation will be done.
 
-    If recompute is true, will cache by algorithm, yielding a recomputation for each different algorithm.
+    If recompute is true, will cache by algorithm, yielding a recomputation
+    for each different algorithm.
 
     EXAMPLES::
 
@@ -35,7 +40,7 @@ def _alg_key(self, algorithm=None, recompute=False):
         sage: R.<x> = ZZ[]
         sage: K.<a> = NumberField(x^3 + 2*x + 2)                                        # needs sage.rings.number_field
         sage: G = K.galois_group()                                                      # needs sage.rings.number_field
-        sage: _alg_key(G, algorithm="pari", recompute=True)                             # needs sage.rings.number_field
+        sage: _alg_key(G, algorithm='pari', recompute=True)                             # needs sage.rings.number_field
         'pari'
     """
     if recompute:
@@ -45,15 +50,16 @@ def _alg_key(self, algorithm=None, recompute=False):
 
 class _GMixin:
     r"""
-    This class provides some methods for Galois groups to be used for both permutation groups
-    and abelian groups, subgroups and full Galois groups.
+    This class provides some methods for Galois groups to be used for both
+    permutation groups and abelian groups, subgroups and full Galois groups.
 
-    It is just intended to provide common functionality between various different Galois group classes.
+    It is just intended to provide common functionality between various
+    different Galois group classes.
     """
     @lazy_attribute
     def _default_algorithm(self):
         """
-        A string, the default algorithm used for computing the Galois group
+        A string, the default algorithm used for computing the Galois group.
 
         EXAMPLES::
 
@@ -88,9 +94,9 @@ class _GMixin:
         """
         return NotImplemented
 
-    def _get_algorithm(self, algorithm):
+    def _get_algorithm(self, algorithm) -> str:
         r"""
-        Allows overriding the default algorithm specified at object creation.
+        Allow overriding the default algorithm specified at object creation.
 
         EXAMPLES::
 
@@ -175,9 +181,9 @@ class _GaloisMixin(_GMixin):
         """
         return NotImplemented
 
-    def _repr_(self):
+    def _repr_(self) -> str:
         """
-        String representation of this Galois group
+        String representation of this Galois group.
 
         EXAMPLES::
 
@@ -249,7 +255,7 @@ class _GaloisMixin(_GMixin):
         except NotImplementedError: # relative number fields don't support degree
             return self._field.absolute_degree()
 
-    def transitive_label(self):
+    def transitive_label(self) -> str:
         r"""
         Return the transitive label for the action of this Galois group on the roots of
         the defining polynomial of the field extension.
@@ -264,7 +270,7 @@ class _GaloisMixin(_GMixin):
         """
         return "%sT%s" % (self._field_degree, self.transitive_number())
 
-    def is_galois(self):
+    def is_galois(self) -> bool:
         r"""
         Return whether the top field is Galois over its base.
 
@@ -309,13 +315,14 @@ class _SubGaloisMixin(_GMixin):
 
         INPUT:
 
-        - ``name`` -- a variable name for the new field.
+        - ``name`` -- a variable name for the new field
 
         - ``polred`` -- whether to optimize the generator of the newly created field
-            for a simpler polynomial, using pari's polredbest.
-            Defaults to ``True`` when the degree of the fixed field is at most 8.
+            for a simpler polynomial, using Pari's :pari:`polredbest`;
+            defaults to ``True`` when the degree of the fixed field is at most 8
 
-        - ``threshold`` -- positive number; polred only performed if the cost is at most this threshold
+        - ``threshold`` -- positive number; polred only performed if the cost
+          is at most this threshold
 
         EXAMPLES::
 
@@ -349,7 +356,8 @@ class GaloisGroup_ab(_GaloisMixin, AbelianGroup_class):
     r"""
     Abelian Galois groups
     """
-    def __init__(self, field, generator_orders, algorithm=None, gen_names='sigma'):
+    def __init__(self, field, generator_orders,
+                 algorithm=None, gen_names='sigma') -> None:
         r"""
         Initialize this Galois group.
 
@@ -361,7 +369,7 @@ class GaloisGroup_ab(_GaloisMixin, AbelianGroup_class):
         self._default_algorithm = algorithm
         AbelianGroup_class.__init__(self, generator_orders, gen_names)
 
-    def is_galois(self):
+    def is_galois(self) -> bool:
         r"""
         Abelian extensions are Galois.
 
@@ -377,7 +385,7 @@ class GaloisGroup_ab(_GaloisMixin, AbelianGroup_class):
     @lazy_attribute
     def _gcdata(self):
         r"""
-        Return the Galois closure (ie, the finite field itself) together with the identity
+        Return the Galois closure (i.e., the finite field itself) together with the identity.
 
         EXAMPLES::
 
@@ -401,7 +409,7 @@ class GaloisGroup_ab(_GaloisMixin, AbelianGroup_class):
             sage: GF(3^10).galois_group().permutation_group()                           # needs sage.libs.gap sage.rings.finite_rings
             Permutation Group with generators [(1,2,3,4,5,6,7,8,9,10)]
         """
-        return PermutationGroup(gap_group=self._gap_().RegularActionHomomorphism().Image())
+        return PermutationGroup(gap_group=self._libgap_().RegularActionHomomorphism().Image())
 
     @cached_method(key=_alg_key)
     def transitive_number(self, algorithm=None, recompute=False):
@@ -418,7 +426,7 @@ class GaloisGroup_ab(_GaloisMixin, AbelianGroup_class):
             sage: Gtest.transitive_number()                                             # needs sage.libs.gap
             2
         """
-        return ZZ(self.permutation_group()._gap_().TransitiveIdentification())
+        return ZZ(self.permutation_group()._libgap_().TransitiveIdentification())
 
 
 class GaloisGroup_cyc(GaloisGroup_ab):
@@ -443,11 +451,10 @@ class GaloisGroup_cyc(GaloisGroup_ab):
         d = self.order()
         if d > 47:
             raise NotImplementedError("transitive database only computed up to degree 47")
-        elif d == 32:
+        if d == 32:
             # I don't know why this case is special, but you can check this in Magma (GAP only goes up to 22)
             return ZZ(33)
-        else:
-            return ZZ(1)
+        return ZZ.one()
 
     def signature(self):
         r"""
@@ -460,7 +467,7 @@ class GaloisGroup_cyc(GaloisGroup_ab):
             sage: GF(3^3).galois_group().signature()                                    # needs sage.rings.finite_rings
             1
         """
-        return ZZ(1) if (self._field.degree() % 2) else ZZ(-1)
+        return ZZ.one() if self._field.degree() % 2 else ZZ(-1)
 
 
 class GaloisSubgroup_ab(AbelianGroup_subgroup, _SubGaloisMixin):

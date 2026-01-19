@@ -93,11 +93,11 @@ def Hom(X, Y, category=None, check=True):
 
     - ``Y`` -- an object of a category
 
-    - ``category`` -- a category in which the morphisms must be.
-      (default: the meet of the categories of ``X`` and ``Y``)
-      Both ``X`` and ``Y`` must belong to that category.
+    - ``category`` -- a category in which the morphisms must be
+      (default: the meet of the categories of ``X`` and ``Y``);
+      both ``X`` and ``Y`` must belong to that category
 
-    - ``check`` -- a boolean (default: ``True``): whether to check the
+    - ``check`` -- boolean (default: ``True``); whether to check the
       input, and in particular that ``X`` and ``Y`` belong to
       ``category``.
 
@@ -130,7 +130,7 @@ def Hom(X, Y, category=None, check=True):
            to Ambient free module of rank 1 over the principal ideal domain Integer Ring
            in Category of commutative additive groups
 
-    Here, we test against a memory leak that has been fixed at :trac:`11521` by
+    Here, we test against a memory leak that has been fixed at :issue:`11521` by
     using a weak cache::
 
         sage: # needs sage.libs.pari
@@ -178,7 +178,7 @@ def Hom(X, Y, category=None, check=True):
     A parent (or a parent class of a category) may specify how to
     construct certain homsets by implementing a method ``_Hom_(self,
     codomain, category)``. This method should either construct the
-    requested homset or raise a :class:`TypeError`. This hook is currently
+    requested homset or raise a :exc:`TypeError`. This hook is currently
     mostly used to create homsets in some specific subclass of
     :class:`Homset` (e.g. :class:`sage.rings.homset.RingHomset`)::
 
@@ -216,7 +216,7 @@ def Hom(X, Y, category=None, check=True):
     found in the cache will have a (co)domain that is equal to, but
     not identical with, the given (co)domain.
 
-    By :trac:`9138`, we abandon the uniqueness of homsets, if the
+    By :issue:`9138`, we abandon the uniqueness of homsets, if the
     domain or codomain break uniqueness::
 
         sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
@@ -258,7 +258,7 @@ def Hom(X, Y, category=None, check=True):
         sage: H1 == H2, H1 is H2
         (False, False)
 
-    Since :trac:`11900`, the meet of the categories of the given arguments is
+    Since :issue:`11900`, the meet of the categories of the given arguments is
     used to determine the default category of the homset. This can also be a
     join category, as in the following example::
 
@@ -296,13 +296,14 @@ def Hom(X, Y, category=None, check=True):
         sage: R = Set_PythonType(int)
         sage: S = Set_PythonType(float)
         sage: Hom(R, S)
-        Set of Morphisms from Set of Python objects of class 'int' to Set of Python objects of class 'float' in Category of sets
+        Set of Morphisms from Set of Python objects of class 'int'
+         to Set of Python objects of class 'float' in Category of infinite sets
 
     Checks that the domain and codomain are in the specified
     category. Case of a non parent::
 
         sage: # needs sage.graphs
-        sage: S = SimplicialComplex([[1,2], [1,4]]); S.rename("S")
+        sage: S = SimplicialComplex([[1,2], [1,4]]); S.rename('S')
         sage: Hom(S, S, SimplicialComplexes())
         Set of Morphisms from S to S in Category of finite simplicial complexes
         sage: Hom(Set(), S, Sets())
@@ -316,13 +317,13 @@ def Hom(X, Y, category=None, check=True):
 
     Those checks are done with the natural idiom ``X in category``,
     and not ``X.category().is_subcategory(category)`` as it used to be
-    before :trac:`16275` (see :trac:`15801` for a real use case)::
+    before :issue:`16275` (see :issue:`15801` for a real use case)::
 
         sage: # needs sage.graphs
         sage: class PermissiveCategory(Category):
         ....:     def super_categories(self): return [Objects()]
         ....:     def __contains__(self, X): return True
-        sage: C = PermissiveCategory(); C.rename("Permissive category")
+        sage: C = PermissiveCategory(); C.rename('Permissive category')
         sage: S.category().is_subcategory(C)
         False
         sage: S in C
@@ -395,11 +396,11 @@ def Hom(X, Y, category=None, check=True):
     """
     # This should use cache_function instead
     # However some special handling is currently needed for
-    # domains/docomains that break the unique parent condition. Also,
+    # domains/codomains that break the unique parent condition. Also,
     # at some point, it somehow broke the coercion (see e.g. sage -t
     # sage.rings.real_mpfr). To be investigated.
     global _cache
-    key = (X,Y,category)
+    key = (X, Y, category)
     try:
         H = _cache[key]
     except KeyError:
@@ -440,7 +441,7 @@ def Hom(X, Y, category=None, check=True):
                     raise ValueError("{} is not in {}".format(O, category))
 
         # Construct H
-        try: # _Hom_ hook from the parent
+        try:  # _Hom_ hook from the parent
             H = X._Hom_(Y, category)
         except (AttributeError, TypeError):
             # Workaround in case the above fails, but the category
@@ -472,10 +473,11 @@ def Hom(X, Y, category=None, check=True):
     if isinstance(X, UniqueRepresentation) and isinstance(Y, UniqueRepresentation):
         if not isinstance(H, WithEqualityById):
             try:
-                H.__class__ = dynamic_class(H.__class__.__name__+"_with_equality_by_id", (WithEqualityById, H.__class__), doccls=H.__class__)
+                H.__class__ = dynamic_class(H.__class__.__name__ + "_with_equality_by_id", (WithEqualityById, H.__class__), doccls=H.__class__)
             except Exception:
                 pass
     return H
+
 
 def hom(X, Y, f):
     """
@@ -489,7 +491,8 @@ def hom(X, Y, f):
         sage: phi(x^2 + 3)
         7
     """
-    return Hom(X,Y)(f)
+    return Hom(X, Y)(f)
+
 
 def End(X, category=None):
     r"""
@@ -497,13 +500,11 @@ def End(X, category=None):
 
     INPUT:
 
-    -  ``X`` -- anything
+    - ``X`` -- anything
 
-    -  ``category`` -- (optional) category in which to coerce ``X``
+    - ``category`` -- (optional) category in which to coerce ``X``
 
-    OUTPUT:
-
-    A set of endomorphisms in category
+    OUTPUT: a set of endomorphisms in category
 
     EXAMPLES::
 
@@ -522,9 +523,6 @@ def End(X, category=None):
          from Alternating group of order 3!/2 as a permutation group
          to Alternating group of order 3!/2 as a permutation group
          in Category of finite enumerated permutation groups
-        sage: from sage.categories.homset import is_Endset
-        sage: is_Endset(S)
-        True
         sage: S.domain()
         Alternating group of order 3!/2 as a permutation group
 
@@ -557,7 +555,8 @@ def End(X, category=None):
         sage: H.category()
         Category of endsets of unital magmas and additive unital additive magmas
     """
-    return Hom(X,X, category)
+    return Hom(X, X, category)
+
 
 def end(X, f):
     """
@@ -608,12 +607,12 @@ class Homset(Set_generic):
         sage: loads(dumps(H)) == H
         True
     """
-    def __init__(self, X, Y, category=None, base=None, check=True):
+    def __init__(self, X, Y, category=None, base=None, check=True) -> None:
         r"""
         TESTS::
 
-            sage: X = ZZ['x']; X.rename("X")
-            sage: Y = ZZ['y']; Y.rename("Y")
+            sage: X = ZZ['x']; X.rename('X')
+            sage: Y = ZZ['y']; Y.rename('Y')
             sage: f = X.hom([0], Y)
             sage: class MyHomset(Homset):
             ....:     def _an_element_(self):
@@ -664,10 +663,10 @@ class Homset(Set_generic):
         if check:
             if not isinstance(category, Category):
                 raise TypeError("category (=%s) must be a category" % category)
-            #if not X in category:
-            #    raise TypeError, "X (=%s) must be in category (=%s)"%(X, category)
-            #if not Y in category:
-            #    raise TypeError, "Y (=%s) must be in category (=%s)"%(Y, category)
+            # if not X in category:
+            #     raise TypeError("X (=%s) must be in category (=%s)" % (X, category))
+            # if not Y in category:
+            #     raise TypeError("Y (=%s) must be in category (=%s)" % (Y, category))
 
         if base is None and hasattr(category, "WithBasis"):
             # The above is a lame but fast check that category is a
@@ -702,7 +701,7 @@ class Homset(Set_generic):
             Beside speed considerations, this is the main rationale
             for disabling checks upon unpickling.
 
-            .. SEEALSO:: :trac:`14793`, :trac:`16275`
+            .. SEEALSO:: :issue:`14793`, :issue:`16275`
 
         EXAMPLES::
 
@@ -741,8 +740,8 @@ class Homset(Set_generic):
             sage: Hom(ZZ^2, QQ, category=Sets())._repr_()                               # needs sage.modules
             'Set of Morphisms from Ambient free module of rank 2 over the principal ideal domain Integer Ring to Rational Field in Category of sets'
         """
-        return "Set of Morphisms from {} to {} in {}".format(self._domain,
-            self._codomain, self.__category)
+        return "Set of Morphisms from {} to {} in {}".format(
+            self._domain, self._codomain, self.__category)
 
     def __hash__(self):
         """
@@ -865,7 +864,7 @@ class Homset(Set_generic):
             sage: f(1), f(2), f(3)
             (2/3, 2/3, 2/3)
 
-        By :trac:`14711`, conversion and coerce maps should be copied
+        By :issue:`14711`, conversion and coerce maps should be copied
         before using them outside of the coercion system::
 
             sage: H = Hom(ZZ,QQ['t'], CommutativeAdditiveGroups())
@@ -930,7 +929,7 @@ class Homset(Set_generic):
              Set of Morphisms from Free Group on generators {x, y, z}
              to Free Group on generators {x, y, z} in Category of infinite groups
             sage: HH = Hom(H, H)
-            sage: HH(HH.identity(), foo="bar")
+            sage: HH(HH.identity(), foo='bar')
             Traceback (most recent call last):
             ...
             NotImplementedError: no keywords are implemented for
@@ -957,12 +956,12 @@ class Homset(Set_generic):
             if x.domain() != self.domain():
                 mor = x.domain()._internal_coerce_map_from(self.domain())
                 if mor is None:
-                    raise TypeError("Incompatible domains: x (=%s) cannot be an element of %s" % (x,self))
+                    raise TypeError("Incompatible domains: x (=%s) cannot be an element of %s" % (x, self))
                 x = x * mor
             if x.codomain() != self.codomain():
                 mor = self.codomain()._internal_coerce_map_from(x.codomain())
                 if mor is None:
-                    raise TypeError("Incompatible codomains: x (=%s) cannot be an element of %s" % (x,self))
+                    raise TypeError("Incompatible codomains: x (=%s) cannot be an element of %s" % (x, self))
                 x = mor * x
             return x
 
@@ -1075,7 +1074,7 @@ class Homset(Set_generic):
         """
         return self.__make_element_class__(morphism.SetMorphism)
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         """
         For two homsets, it is tested whether the domain, the codomain and
         the category coincide.
@@ -1095,7 +1094,7 @@ class Homset(Set_generic):
                 and self._codomain == other._codomain
                 and self.__category == other.__category)
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         """
         Check for not-equality of ``self`` and ``other``.
 
@@ -1114,7 +1113,7 @@ class Homset(Set_generic):
         """
         return not (self == other)
 
-    def __contains__(self, x):
+    def __contains__(self, x) -> bool:
         """
         Test whether the parent of the argument is ``self``.
 
@@ -1245,7 +1244,7 @@ class Homset(Set_generic):
              the principal ideal domain Integer Ring to Ambient free module
              of rank 3 over the principal ideal domain Integer Ring in
              Category of finite dimensional modules with basis over (Dedekind
-             domains and euclidean domains
+             domains and euclidean domains and noetherian rings
              and infinite enumerated sets and metric spaces)
             sage: type(H)
             <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
@@ -1254,7 +1253,7 @@ class Homset(Set_generic):
              the principal ideal domain Integer Ring to Ambient free module
              of rank 2 over the principal ideal domain Integer Ring in
              Category of finite dimensional modules with basis over (Dedekind
-             domains and euclidean domains
+             domains and euclidean domains and noetherian rings
              and infinite enumerated sets and metric spaces)
             sage: type(H.reversed())
             <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
@@ -1269,8 +1268,8 @@ class HomsetWithBase(Homset):
         r"""
         TESTS::
 
-            sage: X = ZZ['x']; X.rename("X")
-            sage: Y = ZZ['y']; Y.rename("Y")
+            sage: X = ZZ['x']; X.rename('X')
+            sage: Y = ZZ['y']; Y.rename('Y')
             sage: f = X.hom([0], Y)
             sage: class MyHomset(HomsetWithBase):
             ....:     def _an_element_(self):
@@ -1286,39 +1285,3 @@ class HomsetWithBase(Homset):
         if base is None:
             base = X.base_ring()
         Homset.__init__(self, X, Y, check=check, category=category, base=base)
-
-
-def is_Homset(x):
-    """
-    Return ``True`` if ``x`` is a set of homomorphisms in a category.
-
-    EXAMPLES::
-
-        sage: from sage.categories.homset import is_Homset
-        sage: P.<t> = ZZ[]
-        sage: f = P.hom([1/2*t])
-        sage: is_Homset(f)
-        False
-        sage: is_Homset(f.category())
-        False
-        sage: is_Homset(f.parent())
-        True
-    """
-    return isinstance(x, Homset)
-
-def is_Endset(x):
-    """
-    Return ``True`` if ``x`` is a set of endomorphisms in a category.
-
-    EXAMPLES::
-
-        sage: from sage.categories.homset import is_Endset
-        sage: P.<t> = ZZ[]
-        sage: f = P.hom([1/2*t])
-        sage: is_Endset(f.parent())
-        False
-        sage: g = P.hom([2*t])
-        sage: is_Endset(g.parent())
-        True
-    """
-    return isinstance(x, Homset) and x.is_endomorphism_set()

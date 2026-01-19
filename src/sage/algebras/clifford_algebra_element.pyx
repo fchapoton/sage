@@ -15,13 +15,15 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
+from copy import copy
+
 from sage.structure.parent cimport Parent
 from sage.data_structures.bitset cimport Bitset
 from sage.algebras.weyl_algebra import repr_from_monomials
 from sage.data_structures.blas_dict cimport scal
-from copy import copy
+
 
 cdef class CliffordAlgebraElement(IndexedFreeModuleElement):
     """
@@ -34,7 +36,7 @@ cdef class CliffordAlgebraElement(IndexedFreeModuleElement):
         sage: elt = ((x^3-z)*x + y)^2
         sage: TestSuite(elt).run()
     """
-    def _repr_(self):
+    def _repr_(self) -> str:
         """
         Return a string representation of ``self``.
 
@@ -65,7 +67,7 @@ cdef class CliffordAlgebraElement(IndexedFreeModuleElement):
         """
         return repr_from_monomials(self.list(), self._parent._latex_term, True)
 
-    cdef _mul_(self, other) noexcept:
+    cdef _mul_(self, other):
         """
         Return ``self`` multiplied by ``other``.
 
@@ -90,7 +92,7 @@ cdef class CliffordAlgebraElement(IndexedFreeModuleElement):
             sage: 0*x
             0
 
-        :trac:`34707`::
+        :issue:`34707`::
 
             sage: Q = QuadraticForm(QQ, 2, [0,5,0])
             sage: C.<p,q> = CliffordAlgebra(Q)
@@ -176,7 +178,7 @@ cdef class CliffordAlgebraElement(IndexedFreeModuleElement):
 
         return self.__class__(self.parent(), d)
 
-    cdef CliffordAlgebraElement _mul_self_term(self, FrozenBitset supp, coeff) noexcept:
+    cdef CliffordAlgebraElement _mul_self_term(self, FrozenBitset supp, coeff):
         r"""
         Multiply ``self * term`` with the ``term`` having support ``supp``
         and coefficient ``coeff``.
@@ -224,7 +226,7 @@ cdef class CliffordAlgebraElement(IndexedFreeModuleElement):
 
         return type(self)(self._parent, {supp: coeff}) * self
 
-    cdef CliffordAlgebraElement _mul_term_self(self, FrozenBitset supp, coeff) noexcept:
+    cdef CliffordAlgebraElement _mul_term_self(self, FrozenBitset supp, coeff):
         r"""
         Multiply ``term * self`` with the ``term`` having support ``supp``
         and coefficient ``coeff``.
@@ -400,7 +402,7 @@ cdef class ExteriorAlgebraElement(CliffordAlgebraElement):
     """
     An element of an exterior algebra.
     """
-    cdef _mul_(self, other) noexcept:
+    cdef _mul_(self, other):
         """
         Return ``self`` multiplied by ``other``.
 
@@ -440,8 +442,17 @@ cdef class ExteriorAlgebraElement(CliffordAlgebraElement):
             4*a*b*c*d + 4*a*b*c + 4*a*b*d + 4*a*c*d + 4*b*c*d
              + 2*a*b + 2*a*c + 2*a*d + 2*b*c + 2*b*d + 2*c*d
              + 2*a + 2*b + 2*c + 2*d + 1
+
+            sage: from sage.all import ExteriorAlgebra, SR, var
+            sage: L.<a, b> = ExteriorAlgebra(SR)
+            sage: x, y = var('x y')
+            sage: x * (y * b)
+            x*y*b
+            sage: (x * a) * (y * b)
+            x*y*a*b
         """
         cdef Parent P = self._parent
+        cdef R = P.base_ring()
         zero = P._base.zero()
         cdef dict d
         cdef ExteriorAlgebraElement rhs = <ExteriorAlgebraElement> other
@@ -512,7 +523,7 @@ cdef class ExteriorAlgebraElement(CliffordAlgebraElement):
                     if tot_cross % 2:
                         cr = -cr
 
-                val = d.get(t, zero) + cl * cr
+                val = d.get(t, zero) + R(cl) * R(cr)
                 if not val:
                     del d[t]
                 else:
@@ -520,7 +531,7 @@ cdef class ExteriorAlgebraElement(CliffordAlgebraElement):
 
         return self.__class__(P, d)
 
-    cdef CliffordAlgebraElement _mul_self_term(self, FrozenBitset supp, coeff) noexcept:
+    cdef CliffordAlgebraElement _mul_self_term(self, FrozenBitset supp, coeff):
         r"""
         Multiply ``self * term`` with the ``term`` having support ``supp``
         and coefficient ``coeff``.
@@ -610,7 +621,7 @@ cdef class ExteriorAlgebraElement(CliffordAlgebraElement):
                 del d[k]
         return type(self)(self._parent, d)
 
-    cdef CliffordAlgebraElement _mul_term_self(self, FrozenBitset supp, coeff) noexcept:
+    cdef CliffordAlgebraElement _mul_term_self(self, FrozenBitset supp, coeff):
         r"""
         Multiply ``term * self`` with the ``term`` having support ``supp``
         and coefficient ``coeff``.
@@ -713,7 +724,7 @@ cdef class ExteriorAlgebraElement(CliffordAlgebraElement):
 
         INPUT:
 
-        - ``I`` -- a list of exterior algebra elements or an ideal
+        - ``I`` -- list of exterior algebra elements or an ideal
         - ``left`` -- boolean; if reduce as a left ideal (``True``)
           or right ideal (``False``), ignored if ``I`` is an ideal
 
@@ -939,7 +950,7 @@ cdef class CohomologyRAAGElement(CliffordAlgebraElement):
 
         :class:`~sage.groups.raag.CohomologyRAAG`
     """
-    cdef _mul_(self, other) noexcept:
+    cdef _mul_(self, other):
         """
         Return ``self`` multiplied by ``other``.
 

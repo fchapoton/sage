@@ -2,10 +2,9 @@ r"""
 Wrapper class for abelian groups
 
 This class is intended as a template for anything in Sage that needs the
-functionality of abelian groups. One can create an AdditiveAbelianGroupWrapper
+functionality of abelian groups. One can create an ``AdditiveAbelianGroupWrapper``
 object from any given set of elements in some given parent, as long as an
 ``_add_`` method has been defined.
-
 
 EXAMPLES:
 
@@ -41,10 +40,10 @@ We check that ridiculous operations are being avoided::
 
 .. TODO::
 
-    - Think about subgroups and quotients, which probably won't work
-      in the current implementation -- some fiddly adjustments will be
-      needed in order to be able to pass extra arguments to the
-      subquotient's init method.
+    Think about subgroups and quotients, which probably won't work
+    in the current implementation -- some fiddly adjustments will be
+    needed in order to be able to pass extra arguments to the
+    subquotient's init method.
 
 AUTHORS:
 
@@ -75,7 +74,6 @@ from sage.structure.element import parent
 from sage.structure.sequence import Sequence
 from sage.modules.free_module_element import vector
 
-from sage.misc.superseded import deprecated_function_alias
 
 class UnwrappingMorphism(Morphism):
     r"""
@@ -159,7 +157,7 @@ class AdditiveAbelianGroupWrapperElement(addgp.AdditiveAbelianGroupElement):
 
     def _repr_(self):
         r"""
-        String representation of self.
+        String representation of ``self``.
 
         EXAMPLES::
 
@@ -213,7 +211,7 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
         self._universe = universe
         self._gen_elements = tuple(universe(x) for x in gens)
         self._gen_orders = invariants
-        cover,rels = addgp.cover_and_relations_from_invariants(invariants)
+        cover, rels = addgp.cover_and_relations_from_invariants(invariants)
         addgp.AdditiveAbelianGroup_fixed_gens.__init__(self, cover, rels, cover.gens())
         self._unset_coercions_used()
         self.register_embedding(UnwrappingMorphism(self))
@@ -289,7 +287,7 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
         r"""
         Given a list (or other iterable) of length equal to the number of
         generators of this group, compute the element of the ambient group
-        with those exponents in terms of the generators of self.
+        with those exponents in terms of the generators of ``self``.
 
         EXAMPLES::
 
@@ -308,23 +306,12 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
             sage: el = A.random_element()
             sage: A.discrete_exp(A.discrete_log(el)) == el
             True
-
-        TESTS:
-
-        Check that :meth:`_discrete_exp` still works (for now)::
-
-            sage: A._discrete_exp(list(range(1,6)))
-            doctest:warning ...
-            DeprecationWarning: _discrete_exp is deprecated. ...
-            (1, 2, 3, 4, 5)
         """
         from sage.misc.verbose import verbose
         v = self.V()(v)
         verbose("Calling discrete exp on %s" % v)
         # DUMB IMPLEMENTATION!
         return sum([self._gen_elements[i] * ZZ(v[i]) for i in range(len(v))], self.universe()(0))
-
-    _discrete_exp = deprecated_function_alias(32384, discrete_exp)
 
     def discrete_log(self, x, gens=None):
         r"""
@@ -374,18 +361,6 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
             Traceback (most recent call last):
             ...
             NotImplementedError: No black-box discrete log for infinite abelian groups
-
-        TESTS:
-
-        Check that :meth:`_discrete_log` still works (for now)::
-
-            sage: orders = [2, 2*3, 2*3*5, 2*3*5*7, 2*3*5*7*11]
-            sage: G = AdditiveAbelianGroup(orders)
-            sage: A = AdditiveAbelianGroupWrapper(G.0.parent(), G.gens(), orders)
-            sage: A._discrete_log(sum(i*g for i,g in enumerate(G.gens(),1)))
-            doctest:warning ...
-            DeprecationWarning: _discrete_log is deprecated. ...
-            (1, 2, 3, 4, 5)
         """
         from sage.arith.misc import CRT_list
         from sage.rings.infinity import Infinity
@@ -420,8 +395,6 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
         res = vector(CRT_list(*map(list, zip(*l))) for l in crt_data)
         assert x == sum(r * g for r, g in zip(res, gens))
         return res
-
-    _discrete_log = deprecated_function_alias(32384, discrete_log)
 
     def torsion_subgroup(self, n=None):
         r"""
@@ -488,13 +461,13 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
             if n <= 0:
                 raise ValueError('n must be a positive integer')
             gens, ords = [], []
-            for g,o in genords:
+            for g, o in genords:
                 if not o:
                     continue
                 d = n.gcd(o)
                 if d == 1:
                     continue
-                gens.append(o//d * g)
+                gens.append(o // d * g)
                 ords.append(d)
         return AdditiveAbelianGroupWrapper(self.universe(), gens, ords)
 
@@ -573,7 +546,7 @@ def _discrete_log_pgroup(p, vals, aa, b):
 
     TESTS:
 
-    Check for :trac:`34716`::
+    Check for :issue:`34716`::
 
         sage: # needs sage.rings.finite_rings sage.schemes
         sage: E = EllipticCurve(GF(487^2), [311,205])
@@ -594,7 +567,7 @@ def _discrete_log_pgroup(p, vals, aa, b):
 
         assert k - j == 1
         aajk = subbasis(j, k)
-        assert not any(p*a for a in aajk)  # orders are in {1,p}
+        assert not any(p * a for a in aajk)  # orders are in {1,p}
         idxs = [i for i, a in enumerate(aajk) if a]
 
         rs = [([0], [0]) for i in range(len(aajk))]
@@ -627,7 +600,7 @@ def _discrete_log_pgroup(p, vals, aa, b):
             return _base(j, k, c)
 
         w = 2
-        js = list(range(j, k, (k-j+w-1) // w)) + [k]
+        js = list(range(j, k, (k - j + w - 1) // w)) + [k]
         assert len(js) == w + 1
 
         x = vector([0] * len(aa))
@@ -635,10 +608,10 @@ def _discrete_log_pgroup(p, vals, aa, b):
 
             gamma = p ** (js[i] - j) * c - dotprod(x, subbasis(js[i], k))
 
-            v = _rec(js[i], js[i+1], gamma)
+            v = _rec(js[i], js[i + 1], gamma)
 
-            assert not any(q1 % q2 for q1, q2 in zip(qq(js[i], js[i+1]), qq(js[i], k)))
-            x += vector(q1 // q2 * r for q1, q2, r in zip(qq(js[i], js[i+1]), qq(js[i], k), v))
+            assert not any(q1 % q2 for q1, q2 in zip(qq(js[i], js[i + 1]), qq(js[i], k)))
+            x += vector(q1 // q2 * r for q1, q2, r in zip(qq(js[i], js[i + 1]), qq(js[i], k), v))
 
         return x
 
@@ -691,16 +664,16 @@ def _expand_basis_pgroup(p, alphas, vals, beta, h, rel):
     if not (isinstance(alphas, list) and isinstance(vals, list)):
         raise TypeError('alphas and vals must be lists for mutability')
     if not len(alphas) == len(vals) == k - 1:
-        raise ValueError(f'alphas and/or vals have incorrect length')
-#    assert not sum(r*a for r,a in zip(rel, alphas+[beta]))
-#    assert all(a.order() == p**v for a,v in zip(alphas,vals))
+        raise ValueError('alphas and/or vals have incorrect length')
+    #    assert not sum(r*a for r,a in zip(rel, alphas+[beta]))
+    #    assert all(a.order() == p**v for a,v in zip(alphas,vals))
 
     if rel[-1] < 0:
         raise ValueError('rel must have nonnegative entries')
 
     # step 1
     min_r = rel[-1] or float('inf')
-    for i in range(k-1):
+    for i in range(k - 1):
         if not rel[i]:
             continue
         if rel[i] < 0:
@@ -708,26 +681,25 @@ def _expand_basis_pgroup(p, alphas, vals, beta, h, rel):
         q = rel[i].p_primary_part(p)
         alphas[i] *= rel[i] // q
         rel[i] = q
-        if q < min_r:
-            min_r = q
+        min_r = min(q, min_r)
     if min_r == float('inf'):
         raise ValueError('rel must have at least one nonzero entry')
     val_rlast = rel[-1].valuation(p)
-#    assert rel[-1] == p ** val_rlast
-#    assert not sum(r*a for r,a in zip(rel, alphas+[beta]))
+    #    assert rel[-1] == p ** val_rlast
+    #    assert not sum(r*a for r,a in zip(rel, alphas+[beta]))
 
     # step 2
     if rel[-1] == min_r:
-        for i in range(k-1):
-            beta += alphas[i] * (rel[i]//rel[-1])
+        for i in range(k - 1):
+            beta += alphas[i] * (rel[i] // rel[-1])
         alphas.append(beta)
         vals.append(val_rlast)
-#        assert alphas[-1].order() == p**vals[-1]
+        #        assert alphas[-1].order() == p**vals[-1]
         return
 
     # step 3
-    j = next(j for j,r in enumerate(rel) if r == min_r)
-    alphas[j] = sum(a * (r//rel[j]) for a,r in zip(alphas+[beta], rel))
+    j = next(j for j, r in enumerate(rel) if r == min_r)
+    alphas[j] = sum(a * (r // rel[j]) for a, r in zip(alphas + [beta], rel))
 
     # step 4
     if not alphas[j]:
@@ -752,7 +724,8 @@ def _expand_basis_pgroup(p, alphas, vals, beta, h, rel):
     else:
         alphas.append(beta)
         vals.append(h)
-#    assert alphas[-1].order() == p**vals[-1]
+    #    assert alphas[-1].order() == p**vals[-1]
+
 
 def basis_from_generators(gens, ords=None):
     r"""
@@ -803,7 +776,8 @@ def basis_from_generators(gens, ords=None):
     gammas = []
     ms = []
     for p in ps:
-        pgens = [(o.prime_to_m_part(p) * g, o.p_primary_part(p)) for g, o in zip(gens, ords) if not o % p]
+        pgens = [(o.prime_to_m_part(p) * g, o.p_primary_part(p))
+                 for g, o in zip(gens, ords) if not o % p]
         assert pgens
         pgens.sort(key=lambda tup: tup[1])
 
@@ -814,7 +788,7 @@ def basis_from_generators(gens, ords=None):
         while pgens:
             beta, ord_beta = pgens.pop()
             try:
-                dlog = _discrete_log_pgroup(p, vals, alphas, beta)
+                _ = _discrete_log_pgroup(p, vals, alphas, beta)
             except ValueError:
                 pass
             else:
@@ -845,8 +819,8 @@ def basis_from_generators(gens, ords=None):
                 gammas.append(a)
                 ms.append(p ** v)
 
-##    assert len({sum(i*g for i,g in zip(vec,gammas))
-##                for vec in __import__('itertools').product(*map(range,ms))}) \
-##               == __import__('sage').misc.misc_c.prod(ms)
+#    assert len({sum(i*g for i,g in zip(vec,gammas))
+#                for vec in __import__('itertools').product(*map(range,ms))}) \
+#               == __import__('sage').misc.misc_c.prod(ms)
 
     return gammas, ms

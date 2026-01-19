@@ -1,6 +1,6 @@
 # sage.doctest: needs sage.graphs
 """
-Coxeter Matrices
+Coxeter matrices
 """
 # ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -944,7 +944,7 @@ class CoxeterMatrix(CoxeterType, metaclass=ClasscallMetaclass):
         """
         return self.coxeter_graph().is_connected()
 
-    def is_finite(self):
+    def is_finite(self) -> bool:
         """
         Return if ``self`` is a finite type or ``False`` if unknown.
 
@@ -962,7 +962,7 @@ class CoxeterMatrix(CoxeterType, metaclass=ClasscallMetaclass):
         """
         return self._is_finite
 
-    def is_affine(self):
+    def is_affine(self) -> bool:
         """
         Return if ``self`` is an affine type or ``False`` if unknown.
 
@@ -1078,7 +1078,7 @@ def recognize_coxeter_type_from_matrix(coxeter_matrix, index_set):
         ....:     if C.is_finite() or C.is_affine():
         ....:         assert recognized_type == C.coxeter_type()
 
-    We check the rank 2 cases (:trac:`20419`)::
+    We check the rank 2 cases (:issue:`20419`)::
 
         sage: for i in range(2, 10):
         ....:     M = matrix([[1,i],[i,1]])
@@ -1095,7 +1095,7 @@ def recognize_coxeter_type_from_matrix(coxeter_matrix, index_set):
         Coxeter type of ['A', 1, 1]
 
     Check that this works for reducible types with relabellings
-    (:trac:`24892`)::
+    (:issue:`24892`)::
 
         sage: CM = CoxeterMatrix([[1,2,5],[2,1,2],[5,2,1]]); CM
         [1 2 5]
@@ -1114,7 +1114,7 @@ def recognize_coxeter_type_from_matrix(coxeter_matrix, index_set):
 
     types = []
     for S in G.connected_components_subgraphs():
-        r = S.num_verts()
+        r = S.n_vertices()
         # Handle the special cases first
         if r == 1:
             types.append(CoxeterType(['A', 1]).relabel({1: S.vertices(sort=True)[0]}))

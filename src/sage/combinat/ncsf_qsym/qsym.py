@@ -81,28 +81,30 @@ AUTHOR:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from sage.misc.bindable_class import BindableClass
 from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
 from sage.categories.rings import Rings
 from sage.categories.fields import Fields
 from sage.categories.realizations import Category_realization_of_parent
-from sage.structure.parent import Parent
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.matrix.constructor import matrix
-from sage.matrix.matrix_space import MatrixSpace
 from sage.combinat.permutation import Permutations
 from sage.combinat.composition import Composition, Compositions
 from sage.combinat.partition import Partitions, _Partitions
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.combinat.ncsf_qsym.generic_basis_code import BasesOfQSymOrNCSF
-from sage.combinat.ncsf_qsym.combinatorics import (number_of_fCT, number_of_SSRCT,
-                   compositions_order, coeff_pi, coeff_lp, coeff_sp, coeff_ell)
+from sage.combinat.ncsf_qsym.combinatorics import (
+    number_of_fCT, number_of_SSRCT,
+    compositions_order, coeff_pi, coeff_lp, coeff_sp, coeff_ell)
 from sage.combinat.ncsf_qsym.ncsf import NonCommutativeSymmetricFunctions
 from sage.combinat.words.word import Word
 from sage.combinat.tableau import StandardTableaux
+from sage.misc.bindable_class import BindableClass
 from sage.misc.cachefunc import cached_method
-from sage.misc.superseded import deprecated_function_alias
+from sage.misc.lazy_import import lazy_import
+from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
+
+lazy_import('sage.matrix.constructor', 'matrix')
+lazy_import('sage.matrix.matrix_space', 'MatrixSpace')
 
 
 class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
@@ -544,7 +546,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         True
     """
 
-    def __init__(self, R):
+    def __init__(self, R) -> None:
         """
         The Hopf algebra of quasi-symmetric functions.
         See ``QuasiSymmetricFunctions`` for full documentation.
@@ -607,7 +609,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                                              codomain=Fundamental, category=category)
         Sym_s_to_F.register_as_coercion()
 
-    def _repr_(self):
+    def _repr_(self) -> str:
         r"""
         EXAMPLES::
 
@@ -621,9 +623,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         r"""
         Return the realization of the Monomial basis of the ring of quasi-symmetric functions.
 
-        OUTPUT:
-
-        - The Monomial basis of quasi-symmetric functions.
+        OUTPUT: the Monomial basis of quasi-symmetric functions
 
         EXAMPLES::
 
@@ -632,16 +632,14 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.Monomial()
 
-    _shorthands = tuple(['M', 'F', 'E', 'dI', 'QS', 'YQS', 'phi', 'psi'])
+    _shorthands = ('M', 'F', 'E', 'dI', 'QS', 'YQS', 'phi', 'psi')
 
     def dual(self):
         r"""
         Return the dual Hopf algebra of the quasi-symmetric functions, which is the
         non-commutative symmetric functions.
 
-        OUTPUT:
-
-        - The non-commutative symmetric functions.
+        OUTPUT: the non-commutative symmetric functions
 
         EXAMPLES::
 
@@ -661,12 +659,10 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         - ``f`` -- a polynomial in finitely many variables over the same base
           ring as ``self``. It is assumed that this polynomial is
           quasi-symmetric.
-        - ``check`` -- boolean (default: ``True``), checks whether the
-          polynomial is indeed quasi-symmetric.
+        - ``check`` -- boolean (default: ``True``); checks whether the
+          polynomial is indeed quasi-symmetric
 
-        OUTPUT:
-
-        - quasi-symmetric function in the Monomial basis
+        OUTPUT: quasi-symmetric function in the Monomial basis
 
         EXAMPLES::
 
@@ -701,7 +697,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             -F[1, 1] + F[2]
         """
         assert self.base_ring() == f.base_ring()
-        exponent_coefficient = f.dict()
+        exponent_coefficient = f.monomial_coefficients()
         z = {}
         for e, c in exponent_coefficient.items():
             I = Compositions()([ei for ei in e if ei])
@@ -727,9 +723,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             r"""
             Return the super categories of bases of the Quasi-symmetric functions.
 
-            OUTPUT:
-
-            - a list of categories
+            OUTPUT: list of categories
 
             TESTS::
 
@@ -758,12 +752,10 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 - ``f`` -- a polynomial in finitely many variables over the same base
                   ring as ``self``. It is assumed that this polynomial is
                   quasi-symmetric.
-                - ``check`` -- boolean (default: ``True``), checks whether the
-                  polynomial is indeed quasi-symmetric.
+                - ``check`` -- boolean (default: ``True``); checks whether the
+                  polynomial is indeed quasi-symmetric
 
-                OUTPUT:
-
-                - quasi-symmetric function
+                OUTPUT: quasi-symmetric function
 
                 EXAMPLES::
 
@@ -874,7 +866,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 #. If `I` is a composition, then a `(0, I)`-matrix will mean a
                    matrix whose entries are nonnegative integers such that no
                    row and no column of this matrix is zero, and such that if
-                   all the non-zero entries of the matrix are read (row by row,
+                   all the nonzero entries of the matrix are read (row by row,
                    starting at the topmost row, reading every row from left to
                    right), then the reading word obtained is `I`. If `A` is
                    a `(0, I)`-matrix, then `\mathrm{row}(A)` will denote the
@@ -1106,7 +1098,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 INPUT:
 
-                - ``n`` -- a positive integer
+                - ``n`` -- positive integer
 
                 OUTPUT:
 
@@ -1162,8 +1154,6 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                        for (I, coeff) in M(self)}
                 result_in_M_basis = M._from_dict(dct)
                 return parent(result_in_M_basis)
-
-            frobenius = deprecated_function_alias(36396, adams_operator)
 
             def star_involution(self):
                 r"""
@@ -1574,15 +1564,13 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 INPUT:
 
-                - ``n`` -- A nonnegative integer; the number of variables
+                - ``n`` -- nonnegative integer; the number of variables
                   in the expansion
-                - ``alphabet`` -- (default: ``'x'``); the alphabet in
+                - ``alphabet`` -- (default: ``'x'``) the alphabet in
                   which ``self`` is to be expanded
 
-                OUTPUT:
-
-                - An expansion of ``self`` into the ``n`` variables specified
-                  by ``alphabet``.
+                OUTPUT: an expansion of ``self`` into the ``n`` variables
+                specified by ``alphabet``
 
                 EXAMPLES::
 
@@ -1721,9 +1709,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             Return the dual basis to the Monomial basis. This is the complete basis of the
             non-commutative symmetric functions.
 
-            OUTPUT:
-
-            - The complete basis of the non-commutative symmetric functions.
+            OUTPUT: the complete basis of the non-commutative symmetric functions
 
             EXAMPLES::
 
@@ -2009,13 +1995,11 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 INPUT:
 
-                - ``n`` -- an integer
-                - ``alphabet`` -- (default: ``'x'``) a string
+                - ``n`` -- integer
+                - ``alphabet`` -- string (default: ``'x'``)
 
-                OUTPUT:
-
-                - The quasi-symmetric function ``self`` expressed in the ``n`` variables
-                  described by ``alphabet``.
+                OUTPUT: the quasi-symmetric function ``self`` expressed in the
+                `n` variables described by ``alphabet``
 
                 .. TODO:: accept an *alphabet* as input
 
@@ -2053,7 +2037,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                         return P.zero()
                     else:
                         return x[i-1]**comp[-1] * on_basis(comp[:-1], i-1) + \
-                                                  on_basis(comp,      i-1)
+                                                  on_basis(comp, i-1)
                 return M._apply_module_morphism(self, lambda comp: on_basis(comp,n),
                                                 codomain=P)
 
@@ -2205,7 +2189,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
         def _from_schur_on_basis(self, la):
             r"""
-            Maps the Schur symmetric function indexed by ``la`` to the
+            Map the Schur symmetric function indexed by ``la`` to the
             Fundamental basis.
 
             EXAMPLES::
@@ -2235,9 +2219,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             Return the dual basis to the Fundamental basis. This is the ribbon
             basis of the non-commutative symmetric functions.
 
-            OUTPUT:
-
-            - The ribbon basis of the non-commutative symmetric functions.
+            OUTPUT: the ribbon basis of the non-commutative symmetric functions
 
             EXAMPLES::
 
@@ -2452,7 +2434,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 #. If `I` is a composition, then a `(0, I)`-matrix will mean a
                    matrix whose entries are nonnegative integers such that no
                    row and no column of this matrix is zero, and such that if
-                   all the non-zero entries of the matrix are read (row by row,
+                   all the nonzero entries of the matrix are read (row by row,
                    starting at the topmost row, reading every row from left to
                    right), then the reading word obtained is `I`. If `A` is
                    a `(0, I)`-matrix, then `\mathrm{row}(A)` will denote the
@@ -2884,11 +2866,9 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             INPUT:
 
-            - ``n`` -- an integer
+            - ``n`` -- integer
 
-            OUTPUT:
-
-            - a pair of a square matrix and the ordered list of compositions
+            OUTPUT: a pair of a square matrix and the ordered list of compositions
 
             EXAMPLES::
 
@@ -2915,16 +2895,14 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         @cached_method
         def _from_monomial_on_basis(self, comp):
             r"""
-            Maps the Monomial quasi-symmetric function indexed by
+            Map the Monomial quasi-symmetric function indexed by
             ``comp`` to the Quasisymmetric Schur basis.
 
             INPUT:
 
             - ``comp`` -- a composition
 
-            OUTPUT:
-
-            - a quasi-symmetric function in the Quasisymmetric Schur basis
+            OUTPUT: a quasi-symmetric function in the Quasisymmetric Schur basis
 
             EXAMPLES::
 
@@ -2958,9 +2936,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             - ``comp_shape`` -- a composition
 
-            OUTPUT:
-
-            - a quasi-symmetric function in the Monomial basis
+            OUTPUT: a quasi-symmetric function in the Monomial basis
 
             EXAMPLES::
 
@@ -3080,9 +3056,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             - ``comp`` -- a composition
 
-            OUTPUT:
-
-            - a quasi-symmetric function in the Monomial basis
+            OUTPUT: a quasi-symmetric function in the Monomial basis
 
             EXAMPLES::
 
@@ -3106,9 +3080,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             - ``comp`` -- a composition
 
-            OUTPUT:
-
-            - a quasi-symmetric function in the Young Quasisymmetric Schur basis
+            OUTPUT: a quasi-symmetric function in the Young Quasisymmetric Schur basis
 
             EXAMPLES::
 
@@ -3161,9 +3133,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             - ``J`` -- a composition
 
-            OUTPUT:
-
-            - A quasi-symmetric function in the monomial basis.
+            OUTPUT: a quasi-symmetric function in the monomial basis
 
             EXAMPLES::
 
@@ -3229,9 +3199,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             - ``J`` -- a composition
 
-            OUTPUT:
-
-            - A quasi-symmetric function in the dual immaculate basis.
+            OUTPUT: a quasi-symmetric function in the dual immaculate basis
 
             EXAMPLES::
 
@@ -3566,26 +3534,20 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             # For every composition I of size n, expand self[I] in terms
             # of the monomial basis M.
-            i = 0
-            for I in compositions_n:
+            for i, I in enumerate(compositions_n):
                 # M_coeffs will be M(self[I])._monomial_coefficients
                 M_coeffs = {}
 
                 self_I_in_M_basis = M.prod([from_self_gen_function(self._indices(list(J)))
                                             for J in Word(I).lyndon_factorization()])
 
-                j = 0
-
-                for J in compositions_n:
+                for j, J in enumerate(compositions_n):
                     if J in self_I_in_M_basis._monomial_coefficients:
                         sp = self_I_in_M_basis._monomial_coefficients[J]
                         M_coeffs[J] = sp
-                        transition_matrix_n[i,j] = sp
-
-                    j += 1
+                        transition_matrix_n[i, j] = sp
 
                 from_self_cache[I] = M_coeffs
-                i += 1
 
             # Save the transition matrix
             inverse_transition_matrices[n] = transition_matrix_n
@@ -3716,9 +3678,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             - ``J`` -- a composition
 
-            OUTPUT:
-
-            - A quasi-symmetric function in the Monomial basis.
+            OUTPUT: a quasi-symmetric function in the Monomial basis
 
             EXAMPLES::
 
@@ -3740,9 +3700,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             - ``J`` -- a composition
 
-            OUTPUT:
-
-            - A quasi-symmetric function in the Hazewinkel lambda basis.
+            OUTPUT: a quasi-symmetric function in the Hazewinkel lambda basis
 
             EXAMPLES::
 
@@ -3905,9 +3863,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             - ``I`` -- a composition
 
-            OUTPUT:
-
-            - a quasi-symmetric function in the `\psi` basis
+            OUTPUT: a quasi-symmetric function in the `\psi` basis
 
             TESTS::
 
@@ -3933,9 +3889,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             - ``I`` -- a composition
 
-            OUTPUT:
-
-            - a quasi-symmetric function in the Monomial basis
+            OUTPUT: a quasi-symmetric function in the Monomial basis
 
             TESTS::
 
@@ -4048,9 +4002,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             - ``I`` -- a composition
 
-            OUTPUT:
-
-            - a quasi-symmetric function in the `\psi` basis
+            OUTPUT: a quasi-symmetric function in the `\psi` basis
 
             TESTS::
 
@@ -4076,9 +4028,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             - ``I`` -- a composition
 
-            OUTPUT:
-
-            - a quasi-symmetric function in the Monomial basis
+            OUTPUT: a quasi-symmetric function in the Monomial basis
 
             TESTS::
 

@@ -16,56 +16,30 @@ Base class for groups
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
-from sage.structure.parent cimport Parent
 from sage.rings.infinity import infinity
-
-
-def is_Group(x):
-    """
-    Return whether ``x`` is a group object.
-
-    INPUT:
-
-    - ``x`` -- anything.
-
-    OUTPUT:
-
-    Boolean.
-
-    EXAMPLES::
-
-        sage: F.<a,b> = FreeGroup()                                                     # needs sage.groups
-        sage: from sage.groups.group import is_Group
-        sage: is_Group(F)                                                               # needs sage.groups
-        True
-        sage: is_Group("a string")
-        False
-    """
-    from sage.groups.old import Group as OldGroup
-    return isinstance(x, (Group, OldGroup))
+from sage.structure.parent cimport Parent
 
 
 cdef class Group(Parent):
     """
-    Base class for all groups
+    Base class for all groups.
 
     TESTS::
 
         sage: from sage.groups.group import Group
         sage: G = Group()
         sage: TestSuite(G).run(skip = ["_test_an_element",\
-                                       "_test_associativity",\
-                                       "_test_elements",\
-                                       "_test_elements_eq_reflexive",\
-                                       "_test_elements_eq_symmetric",\
-                                       "_test_elements_eq_transitive",\
-                                       "_test_elements_neq",\
-                                       "_test_inverse",\
-                                       "_test_one",\
-                                       "_test_pickling",\
-                                       "_test_prod",\
-                                       "_test_some_elements"])
+        ....:                          "_test_associativity",\
+        ....:                          "_test_elements",\
+        ....:                          "_test_elements_eq_reflexive",\
+        ....:                          "_test_elements_eq_symmetric",\
+        ....:                          "_test_elements_eq_transitive",\
+        ....:                          "_test_elements_neq",\
+        ....:                          "_test_inverse",\
+        ....:                          "_test_one",\
+        ....:                          "_test_pickling",\
+        ....:                          "_test_prod",\
+        ....:                          "_test_some_elements"])
 
     Generic groups have very little functionality::
 
@@ -76,7 +50,7 @@ cdef class Group(Parent):
     """
     def __init__(self, base=None, category=None):
         """
-        The Python constructor
+        The Python constructor.
 
         TESTS::
 
@@ -94,7 +68,7 @@ cdef class Group(Parent):
             sage: G._repr_option('element_is_atomic')
             False
 
-        Check for :trac:`8119`::
+        Check for :issue:`8119`::
 
             sage: # needs sage.groups
             sage: G = SymmetricGroup(2)
@@ -110,10 +84,10 @@ cdef class Group(Parent):
             if not isinstance(category, tuple):
                 category = (category,)
             if not any(cat.is_subcategory(Groups()) for cat in category):
-                raise ValueError("%s is not a subcategory of %s"%(category, Groups()))
+                raise ValueError("%s is not a subcategory of %s" % (category, Groups()))
         Parent.__init__(self, base=base, category=category)
 
-    def is_abelian(self):
+    def is_abelian(self) -> bool:
         """
         Test whether this group is abelian.
 
@@ -128,7 +102,7 @@ cdef class Group(Parent):
         """
         raise NotImplementedError
 
-    def is_commutative(self):
+    def is_commutative(self) -> bool:
         r"""
         Test whether this group is commutative.
 
@@ -173,7 +147,7 @@ cdef class Group(Parent):
 
     def is_finite(self):
         """
-        Returns True if this group is finite.
+        Return ``True`` if this group is finite.
 
         EXAMPLES::
 
@@ -218,11 +192,9 @@ cdef class Group(Parent):
         """
         return self.order() == 1
 
-
     def is_multiplicative(self):
         r"""
-        Returns True if the group operation is given by \* (rather than
-        +).
+        Return ``True`` if the group operation is given by ``*`` (rather than ``+``).
 
         Override for additive groups.
 
@@ -237,11 +209,9 @@ cdef class Group(Parent):
 
     def _an_element_(self):
         """
-        Return an element
+        Return an element.
 
-        OUTPUT:
-
-        An element of the group.
+        OUTPUT: an element of the group
 
         EXAMPLES::
 
@@ -270,9 +240,9 @@ cdef class AbelianGroup(Group):
     """
     Generic abelian group.
     """
-    def is_abelian(self):
+    def is_abelian(self) -> bool:
         """
-        Return True.
+        Return ``True``.
 
         EXAMPLES::
 
@@ -290,7 +260,7 @@ cdef class FiniteGroup(Group):
 
     def __init__(self, base=None, category=None):
         """
-        The Python constructor
+        The Python constructor.
 
         TESTS::
 

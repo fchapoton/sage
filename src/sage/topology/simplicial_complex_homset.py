@@ -39,7 +39,6 @@ TESTS::
     sage: H = Hom(S,T)
     sage: loads(dumps(H)) == H
     True
-
 """
 
 # ****************************************************************************
@@ -62,32 +61,12 @@ import sage.categories.homset
 from .simplicial_complex_morphism import SimplicialComplexMorphism
 
 
-def is_SimplicialComplexHomset(x) -> bool:
-    """
-    Return ``True`` if and only if ``x`` is a simplicial complex homspace.
-
-    EXAMPLES::
-
-        sage: S = SimplicialComplex(is_mutable=False)
-        sage: T = SimplicialComplex(is_mutable=False)
-        sage: H = Hom(S, T)
-        sage: H
-        Set of Morphisms from Simplicial complex with vertex set () and facets {()}
-         to Simplicial complex with vertex set () and facets {()}
-         in Category of finite simplicial complexes
-        sage: from sage.topology.simplicial_complex_homset import is_SimplicialComplexHomset
-        sage: is_SimplicialComplexHomset(H)
-        True
-    """
-    return isinstance(x, SimplicialComplexHomset)
-
-
 class SimplicialComplexHomset(sage.categories.homset.Homset):
     def __call__(self, f):
         """
         INPUT:
 
-        - ``f`` -- a dictionary with keys exactly the vertices of the domain
+        - ``f`` -- dictionary with keys exactly the vertices of the domain
           and values vertices of the codomain
 
         EXAMPLES::

@@ -7,8 +7,8 @@ is a chain complex of free `R`-modules
 
 .. MATH::
 
-    R^{n_0} \xleftarrow{d_1}  R^{n_1} \xleftarrow{d_2}
-    \cdots \xleftarrow{d_k} R^{n_k} \xleftarrow{d_{k+1}} 0
+    0 \rightarrow R^{n_k} \xrightarrow{d_k}
+    \cdots \xrightarrow{d_2} R^{n_1} \xrightarrow{d_1} R^{n_0}
 
 terminating with a zero module at the end that is exact (all homology groups
 are zero) such that the image of `d_1` is `M`.
@@ -87,8 +87,8 @@ class FreeResolution(SageObject, metaclass=ClasscallMetaclass):
 
     .. MATH::
 
-        R^{n_1} \xleftarrow{d_1}  R^{n_1} \xleftarrow{d_2}
-        \cdots \xleftarrow{d_k} R^{n_k} \xleftarrow{d_{k+1}} \cdots
+        \cdots \rightarrow R^{n_k} \xrightarrow{d_k}
+        \cdots \xrightarrow{d_2} R^{n_1} \xrightarrow{d_1} R^{n_0}
 
     that is exact (all homology groups are zero) such that the image
     of `d_1` is `M`.
@@ -180,7 +180,7 @@ class FreeResolution(SageObject, metaclass=ClasscallMetaclass):
             return module.graded_free_resolution(*args, **kwds)
         return module.free_resolution(*args, **kwds)
 
-    def __init__(self, module, name='S', **kwds):
+    def __init__(self, module, name='S', **kwds) -> None:
         """
         Initialize ``self``.
 
@@ -206,7 +206,7 @@ class FreeResolution(SageObject, metaclass=ClasscallMetaclass):
         self._name = name
         self._module = module
 
-    def _repr_(self):
+    def _repr_(self) -> str:
         r"""
         Return a string representation of ``self``.
 
@@ -224,13 +224,13 @@ class FreeResolution(SageObject, metaclass=ClasscallMetaclass):
             return f"Free resolution of the row space of the matrix:\n{self._module}"
         return f"Free resolution of {self._module}"
 
-    def _repr_module(self, i):
+    def _repr_module(self, i) -> str:
         r"""
         Return the string form of the `i`-th free module.
 
         INPUT:
 
-        - ``i`` -- a positive integer
+        - ``i`` -- positive integer
 
         EXAMPLES::
 
@@ -271,11 +271,11 @@ class FreeResolution(SageObject, metaclass=ClasscallMetaclass):
     @abstract_method
     def differential(self, i):
         r"""
-        Return the ``i``-th differential map.
+        Return the `i`-th differential map.
 
         INPUT:
 
-        - ``i`` -- a positive integer
+        - ``i`` -- positive integer
 
         TESTS::
 
@@ -369,13 +369,13 @@ class FiniteFreeResolution(FreeResolution):
         """
         return len(self._maps)
 
-    def _repr_(self):
+    def _repr_(self) -> str:
         """
         Return the string form of this resolution.
 
         INPUT:
 
-        - ``i`` -- a positive integer
+        - ``i`` -- positive integer
 
         EXAMPLES::
 
@@ -409,11 +409,11 @@ class FiniteFreeResolution(FreeResolution):
 
     def __getitem__(self, i):
         r"""
-        Return the ``i``-th free module of this resolution.
+        Return the `i`-th free module of this resolution.
 
         INPUT:
 
-        - ``i`` -- a positive integer
+        - ``i`` -- positive integer
 
         EXAMPLES::
 
@@ -443,11 +443,11 @@ class FiniteFreeResolution(FreeResolution):
 
     def differential(self, i):
         r"""
-        Return the ``i``-th differential map.
+        Return the `i`-th differential map.
 
         INPUT:
 
-        - ``i`` -- a positive integer
+        - ``i`` -- positive integer
 
         EXAMPLES::
 
@@ -542,11 +542,11 @@ class FiniteFreeResolution(FreeResolution):
 
     def matrix(self, i):
         r"""
-        Return the matrix representing the ``i``-th differential map.
+        Return the matrix representing the `i`-th differential map.
 
         INPUT:
 
-        - ``i`` -- a positive integer
+        - ``i`` -- positive integer
 
         EXAMPLES::
 
@@ -792,14 +792,14 @@ class FiniteFreeResolution_singular(FiniteFreeResolution):
     The available algorithms and the corresponding Singular commands
     are shown below:
 
-        ============= ============================
-        algorithm     Singular commands
-        ============= ============================
-        ``minimal``   ``mres(ideal)``
-        ``shreyer``   ``minres(sres(std(ideal)))``
-        ``standard``  ``minres(nres(std(ideal)))``
-        ``heuristic`` ``minres(res(std(ideal)))``
-        ============= ============================
+    ============= ============================
+    algorithm     Singular commands
+    ============= ============================
+    ``minimal``   ``mres(ideal)``
+    ``shreyer``   ``minres(sres(std(ideal)))``
+    ``standard``  ``minres(nres(std(ideal)))``
+    ``heuristic`` ``minres(res(std(ideal)))``
+    ============= ============================
 
     EXAMPLES::
 
@@ -851,7 +851,7 @@ class FiniteFreeResolution_singular(FiniteFreeResolution):
         [-y*z + x*w]
         [ z^2 - y*w]
     """
-    def __init__(self, module, name='S', algorithm='heuristic', **kwds):
+    def __init__(self, module, name='S', algorithm='heuristic', **kwds) -> None:
         r"""
         Initialize ``self``.
 

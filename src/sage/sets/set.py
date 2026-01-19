@@ -17,7 +17,6 @@ AUTHORS:
 
 - Julian Rueth (2013-04-09) - Collected common code in
   :class:`Set_object_binary`, fixed ``__hash__``.
-
 """
 
 # ****************************************************************************
@@ -36,24 +35,21 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+import sage.rings.infinity
+from sage.categories.enumerated_sets import EnumeratedSets
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.sets_cat import Sets
+from sage.misc.cachefunc import cached_method
+from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.latex import latex
 from sage.misc.prandom import choice
-from sage.misc.cachefunc import cached_method
-
 from sage.structure.category_object import CategoryObject
 from sage.structure.element import Element
 from sage.structure.parent import Parent, Set_generic
-from sage.structure.richcmp import richcmp_method, richcmp, rich_to_bool
-from sage.misc.classcall_metaclass import ClasscallMetaclass
-
-from sage.categories.sets_cat import Sets
-from sage.categories.enumerated_sets import EnumeratedSets
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-
-import sage.rings.infinity
+from sage.structure.richcmp import rich_to_bool, richcmp, richcmp_method
 
 
-def has_finite_length(obj):
+def has_finite_length(obj) -> bool:
     """
     Return ``True`` if ``obj`` is known to have finite length.
 
@@ -184,7 +180,7 @@ def Set(X=None, category=None):
         sage: S = Set([])
         sage: TestSuite(S).run()
 
-    Check that :trac:`16090` is fixed::
+    Check that :issue:`16090` is fixed::
 
         sage: Set()
         {}
@@ -210,7 +206,7 @@ def Set(X=None, category=None):
         return Set_object_enumerated(X, category=category)
 
 
-class Set_base():
+class Set_base:
     r"""
     Abstract base class for sets, not necessarily parents.
     """
@@ -304,7 +300,7 @@ class Set_base():
 
     def symmetric_difference(self, X):
         r"""
-        Returns the symmetric difference of ``self`` and ``X``.
+        Return the symmetric difference of ``self`` and ``X``.
 
         EXAMPLES::
 
@@ -343,7 +339,7 @@ class Set_base():
         if set_self is not self:
             from sage.misc.sage_unittest import TestSuite
             tester.info("\n  Running the test suite of Set(self)")
-            TestSuite(set_self).run(skip="_test_pickling",  # see Issue #32025
+            TestSuite(set_self).run(skip='_test_pickling',  # see Issue #32025
                                     verbose=tester._verbose,
                                     prefix=tester._prefix + "  ")
             tester.info(tester._prefix + " ", newline=False)
@@ -372,7 +368,7 @@ class Set_boolean_operators:
 
     def __and__(self, X):
         """
-        Returns the intersection of ``self`` and ``X``.
+        Return the intersection of ``self`` and ``X``.
 
         EXAMPLES::
 
@@ -385,7 +381,7 @@ class Set_boolean_operators:
 
     def __xor__(self, X):
         """
-        Returns the symmetric difference of ``self`` and ``X``.
+        Return the symmetric difference of ``self`` and ``X``.
 
         EXAMPLES::
 
@@ -461,7 +457,7 @@ class Set_object(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_opera
 
     TESTS:
 
-    See :trac:`14486`::
+    See :issue:`14486`::
 
         sage: 0 == Set([1]), Set([1]) == 0
         (False, False)
@@ -471,7 +467,7 @@ class Set_object(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_opera
 
     def __init__(self, X, category=None):
         """
-        Create a Set_object
+        Create a Set_object.
 
         This function is called by the Set function; users
         shouldn't call this directly.
@@ -492,8 +488,8 @@ class Set_object(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_opera
             '<class 'sage.sets.set.Set_object_enumerated_with_category'>'
             and 'Integer Ring'
         """
-        from sage.rings.integer import is_Integer
-        if isinstance(X, int) or is_Integer(X):
+        from sage.rings.integer import Integer
+        if isinstance(X, (int, Integer)):
             # The coercion model will try to call Set_object(0)
             raise ValueError('underlying object cannot be an integer')
 
@@ -705,9 +701,7 @@ class Set_object(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_opera
         """
         Return boolean representing emptiness of the set.
 
-        OUTPUT:
-
-        True if the set is empty, False if otherwise.
+        OUTPUT: ``True`` if the set is empty, ``False`` otherwise
 
         EXAMPLES::
 
@@ -807,7 +801,6 @@ class Set_object(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_opera
             sage: Y = Set()
             sage: Y.subsets_lattice()                                                   # needs sage.graphs
             Finite lattice containing 1 elements
-
         """
         if not self.is_finite():
             raise NotImplementedError(
@@ -903,9 +896,19 @@ class Set_object_enumerated(Set_object):
 
             sage: Set([1,1]).cardinality()
             1
+            sage: Set(GF(998244353)).cardinality()
+            998244353
         """
         from sage.rings.integer import Integer
-        return Integer(len(self.set()))
+        o = self.object()
+        if o is self:
+            return Integer(len(self.set()))
+        if isinstance(o, (list, tuple, set, frozenset)):
+            return Integer(len(o))
+        try:
+            return o.cardinality()
+        except (AttributeError, NotImplementedError):
+            return Integer(len(self.set()))
 
     def __len__(self):
         """
@@ -961,7 +964,23 @@ class Set_object_enumerated(Set_object):
 
             sage: Set()
             {}
+            sage: Set(GF(998244353))
+            Set of elements of Finite Field of size 998244353 = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+                10, 11, 12, 13, 14, 15, 16, 17, 18, 19, …}
         """
+        try:
+            if self.cardinality() > 20:
+                from itertools import islice
+                o = self.object()
+                l = list(islice(o, 0, 20))
+                s = "{" + ", ".join(map(repr, l)) + ", …}"
+                assert len(l) == 20, (f"incorrect cardinality {self.cardinality()} "
+                                      f"reported for object type {type(self)} containing {l}")
+                if o is not self:  # safeguard infinite loop if subclass is weird
+                    s = f"Set of elements of {o!r} = {s}"
+                return s
+        except NotImplementedError:
+            pass
         py_set = self.set()
         if not py_set:
             return "{}"
@@ -1089,13 +1108,37 @@ class Set_object_enumerated(Set_object):
             return rich_to_bool(op, 0)
         return rich_to_bool(op, -1)
 
+    def isdisjoint(self, other):
+        """
+        Return whether ``self`` and ``other`` are disjoint.
+
+        INPUT:
+
+        - ``other`` -- a finite Set
+
+        EXAMPLES::
+
+            sage: X = Set([1,2,3])
+            sage: Y = Set([2,4,6])
+            sage: Z = Set([4,5,6])
+            sage: X.isdisjoint(Y)
+            False
+            sage: X.isdisjoint(Z)
+            True
+            sage: Y.isdisjoint(Z)
+            False
+        """
+        return self.set().isdisjoint(other)
+
+    is_disjoint = isdisjoint
+
     def issubset(self, other):
         r"""
         Return whether ``self`` is a subset of ``other``.
 
         INPUT:
 
-         - ``other`` -- a finite Set
+        - ``other`` -- a finite Set
 
         EXAMPLES::
 
@@ -1113,9 +1156,9 @@ class Set_object_enumerated(Set_object):
             sage: len([Z for Z in Y.subsets() if Z.issubset(X)])
             8
         """
-        if not isinstance(other, Set_object_enumerated):
-            raise NotImplementedError
-        return self.set().issubset(other.set())
+        return self.set().issubset(other)
+
+    is_subset = issubset
 
     def issuperset(self, other):
         r"""
@@ -1123,7 +1166,7 @@ class Set_object_enumerated(Set_object):
 
         INPUT:
 
-         - ``other`` -- a finite Set
+        - ``other`` -- a finite Set
 
         EXAMPLES::
 
@@ -1141,9 +1184,9 @@ class Set_object_enumerated(Set_object):
             sage: len([Z for Z in Y.subsets() if Z.issuperset(X)])
             4
         """
-        if not isinstance(other, Set_object_enumerated):
-            raise NotImplementedError
-        return self.set().issuperset(other.set())
+        return self.set().issuperset(other)
+
+    is_superset = issuperset
 
     def union(self, other):
         """
@@ -1268,9 +1311,9 @@ class Set_object_binary(Set_object, metaclass=ClasscallMetaclass):
 
     - ``X``, ``Y`` -- sets, the operands to ``op``
 
-    - ``op`` -- a string describing the binary operation
+    - ``op`` -- string describing the binary operation
 
-    - ``latex_op`` -- a string used for rendering this object in LaTeX
+    - ``latex_op`` -- string used for rendering this object in LaTeX
 
     EXAMPLES::
 
@@ -1361,7 +1404,7 @@ class Set_object_binary(Set_object, metaclass=ClasscallMetaclass):
 
         TESTS:
 
-        Test that :trac:`14432` has been resolved::
+        Test that :issue:`14432` has been resolved::
 
             sage: S = Set(ZZ).union(Set([infinity]))
             sage: T = Set(ZZ).union(Set([infinity]))
@@ -1524,6 +1567,38 @@ class Set_object_union(Set_object_binary):
         sympy_init()
         return Union(self._X._sympy_(), self._Y._sympy_())
 
+    def __bool__(self):
+        """
+        Return ``True`` if this set is not empty.
+
+        EXAMPLES::
+
+            sage: bool(Set(GF(3)).union(Set(GF(2))))
+            True
+            sage: bool(Set(GF(3)).intersection(Set(GF(2))))
+            False
+
+        TESTS:
+
+        This should still work in the case the first set is nonempty
+        and the second set has :meth:`is_empty` unimplemented::
+
+            sage: C = ConditionSet(QQ, lambda x: x > 0)
+            sage: C.is_empty()
+            Traceback (most recent call last):
+            ...
+            AttributeError...
+            sage: C.is_finite()
+            Traceback (most recent call last):
+            ...
+            AttributeError...
+            sage: bool(Set([1]) + C)
+            True
+            sage: (Set([1]) + C).is_empty()
+            False
+        """
+        return bool(self._X) or bool(self._Y)
+
 
 class Set_object_intersection(Set_object_binary):
     """
@@ -1645,7 +1720,7 @@ class Set_object_intersection(Set_object_binary):
             2
 
         Check that known finite intersections have finite iterators (see
-        :trac:`18159`)::
+        :issue:`18159`)::
 
             sage: P = Set(ZZ).intersection(Set(range(10,20)))
             sage: list(P)
@@ -1720,7 +1795,9 @@ class Set_object_difference(Set_object_binary):
             sage: S = Set(QQ)
             sage: T = Set(ZZ)
             sage: X = S.difference(T); X
-            Set-theoretic difference of Set of elements of Rational Field and Set of elements of Integer Ring
+            Set-theoretic difference of
+             Set of elements of Rational Field and
+             Set of elements of Integer Ring
             sage: X.category()
             Category of sets
             sage: latex(X)
@@ -1960,7 +2037,6 @@ class Set_object_symmetric_difference(Set_object_binary):
             True
             sage: Y == X
             True
-
         """
         if not isinstance(right, Set_generic):
             return rich_to_bool(op, -1)

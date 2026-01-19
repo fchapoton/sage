@@ -1,7 +1,7 @@
 from sage.structure.element cimport ModuleElement
 
 cdef class FiniteZZsubmodule_iterator:
-    #### Global Data
+    # Global Data
     cdef FiniteZZsubmodule_iterator _other_ZZ
     cdef ModuleElement _basis
     cdef ModuleElement _cw
@@ -13,7 +13,7 @@ cdef class FiniteZZsubmodule_iterator:
     cdef int _count
     cdef int _order
     cdef bint _immutable
-    cdef ModuleElement _iteration(FiniteZZsubmodule_iterator self) noexcept
+    cdef ModuleElement _iteration(FiniteZZsubmodule_iterator self)
 
 cdef class FiniteFieldsubspace_iterator(FiniteZZsubmodule_iterator):
     pass

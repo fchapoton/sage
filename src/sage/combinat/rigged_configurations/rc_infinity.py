@@ -1,10 +1,10 @@
 # sage.doctest: needs sage.combinat sage.modules
 r"""
-Rigged Configurations of `\mathcal{B}(\infty)`
+Rigged configurations of `\mathcal{B}(\infty)`
 
 AUTHORS:
 
-- Travis Scrimshaw (2013-04-16): Initial version
+- Travis Scrimshaw (2013-04-16): initial version
 """
 
 # ****************************************************************************
@@ -204,7 +204,7 @@ class InfinityCrystalOfRiggedConfigurations(UniqueRepresentation, Parent):
 
         TESTS:
 
-        Check that :trac:`17054` is fixed::
+        Check that :issue:`17054` is fixed::
 
             sage: RC = RiggedConfigurations(['A',2,1], [[1,1]]*4 + [[2,1]]*4)
             sage: B = crystals.infinity.RiggedConfigurations(['A',2])

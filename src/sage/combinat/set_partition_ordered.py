@@ -1,12 +1,10 @@
 r"""
-Ordered Set Partitions
+Ordered set partitions
 
 AUTHORS:
 
 - Mike Hansen
-
 - MuPAD-Combinat developers (for algorithms and design inspiration)
-
 - Travis Scrimshaw (2013-02-28): Removed ``CombinatorialClass`` and added
   entry point through :class:`OrderedSetPartition`.
 """
@@ -126,7 +124,7 @@ class OrderedSetPartition(ClonableArray,
          [{3}, {2, 4}, {1}],
          [{4}, {2, 3}, {1}]]
 
-    Since :trac:`14140`, we can create an ordered set partition directly by
+    Since :issue:`14140`, we can create an ordered set partition directly by
     :class:`OrderedSetPartition` which creates the parent object by taking the
     union of the partitions passed in. However it is recommended and
     (marginally) faster to create the parent first and then create the ordered
@@ -330,7 +328,7 @@ class OrderedSetPartition(ClonableArray,
 
         INPUT:
 
-        - ``osps`` -- a list (or iterable) of ordered set partitions
+        - ``osps`` -- list (or iterable) of ordered set partitions
 
         EXAMPLES::
 
@@ -455,7 +453,7 @@ class OrderedSetPartition(ClonableArray,
         return FiniteEnumeratedSet([par(sum((list(i) for i in C), []))
                                     for C in product(*[OrderedSetPartitions(X) for X in self])])
 
-    def is_finer(self, co2):
+    def is_finer(self, co2) -> bool:
         """
         Return ``True`` if the ordered set partition ``self`` is finer
         than the ordered set partition ``co2``; otherwise, return ``False``.
@@ -674,7 +672,7 @@ class OrderedSetPartition(ClonableArray,
         return FiniteEnumeratedSet([par(sum((list(P) for P in C), []))
                                     for C in product(*[[buo(X, comp) for comp in Compositions(len(X))] for X in self])])
 
-    def is_strongly_finer(self, co2):
+    def is_strongly_finer(self, co2) -> bool:
         r"""
         Return ``True`` if the ordered set partition ``self`` is strongly
         finer than the ordered set partition ``co2``; otherwise, return
@@ -938,7 +936,7 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
             return OrderedSetPartitions_all()
         if isinstance(s, (int, Integer)):
             if s < 0:
-                raise ValueError("s must be non-negative")
+                raise ValueError("s must be nonnegative")
             s = frozenset(range(1, s + 1))
         else:
             s = frozenset(s)
@@ -995,6 +993,11 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
             True
             sage: [set([1,2]), set([3,4])] in OS
             True
+
+        Make sure the set really matches::
+
+            sage: [set([5,6]), set([3,4])] in OS
+            False
         """
         # x must be a list
         if not isinstance(x, (OrderedSetPartition, list, tuple)):
@@ -1015,7 +1018,9 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
 
         # Make sure that the union of all the
         # sets is the original set
-        return len(u) == len(self._set)
+        if len(u) != len(self._set):
+            return False
+        return frozenset(u) == self._set
 
     def from_finite_word(self, w, check=True):
         r"""
@@ -1300,7 +1305,7 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
             sage: [ p for p in OrderedSetPartitions([1], [1]) ]
             [[{1}]]
 
-        Let us check that it works for large size (:trac:`16646`)::
+        Let us check that it works for large size (:issue:`16646`)::
 
             sage: OrderedSetPartitions(42).first()
             [{1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12},

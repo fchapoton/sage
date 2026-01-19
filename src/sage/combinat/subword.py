@@ -55,7 +55,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import annotations
-from typing import Iterator
 import itertools
 
 from sage.structure.parent import Parent
@@ -65,6 +64,10 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 import sage.misc.prandom as prandom
 from sage.rings.integer import Integer
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 def _stringification(data):
@@ -540,7 +543,7 @@ def smallest_positions(word, subword, pos=0) -> list | bool:
 
     TESTS:
 
-    We check for :trac:`5534`::
+    We check for :issue:`5534`::
 
         sage: w = ["a", "b", "c", "d"]; ww = ["b", "d"]
         sage: x = sage.combinat.subword.smallest_positions(w, ww); ww

@@ -10,7 +10,6 @@ saturated with respect to the ideal `(x_1 \cdots x_n)`.
 AUTHORS:
 
 - Kiran S. Kedlaya (2020): initial implementation
-
 """
 # ****************************************************************************
 #       Copyright (C) 2020 Kiran S. Kedlaya <kedlaya@ucsd.edu>
@@ -27,8 +26,9 @@ from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing_
 from sage.structure.richcmp import op_EQ, op_NE, op_LT, op_LE, op_GT, op_GE
 from sage.arith.misc import GCD
 
+
 class LaurentPolynomialIdeal( Ideal_generic ):
-    def __init__(self, ring, gens, coerce=True, hint=None):
+    def __init__(self, ring, gens, coerce=True, hint=None) -> None:
         r"""
         Create an ideal in a Laurent polynomial ring.
 
@@ -49,7 +49,7 @@ class LaurentPolynomialIdeal( Ideal_generic ):
         INPUT:
 
         - ``ring`` -- the ring the ideal is defined in
-        - ``gens`` -- a list of generators for the ideal
+        - ``gens`` -- list of generators for the ideal
         - ``coerce`` -- whether or not to coerce elements into ``ring``
         - ``hint`` -- an ideal in the associated polynomial ring (optional; see above)
 
@@ -184,7 +184,7 @@ class LaurentPolynomialIdeal( Ideal_generic ):
         else:
             raise ValueError("invalid comparison")
 
-    def __contains__(self, f):
+    def __contains__(self, f) -> bool:
         """
         Implement containment testing (in) for Laurent polynomial ideals.
 
@@ -211,7 +211,7 @@ class LaurentPolynomialIdeal( Ideal_generic ):
             g = f.__reduce__()[1][0]
         return (g in self.polynomial_ideal())
 
-    def gens_reduced(self):
+    def gens_reduced(self) -> tuple:
         """
         Return a reduced system of generators.
 

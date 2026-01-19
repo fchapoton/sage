@@ -1,4 +1,3 @@
-# cython: binding=True
 r"""
 Fast set partition iterators
 """
@@ -7,7 +6,7 @@ cimport cython
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef list from_word(list w, list base_set) noexcept:
+cdef list from_word(list w, list base_set):
     cdef list sp = []
     cdef Py_ssize_t i
     cdef Py_ssize_t b
@@ -129,5 +128,7 @@ def set_partition_iterator_blocks(base_set, Py_ssize_t k):
     cdef Py_ssize_t n = len(base)
     cdef list a = list(range(n))
     # TODO: implement _set_partition_block_gen as an iterative algorithm
+    if n < k:
+        return
     for P in _set_partition_block_gen(n, k, a):
         yield from_word(<list> P, base)

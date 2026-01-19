@@ -30,7 +30,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
 
     .. WARNING::
 
-        Until :trac:`15043` is implemented, :class:`Algebras` is the
+        Until :issue:`15043` is implemented, :class:`Algebras` is the
         category of associative unital algebras; thus, unlike the name
         suggests, :class:`UnitalAlgebras` is not a subcategory of
         :class:`Algebras` but of
@@ -93,7 +93,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
 
             TESTS:
 
-            Ensure that :trac:`28328` is fixed and that non-associative
+            Ensure that :issue:`28328` is fixed and that non-associative
             algebras are supported::
 
                 sage: # needs sage.modules
@@ -134,21 +134,21 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
 
             TESTS:
 
-            Check that :trac:`19225` is solved::
+            Check that :issue:`19225` is solved::
 
                 sage: A = cartesian_product((QQ['z'],)); A
-                The Cartesian product of (Univariate Polynomial Ring in z over Rational Field,)
+                The Cartesian product of 1 copy of Univariate Polynomial Ring in z over Rational Field
                 sage: A.coerce_map_from(ZZ)
                 Composite map:
                   From: Integer Ring
-                  To:   The Cartesian product of (Univariate Polynomial Ring in z over Rational Field,)
+                  To:   The Cartesian product of 1 copy of Univariate Polynomial Ring in z over Rational Field
                   Defn:   Natural morphism:
                           From: Integer Ring
                           To:   Rational Field
                         then
                           Generic morphism:
                           From: Rational Field
-                          To:   The Cartesian product of (Univariate Polynomial Ring in z over Rational Field,)
+                          To:   The Cartesian product of 1 copy of Univariate Polynomial Ring in z over Rational Field
                 sage: A(1)
                 (1,)
             """
@@ -164,15 +164,15 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
             TESTS::
 
                 sage: A = cartesian_product((QQ['z'],)); A
-                The Cartesian product of (Univariate Polynomial Ring in z over Rational Field,)
+                The Cartesian product of 1 copy of Univariate Polynomial Ring in z over Rational Field
                 sage: A.base_ring()
                 Rational Field
                 sage: A._coerce_map_from_base_ring()
                 Generic morphism:
-                From: Rational Field
-                To:   The Cartesian product of (Univariate Polynomial Ring in z over Rational Field,)
+                  From: Rational Field
+                  To:   The Cartesian product of 1 copy of Univariate Polynomial Ring in z over Rational Field
 
-            Check that :trac:`29312` is fixed::
+            Check that :issue:`29312` is fixed::
 
                 sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')         # needs sage.combinat sage.modules
                 sage: F._coerce_map_from_base_ring()                                    # needs sage.combinat sage.modules
@@ -298,7 +298,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
 
                 TESTS:
 
-                Try to check that :trac:`5843` Heisenbug is fixed::
+                Try to check that :issue:`5843` Heisenbug is fixed::
 
                     sage: # needs sage.combinat sage.modules
                     sage: A = AlgebrasWithBasis(QQ).example()
@@ -318,7 +318,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
                     sage: Aone().parent() is A                                          # needs sage.combinat sage.modules
                     True
                 """
-                return self.monomial(self.one_basis()) #.
+                return self.monomial(self.one_basis())
 
             @lazy_attribute
             def one(self):
@@ -409,6 +409,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
 
                 EXAMPLES::
 
+                    sage: # needs sage.graphs sage.modules
                     sage: S2 = simplicial_complexes.Sphere(2)
                     sage: H = S2.cohomology_ring(QQ)
                     sage: C = cartesian_product([H, H])
