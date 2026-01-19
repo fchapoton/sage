@@ -168,7 +168,7 @@ Comprehensive module list
     sage/combinat/cluster_algebra_quiver/quiver
     sage/combinat/cluster_algebra_quiver/quiver_mutation_type
     sage/combinat/cluster_algebra_quiver/mutation_class
-    sage/combinat/lp_algebra
+    sage/combinat/lp_algebra_seed
 
 ``sage.combinat.crystals``
 --------------------------
