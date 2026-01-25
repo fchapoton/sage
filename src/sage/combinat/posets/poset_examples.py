@@ -2338,7 +2338,7 @@ def generate_lattices(n):
                 try:
                     y = p[orb[i]]
                 except KeyError:
-                    raise RuntimeError(str(i, orb, p, L, le))
+                    raise RuntimeError(str((i, orb, p, L, le)))
                 if y not in orbset:
                     orb.append(y)
                     orbset.add(y)
