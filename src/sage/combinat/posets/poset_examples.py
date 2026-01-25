@@ -2244,7 +2244,7 @@ def generate_lattices(n):
         # A is a set of pairwise disjoint elements (disjoint means "meet to bottom") and
         # each a in A is disjoint from all elements of {x} U B.
         A1 = A + [x]
-        U = [y for y in range(m) if any([le[c][y] for c in A1])]    # U = upper(A1)
+        U = [y for y in range(m) if any(le[c][y] for c in A1)]    # U = upper(A1)
         # base case of recursion: check that A1 is a lattice_antichain, i.e.,
         # for a,b in U there exists c in A1 below a,b or no minimal element below a,b
         if not Sk.isdisjoint(A1) \
@@ -2371,7 +2371,7 @@ def generate_lattices(n):
                     lev_A = lev[:-1] + [lev[-1] + [m]]
                 if is_canonical(L_A, lev_A):
                     for j in range(m):  # update less_or_equal relation
-                        le[m][j] = any([le[i][j] for i in A])
+                        le[m][j] = any(le[i][j] for i in A)
                     next_lattice(L_A, lev_A, n)
 
     def addbounds(L):
@@ -2389,8 +2389,11 @@ def generate_lattices(n):
     # Top and bottom elements are omitted at first, and will
     # be added last with add_bounds.
     global lat_list, le
-    lat_list = [[] for i in range(n - 2)]
-    le = [[bool(i == j) for j in range(n - 2)] for i in range(n - 2)]    # initialize <= relation
+    lat_list = [[] for _ in range(n - 2)]
+
+    # initialize <= relation
+    le = [[bool(i == j) for j in range(n - 2)] for i in range(n - 2)]
+
     next_lattice([[]], [[0]], n - 2)
     return [LatticePoset(addbounds(x)) for x in lat_list[-1]]
 
