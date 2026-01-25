@@ -2349,14 +2349,16 @@ def generate_lattices(n):
             yield new
             base -= new
 
-    def noniso_lattice_antichains(L, lev) -> list:
+    def noniso_lattice_antichains(L, lev) -> Iterator:
         ach = lattice_antichains(L, lev)
         gns = automorphism_group(L, lev)[0]
         if not gns:
-            return ach   # no automorphisms, so return all achains
+            yield from ach   # no automorphisms, so return all achains
+            return
         perms = [{A: tuple(sorted(p[i] for i in A)) for A in ach}
                  for p in gns]
-        return [sorted(x)[0] for x in orbits(set(ach), perms, L)]
+        for x in orbits(set(ach), perms, L):
+            yield sorted(x)[0]
 
     def next_lattice(L, lev, n):
         global lat_list
