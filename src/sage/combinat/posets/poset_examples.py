@@ -2227,7 +2227,7 @@ def generate_lattices(n):
 
     # No nonlocal-keyword in Python <3, and that's sad.
     # So we use global variables, and that's bad.
-
+    from itertools import combinations
     from functools import reduce
 
     try:
@@ -2245,12 +2245,13 @@ def generate_lattices(n):
         # each a in A is disjoint from all elements of {x} U B.
         A1 = A + [x]
         U = [y for y in range(m) if any(le[c][y] for c in A1)]    # U = upper(A1)
+
         # base case of recursion: check that A1 is a lattice_antichain, i.e.,
         # for a,b in U there exists c in A1 below a,b or no minimal element below a,b
         if not Sk.isdisjoint(A1) \
-           and all(all(any(le[c][U[i]] and le[c][U[j]] for c in A1)
-                       or not any(le[c][U[i]] and le[c][U[j]] for c in M)
-                       for j in range(i)) for i in range(len(U))):
+           and all(any(le[c][a] and le[c][b] for c in A1)
+                   or not any(le[c][a] and le[c][b] for c in M)
+                   for a, b in combinations(U, 2)):
             As.append(tuple(A1))  # then append copy of A1 to antichains in As
         if B:
             # there are more elements of L to handle
@@ -2378,13 +2379,15 @@ def generate_lattices(n):
 
     def addbounds(L):
         # add top and bottom element and relabel so that i <= j if le[i][j]
+        # recall that lattices are encoded by lists of upper-covers
         m = len(L)
         p = range(m, 0, -1)
-        Lp = [[m + 1] if not u else sorted(p[j] for j in u) for u in L]
+        Lp = [[m + 1] if not u else [p[j] for j in u] for u in L]
         Lp.reverse()
+        # non-minimal elements
+        non_mins = {a for covs in Lp for a in covs}
         Lp.append([])
-        M = set(range(1, m + 1)) - reduce(lambda x, y: set(x) | set(y), Lp)  # minimal elements
-        return [list(M)] + Lp
+        return [[a for a in range(1, m + 1) if a not in non_mins]] + Lp
 
     # construct all lattices of size n
     # lattices are represented by list of upper-cover lists.
@@ -2397,7 +2400,8 @@ def generate_lattices(n):
     le = [[bool(i == j) for j in range(n - 2)] for i in range(n - 2)]
 
     next_lattice([[]], [[0]], n - 2)
-    return [LatticePoset(addbounds(x)) for x in lat_list[-1]]
+    return [LatticePoset(addbounds(x), cover_relations=True)
+            for x in lat_list[-1]]
 
 
 posets = Posets
