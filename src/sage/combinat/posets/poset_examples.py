@@ -2252,7 +2252,8 @@ def generate_lattices(n):
                        or not any(le[c][U[i]] and le[c][U[j]] for c in M)
                        for j in range(i)) for i in range(len(U))):
             As.append(tuple(A1))  # then append copy of A1 to antichains in As
-        if B:                                      # there are more elements of L to handle
+        if B:
+            # there are more elements of L to handle
             if not Sk.isdisjoint(A + B):
                 achains(A, B[0], B[1:])
             C = [c for c in M if le[c][x]]               # all minimal elements of L that are below x
@@ -2294,7 +2295,7 @@ def generate_lattices(n):
         a = search_tree(GC, partition, dict_rep=False, lab=False, dig=False, verbosity=0, order=False)
         return a, get_orbits(a, n)
 
-    def canonical_label(G, partition):
+    def canonical_label(G, partition) -> dict:
         # G is an adjacency list for a graph (undirected)
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
         from sage.graphs.all import Graph
@@ -2316,12 +2317,12 @@ def generate_lattices(n):
             return True  # works since minimal weight antichains are used
         f = canonical_label(L, lev)
         m = len(L) - 1  # last element added
-        for k in f:
-            if f[k] == m:
+        for k, fk in f.items():
+            if fk == m:
                 finvm = k
                 break
-        orb = automorphism_group(L, lev)[1]
-        for S in orb:
+        orbs = automorphism_group(L, lev)[1]
+        for S in orbs:
             if finvm in S:
                 orbit = S
                 break
@@ -2335,17 +2336,14 @@ def generate_lattices(n):
         i = 0
         while i < len(orb):
             for p in perms:
-                try:
-                    y = p[orb[i]]
-                except KeyError:
-                    raise RuntimeError(str((i, orb, p, L, le)))
+                y = p[orb[i]]
                 if y not in orbset:
                     orb.append(y)
                     orbset.add(y)
             i += 1
         return orbset
 
-    def orbits(base, perms, L) -> Iterator:
+    def orbits(base, perms, L) -> Iterator[set]:
         while base:
             new = orbit(base.pop(), perms, L)
             yield new
