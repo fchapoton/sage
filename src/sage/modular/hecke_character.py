@@ -195,8 +195,8 @@ class HeckeCharacter(DualAbelianGroupElement):
         # bnrisconductor instead.
         R = self.parent().group()
         bnr = R.pari_bnr()
-        return bnr.bnrisconductor(self.modulus())  # not correct
-        # return self.conductor() == self.modulus()
+        # return bnr.bnrisconductor(self.modulus())  # not correct
+        return self.conductor() == self.modulus()
 
     def primitive_character(self):
         """
