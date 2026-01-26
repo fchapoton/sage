@@ -207,7 +207,6 @@ class Modulus(SageObject):
             for i in self._infinite:
                 if i < 0 or i >= sgn:
                     raise ValueError("Infinite component of a modulus must be a list non-negative integers less than the number of real places of K")
-        return
 
     def _repr_(self) -> str:
         r"""
@@ -305,25 +304,28 @@ class Modulus(SageObject):
 
     def finite_part(self):
         """
+        Return the finite part.
+
         missing documentation
         """
         return self._finite
 
     def infinite_part(self):
         """
+        Return the infinite part.
+
         missing documentation
         """
         return self._infinite
 
+    @cached_method
     def finite_factors(self):
         """
+        Return the finite factors.
+
         missing documentation
         """
-        try:
-            return self._finite_factors
-        except AttributeError:
-            self._finite_factors = self.finite_part().factor()
-            return self._finite_factors
+        return self.finite_part().factor()
 
     def equivalent_coprime_ideal_multiplier(self, I, other):
         r"""
