@@ -193,8 +193,8 @@ class HeckeCharacter(DualAbelianGroupElement):
         """
         # When a newer version of pari is part of Sage, call
         # bnrisconductor instead.
-        R = self.parent().group()
-        bnr = R.pari_bnr()
+        # R = self.parent().group()
+        # bnr = R.pari_bnr()
         # return bnr.bnrisconductor(self.modulus())  # not correct
         return self.conductor() == self.modulus()
 
@@ -415,7 +415,7 @@ class HeckeCharacterGroup(DualAbelianGroup_class, UniqueRepresentation):
         sage: F.<a> = NumberField(x^2 - 5)
         sage: mf = F.modulus(F.prime_above(5) * F.prime_above(29), [0,1])
         sage: H = HeckeCharacterGroup(mf); H
-        Group of finite order Hecke characters modulo (Fractional ideal (-11/2*a - 5/2)) * ∞_0 * ∞_1
+        Group of finite order Hecke characters modulo (Fractional ideal (11/2*a + 5/2)) * ∞_0 * ∞_1
         sage: [[chi(F.ideal(31)), chi(F.ideal(-12672))] for chi in H.gens()]
         [[zeta4, 1], [1, -1]]
 
@@ -470,7 +470,7 @@ class HeckeCharacterGroup(DualAbelianGroup_class, UniqueRepresentation):
             sage: mf = F.modulus(F.prime_above(5) * F.prime_above(29), [0,1])
             sage: H = HeckeCharacterGroup(mf); H
             Group of finite order Hecke characters modulo
-            (Fractional ideal (-11/2*a - 5/2)) * ∞_0 * ∞_1
+            (Fractional ideal (11/2*a + 5/2)) * ∞_0 * ∞_1
         """
         return f'Group of finite order Hecke characters modulo {self.modulus()}'
 
@@ -483,7 +483,7 @@ class HeckeCharacterGroup(DualAbelianGroup_class, UniqueRepresentation):
             sage: F.<a> = NumberField(x^2 - 5)
             sage: mf = F.modulus(F.prime_above(5) * F.prime_above(29), [0,1])
             sage: H = HeckeCharacterGroup(mf); H.modulus()
-            (Fractional ideal (-11/2*a - 5/2)) * ∞_0 * ∞_1
+            (Fractional ideal (11/2*a + 5/2)) * ∞_0 * ∞_1
         """
         return self.group().modulus()
 
