@@ -2225,8 +2225,6 @@ def generate_lattices(n):
     # Mäntysalo for incorporating into Sage main
     # codebase.
 
-    # No nonlocal-keyword in Python <3, and that's sad.
-    # So we use global variables, and that's bad.
     from itertools import combinations
     from functools import reduce
 
@@ -2362,7 +2360,7 @@ def generate_lattices(n):
             yield sorted(x)[0]
 
     def next_lattice(L, lev, n):
-        global lat_list
+        nonlocal lat_list
         m = len(L)  # new element to be added
         lat_list[m - 1].append([c[:] for c in L])
         if m < n:
@@ -2393,7 +2391,6 @@ def generate_lattices(n):
     # lattices are represented by list of upper-cover lists.
     # Top and bottom elements are omitted at first, and will
     # be added last with add_bounds.
-    global lat_list, le
     lat_list = [[] for _ in range(n - 2)]
 
     # initialize <= relation
