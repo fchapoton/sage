@@ -137,10 +137,6 @@ from sage.rings.polynomial.polynomial_compiled cimport CompiledPolynomialFunctio
 from sage.rings.polynomial.polydict cimport ETuple
 
 
-# degree under which the conversion to gap and libgap is done densely
-GAP_DENSE_UPPER_BOUND = 400
-
-
 cdef class Polynomial(CommutativePolynomial):
     """
     A polynomial.
