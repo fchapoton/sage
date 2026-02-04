@@ -137,6 +137,10 @@ from sage.rings.polynomial.polynomial_compiled cimport CompiledPolynomialFunctio
 from sage.rings.polynomial.polydict cimport ETuple
 
 
+# degree under which the conversion to gap and libgap is done densely
+GAP_DENSE_UPPER_BOUND = 400
+
+
 cdef class Polynomial(CommutativePolynomial):
     """
     A polynomial.
@@ -7221,8 +7225,12 @@ cdef class Polynomial(CommutativePolynomial):
             y^3-17*y+5
             sage: gap(z^2 + z)
             z^2+z
+            sage: gap(z^800 + 33)
+            z^800+33
             sage: libgap(z^2 + z)
             z^2+z
+            sage: libgap(z^800 + 33)
+            z^800+33
 
         Coefficients in a finite field::
 
@@ -7240,9 +7248,15 @@ cdef class Polynomial(CommutativePolynomial):
             sage: f.factor()
             (y + 5) * (y + 1)^2
         """
-        bring = gap(self._parent.base_ring())
-        var = bring.Indeterminate(f'"{self._parent.variable_name()}"')
-        return bring.UnivariatePolynomial(list(self), var)
+        base_ring = self._parent.base_ring()
+        fam = gap(base_ring.one()).FamilyObj().RationalFunctionsFamily()
+        ring = gap(self._parent)
+        i = list(ring.IndeterminatesOfPolynomialRing())[0].IndeterminateNumberOfLaurentPolynomial()
+        L = []
+        for exp, coeff in self.items():
+            L.append([i, exp] if exp else [])
+            L.append(coeff)
+        return fam.PolynomialByExtRep(L)
 
     def _libgap_(self):
         r"""
@@ -7254,9 +7268,15 @@ cdef class Polynomial(CommutativePolynomial):
             sage: libgap(R.zero())     # indirect doctest                               # needs sage.libs.gap
             0
         """
-        bring = self._parent.base_ring()._libgap_()
-        var = bring.Indeterminate(self._parent.variable_name())
-        return bring.UnivariatePolynomial(list(self), var)
+        base_ring = self._parent.base_ring()
+        fam = base_ring.one()._libgap_().FamilyObj().RationalFunctionsFamily()
+        ring = self._parent._libgap_()
+        i = ring.IndeterminatesOfPolynomialRing()[0].IndeterminateNumberOfLaurentPolynomial()
+        L = []
+        for exp, coeff in self.items():
+            L.append([i, exp] if exp else [])
+            L.append(coeff)
+        return fam.PolynomialByExtRep(L)
 
     def _giac_init_(self):
         r"""
