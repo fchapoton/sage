@@ -7203,7 +7203,7 @@ cdef class Polynomial(CommutativePolynomial):
 
         INPUT:
 
-        - ``gap`` -- a GAP or libgap instance
+        - ``gap`` -- a GAP instance
 
         EXAMPLES::
 
@@ -7240,9 +7240,9 @@ cdef class Polynomial(CommutativePolynomial):
             sage: f.factor()
             (y + 5) * (y + 1)^2
         """
-        R = gap(self._parent)
-        var = list(R.IndeterminatesOfPolynomialRing())[0]
-        return self(var)
+        bring = gap(self._parent.base_ring())
+        var = bring.Indeterminate(f'"{self._parent.variable_name()}"')
+        return bring.UnivariatePolynomial(list(self), var)
 
     def _libgap_(self):
         r"""
@@ -7254,8 +7254,9 @@ cdef class Polynomial(CommutativePolynomial):
             sage: libgap(R.zero())     # indirect doctest                               # needs sage.libs.gap
             0
         """
-        from sage.libs.gap.libgap import libgap
-        return self._gap_(libgap)
+        bring = self._parent.base_ring()._libgap_()
+        var = bring.Indeterminate(self._parent.variable_name())
+        return bring.UnivariatePolynomial(list(self), var)
 
     def _giac_init_(self):
         r"""

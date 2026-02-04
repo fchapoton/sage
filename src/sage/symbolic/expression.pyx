@@ -10965,10 +10965,10 @@ cdef class Expression(Expression_abc):
         """
         # much better to expand first, since it often doesn't work
         # right otherwise!
+        self_mx = self._maxima_()
         if expand:
-            return self.parent()(self._maxima_().trigexpand().trigsimp())
-        else:
-            return self.parent()(self._maxima_().trigsimp())
+            return self.parent()(self_mx.trigexpand().trigsimp()._sage_())
+        return self.parent()(self_mx.trigsimp()._sage_())
 
     trig_simplify = simplify_trig
 
@@ -11391,7 +11391,7 @@ cdef class Expression(Expression_abc):
             0
         """
         from sage.calculus.calculus import maxima
-        return self.parent()(self._maxima_().radcan())
+        return self.parent()(self._maxima_().radcan()._sage_())
 
     def simplify_log(self, algorithm=None):
         r"""

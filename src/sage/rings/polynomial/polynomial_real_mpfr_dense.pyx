@@ -532,12 +532,12 @@ cdef class PolynomialRealDense(Polynomial):
             ...
             ValueError: cannot differentiate with respect to y
         """
-        if var is not None and var != self._parent.gen():
-            raise ValueError("cannot differentiate with respect to {}".format(var))
+        if var is not None and str(var) != self._parent.variable_name():
+            raise ValueError(f"cannot differentiate with respect to {var}")
 
         cdef mpfr_rnd_t rnd = self._base_ring.rnd
         cdef PolynomialRealDense f = self._new(self._degree-1)
-        for i from 0 <= i < self._degree:
+        for i in range(self._degree):
             mpfr_mul_ui(f._coeffs[i], self._coeffs[i+1], i+1, rnd)
         return f
 
