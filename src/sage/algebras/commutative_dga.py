@@ -74,35 +74,35 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.structure.unique_representation import UniqueRepresentation, CachedRepresentation
-from sage.structure.sage_object import SageObject
-from sage.misc.cachefunc import cached_method
-from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.misc.functional import is_odd, is_even
-from sage.misc.misc_c import prod
-from sage.categories.chain_complexes import ChainComplexes
-from sage.categories.algebras import Algebras
-from sage.categories.morphism import Morphism
-from sage.categories.modules import Modules
-from sage.categories.homset import Hom
-
+import sage.interfaces.abc
 from sage.algebras.free_algebra import FreeAlgebra
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.categories.algebras import Algebras
+from sage.categories.chain_complexes import ChainComplexes
+from sage.categories.homset import Hom
+from sage.categories.modules import Modules
+from sage.categories.morphism import Morphism
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
 from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
 from sage.matrix.constructor import matrix
+from sage.misc.cachefunc import cached_function, cached_method
+from sage.misc.functional import is_even, is_odd
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+from sage.misc.misc_c import prod
 from sage.modules.free_module import VectorSpace
 from sage.modules.free_module_element import vector
-from sage.rings.integer_ring import ZZ
 from sage.rings.homset import RingHomset_generic
+from sage.rings.integer_ring import ZZ
 from sage.rings.morphism import RingHomomorphism_im_gens
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.quotient_ring import QuotientRing_nc
 from sage.rings.quotient_ring_element import QuotientRingElement
-from sage.misc.cachefunc import cached_function
-
-import sage.interfaces.abc
+from sage.structure.sage_object import SageObject
+from sage.structure.unique_representation import (
+    CachedRepresentation,
+    UniqueRepresentation,
+)
 
 
 def sorting_keys(element):
@@ -1482,7 +1482,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             l = [sum(e[i] * degrees[i] for i in range(n)) for e in exps]
             return max(l)
 
-        def is_homogeneous(self, total=False):
+        def is_homogeneous(self, total=False) -> bool:
             r"""
             Return ``True`` if ``self`` is homogeneous and ``False`` otherwise.
 
@@ -1530,9 +1530,8 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             for m in self.monomials():
                 if degree is None:
                     degree = m.degree(total)
-                else:
-                    if degree != m.degree(total):
-                        return False
+                elif degree != m.degree(total):
+                    return False
             return True
 
         def homogeneous_parts(self):
@@ -2871,8 +2870,7 @@ class DifferentialGCAlgebra(GCAlgebra):
             if isinstance(phiext, tuple):
                 if partial_result:
                     return phiext[0]
-                else:
-                    raise ValueError("could not cover all relations in max iterations in degree {}".format(degree + 1))
+                raise ValueError("could not cover all relations in max iterations in degree {}".format(degree + 1))
             phi = phiext
             self._minimalmodels[degree] = phi
         return phi
@@ -3004,10 +3002,11 @@ class DifferentialGCAlgebra(GCAlgebra):
         return {i: self._numerical_invariants[i]
                 for i in range(1, max_degree + 1)}
 
-    def is_formal(self, i, max_iterations=3):
+    def is_formal(self, i, max_iterations=3) -> bool:
         r"""
-        Check if the algebra is ``i``-formal. That is, if it is ``i``-quasi-isomorphic
-        to its cohomology algebra.
+        Check if the algebra is ``i``-formal.
+
+        That is, if it is ``i``-quasi-isomorphic to its cohomology algebra.
 
         INPUT:
 
@@ -3083,7 +3082,7 @@ class DifferentialGCAlgebra(GCAlgebra):
             """
             return self.parent().differential()(self)
 
-        def is_coboundary(self):
+        def is_coboundary(self) -> bool:
             """
             Return ``True`` if ``self`` is a coboundary and ``False``
             otherwise.
@@ -3114,7 +3113,7 @@ class DifferentialGCAlgebra(GCAlgebra):
             v = vector(self.basis_coefficients())
             return v in self.parent().coboundaries(self.degree())
 
-        def is_cohomologous_to(self, other):
+        def is_cohomologous_to(self, other) -> bool:
             """
             Return ``True`` if ``self`` is cohomologous to ``other``
             and ``False`` otherwise.
@@ -3651,7 +3650,7 @@ def GradedCommutativeAlgebra(ring, names=None, degrees=None, max_degree=None,
         ValueError: you must specify names or degrees
     """
     if max_degree:
-        from .finite_gca import FiniteGCAlgebra
+        from sage.algebras.finite_gca import FiniteGCAlgebra
         return FiniteGCAlgebra(ring, names=names, degrees=degrees,
                                max_degree=max_degree, **kwargs)
     multi = False
@@ -3873,7 +3872,7 @@ class GCAlgebraMorphism(RingHomomorphism_im_gens):
             result += coeff * term
         return result
 
-    def is_graded(self, total=False):
+    def is_graded(self, total=False) -> bool:
         """
         Return ``True`` if this morphism is graded.
 

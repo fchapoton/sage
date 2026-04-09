@@ -62,7 +62,7 @@ TESTS::
 
 import sage.rings.fraction_field_element as fraction_field_element
 
-from sage.rings.polynomial.multi_polynomial_ring_base import MPolynomialRing_base, is_MPolynomialRing
+from sage.rings.polynomial.multi_polynomial_ring_base import MPolynomialRing_base
 from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
 from sage.rings.polynomial.polydict import PolyDict, ETuple
 from sage.rings.polynomial.term_order import TermOrder
@@ -247,7 +247,6 @@ class MPolynomialRing_polydict(MPolynomialRing_macaulay2_repr, PolynomialRing_si
 
         Conversion from symbolic variables::
 
-            sage: # needs sage.symbolic
             sage: x,y,z = var('x,y,z')
             sage: R = QQ['x,y,z']
             sage: type(x)
@@ -266,7 +265,6 @@ class MPolynomialRing_polydict(MPolynomialRing_macaulay2_repr, PolynomialRing_si
 
         ::
 
-            sage: # needs sage.symbolic
             sage: R = QQ['x,y,z']
             sage: f = (x^3 + y^3 - z^3)^10; f
             (x^3 + y^3 - z^3)^10
