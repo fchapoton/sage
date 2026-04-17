@@ -2,6 +2,20 @@
 all.py -- much of sage is imported into this module, so you don't
           have to import everything individually.
 
+WARNING:
+
+Do not import from this module into other modules. Instead, import
+from the orginal location. The tool `import_statements` helps in
+figuring out where that location is. For instance::
+
+    sage: import_statements("TensorAlgebra")
+    from sage.algebras.tensor_algebra import TensorAlgebra
+
+tells you that `TensorAlgebra` should be imported from
+`sage.algebras.tensor_algebra`. While the binding is available in `sage.all`
+as a `LazyImport`, you should not use that because it can lead to unexpected
+results.
+
 TESTS:
 
 This is to test :issue:`10570`. If the number of stackframes at startup
@@ -90,10 +104,6 @@ warnings.filterwarnings('ignore', category=DeprecationWarning,
 warnings.filterwarnings('default', category=DeprecationWarning,
                         message=r'[\s\S]*See https?://trac\.sagemath\.org/[0-9]* for details.')
 
-# Ignore Python 3.9 deprecation warnings
-warnings.filterwarnings('ignore', category=DeprecationWarning,
-                        module='ast')
-
 # Ignore packaging 20.5 deprecation warnings
 warnings.filterwarnings('ignore', category=DeprecationWarning,
                         module='(.*[.]_vendor[.])?packaging')
@@ -114,15 +124,15 @@ warnings.filterwarnings('ignore', category=DeprecationWarning,
                         message='The distutils(.sysconfig module| package) is deprecated',
                         module='Cython|distutils|numpy|sage.env|sage.features')
 
-# triggered by cython 0.29.32
-warnings.filterwarnings('ignore', category=DeprecationWarning,
-                        message="'cgi' is deprecated and slated for removal in Python 3.13",
-                        module='Cython')
-
 # triggered by pyparsing 2.4.7
 warnings.filterwarnings('ignore', category=DeprecationWarning,
                         message="module 'sre_constants' is deprecated",
                         module='pyparsing')
+
+# triggered by mpmath 1.4.1
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+                        message='bitcount function is deprecated',
+                        module='mpmath\\.libmp\\.libintmath')
 
 # importlib.resources.path and ...read_binary are deprecated in python 3.11,
 # but the replacement importlib.resources.files needs python 3.9
@@ -151,11 +161,6 @@ warnings.filterwarnings('ignore', category=DeprecationWarning,
 warnings.filterwarnings('ignore', category=DeprecationWarning,
                         message=r"This process.* is multi-threaded, "
                                 r"use of .*\(\) may lead to deadlocks in the child.")
-
-# pickling of itertools is deprecated in Python 3.12
-warnings.filterwarnings('ignore', category=DeprecationWarning,
-                        message=r"Pickle, copy, and deepcopy support will be "
-                                r"removed from itertools in Python 3.14.")
 
 # rpy2>=3.6 emits warnings for R modifying LD_LIBRARY_PATH
 warnings.filterwarnings('ignore', category=UserWarning,

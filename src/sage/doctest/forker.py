@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-repl
 """
 Processes for running doctests
 
@@ -193,16 +192,6 @@ def init_sage(controller: DocTestController | None = None) -> None:
     # Sage imports.
     import sage.doctest
     sage.doctest.DOCTEST_MODE = True
-
-    # Set the Python PRNG class to the Python 2 implementation for consistency
-    # of 'random' test results that use it; see
-    # https://github.com/sagemath/sage/issues/24508
-    # We use the baked in copy of the random module for both Python 2 and 3
-    # since, although the upstream copy is unlikely to change, this further
-    # ensures consistency of test results
-    import sage.misc.randstate
-    from sage.cpython._py2_random import Random
-    sage.misc.randstate.DEFAULT_PYTHON_RANDOM = Random
 
     # IPython's pretty printer sorts the repr of dicts by their keys by default
     # (or their keys' str() if they are not otherwise orderable).  However, it
@@ -516,6 +505,7 @@ class SageSpoofInOut(SageObject):
 
 
 from collections import namedtuple
+
 TestResults = namedtuple('TestResults', 'failed attempted')
 
 
@@ -1225,7 +1215,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: ex = doctests[0].examples[0]
             sage: print(DTR._failure_header(doctests[0], ex))
             **********************************************************************
-            File ".../sage/doctest/forker.py", line 12, in sage.doctest.forker
+            File ".../sage/doctest/forker.py", line ..., in sage.doctest.forker
             Failed example:
                 doctest_var = 42; doctest_var^2
             <BLANKLINE>
@@ -1235,7 +1225,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: import doctest
             sage: print(doctest.DocTestRunner._failure_header(DTR, doctests[0], ex))
             **********************************************************************
-            File ".../sage/doctest/forker.py", line 12, in sage.doctest.forker
+            File ".../sage/doctest/forker.py", line ..., in sage.doctest.forker
             Failed example:
                 doctest_var = Integer(42); doctest_var**Integer(2)
             <BLANKLINE>
@@ -1244,7 +1234,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
 
             sage: print(DTR._failure_header(doctests[0], ex, message='Hello there!'))
             **********************************************************************
-            File ".../sage/doctest/forker.py", line 12, in sage.doctest.forker
+            File ".../sage/doctest/forker.py", line ..., in sage.doctest.forker
             Hello there!
                 doctest_var = 42; doctest_var^2
             <BLANKLINE>
@@ -1256,7 +1246,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: DTR.options.format = 'github'
             sage: print(DTR._failure_header(doctests[0], ex))
             **********************************************************************
-            ::error title=Failed example:,file=.../sage/doctest/forker.py,line=12::Failed example:
+            ::error title=Failed example:,file=.../sage/doctest/forker.py,line=...::Failed example:
                 doctest_var = 42; doctest_var^2
             <BLANKLINE>
         """
@@ -1346,7 +1336,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: ex = doctests[0].examples[0]
             sage: DTR.report_start(sys.stdout.write, doctests[0], ex)
-            Trying (line 12):    doctest_var = 42; doctest_var^2
+            Trying (line ...):    doctest_var = 42; doctest_var^2
             Expecting:
                 1764
         """
@@ -1443,7 +1433,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: DTR.no_failure_yet = True
             sage: DTR.report_failure(sys.stdout.write, doctests[0], ex, 'BAD ANSWER\n', {})
             **********************************************************************
-            File ".../sage/doctest/forker.py", line 12, in sage.doctest.forker
+            File ".../sage/doctest/forker.py", line ..., in sage.doctest.forker
             Failed example:
                 doctest_var = 42; doctest_var^2
             Expected:
@@ -1513,8 +1503,9 @@ class SageDocTestRunner(doctest.DocTestRunner):
                         print(src)
                         if ex.want:
                             print(doctest._indent(ex.want[:-1]))
-                    from sage.repl.configuration import sage_ipython_config
                     from IPython.terminal.embed import InteractiveShellEmbed
+
+                    from sage.repl.configuration import sage_ipython_config
                     cfg = sage_ipython_config.default()
                     cfg.InteractiveShell.enable_tip = False
                     # Currently this doesn't work: prompts only work in pty
@@ -1580,7 +1571,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: check.walltime = 3.12
             sage: DTR.report_overtime(sys.stdout.write, doctests[0], ex, 'BAD ANSWER\n', check_timer=check)
             **********************************************************************
-            File ".../sage/doctest/forker.py", line 12, in sage.doctest.forker
+            File ".../sage/doctest/forker.py", line ..., in sage.doctest.forker
             Warning: slow doctest:
                 doctest_var = 42; doctest_var^2
             Test ran for 1.23s cpu, 2.50s wall
@@ -1727,8 +1718,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
         if hasattr(self, 'failures'):
             D['failures'] = self.failures
             return self.failures
-        else:
-            return False
+        return False
 
 
 def dummy_handler(sig, frame):
@@ -2038,7 +2028,8 @@ class DocTestDispatcher(SageObject):
                             w.copied_exitcode,
                             w.result,
                             w.output,
-                            pid=w.copied_pid)
+                            pid=w.copied_pid,
+                            process_tree_before_kill=w.process_tree_before_kill)
 
                         pending_tests -= 1
 
@@ -2271,7 +2262,8 @@ class DocTestWorker(multiprocessing.Process):
         self.messages = ""
 
         # Has this worker been killed (because of a time out)?
-        self.killed = False
+        self.killed: bool = False
+        self.process_tree_before_kill: str | None = None
 
     def run(self):
         """
@@ -2501,6 +2493,17 @@ class DocTestWorker(multiprocessing.Process):
             sage: W.is_alive()
             False
         """
+        try:
+            import subprocess
+            self.process_tree_before_kill = subprocess.run(["ps", "-ef", "--cols", "1000", "--forest"],
+                                                           stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                                                           text=True, errors="ignore").stdout
+        except FileNotFoundError:  # ps not available? Unlikely
+            pass
+        except subprocess.CalledProcessError:
+            self.process_tree_before_kill = subprocess.run(["ps", "-efwww"],
+                                                           stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                                                           text=True, errors="ignore").stdout
 
         if self.rmessages is not None:
             os.close(self.rmessages)

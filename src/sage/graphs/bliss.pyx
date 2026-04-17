@@ -1,7 +1,6 @@
 # distutils: language = c++
 # distutils: extra_compile_args = -std=c++11
 # distutils: libraries = bliss
-# sage_setup: distribution = sagemath-bliss
 
 r"""
 Interface with bliss: graph (iso/auto)morphism
@@ -484,7 +483,6 @@ cpdef canonical_form(G, partition=None, return_graph=False,
     Check that it works with non hashable non sortable edge labels (relying
     on string representations of the labels)::
 
-        sage: # needs sage.modules
         sage: g1 = Graph([(0, 1, matrix(ZZ, 2)), (0, 2, RDF.pi()), (1, 2, 'a')])
         sage: g2 = Graph([(1, 2, matrix(ZZ, 2)), (2, 0, RDF.pi()), (0, 1, 'a')])
         sage: g1can = canonical_form(g1, use_edge_labels=True)              # optional - bliss

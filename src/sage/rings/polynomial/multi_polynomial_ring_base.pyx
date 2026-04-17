@@ -29,14 +29,6 @@ from sage.rings.polynomial.polynomial_ring_constructor import (PolynomialRing,
 from sage.rings.polynomial.polydict cimport ETuple
 
 
-def is_MPolynomialRing(x):
-    from sage.misc.superseded import deprecation_cython
-    deprecation_cython(38266,
-                       "The function is_MPolynomialRing is deprecated; "
-                       "use 'isinstance(..., MPolynomialRing_base)' instead.")
-    return isinstance(x, MPolynomialRing_base)
-
-
 cdef class MPolynomialRing_base(CommutativeRing):
     def __init__(self, base_ring, n, names, order):
         """
@@ -594,7 +586,6 @@ cdef class MPolynomialRing_base(CommutativeRing):
 
         Fairly complicated code (from Michel Vandenbergh)::
 
-            sage: # needs sage.rings.number_field
             sage: z = polygen(QQ, 'z')
             sage: W.<s> = NumberField(z^2 + 1)
             sage: Q.<u,v,w> = W[]
@@ -746,7 +737,6 @@ cdef class MPolynomialRing_base(CommutativeRing):
         """
         EXAMPLES::
 
-            sage: # needs sage.rings.number_field
             sage: T.<t> = ZZ[]
             sage: K.<i> = NumberField(t^2 + 1)
             sage: R.<x,y> = K[]
@@ -782,7 +772,7 @@ cdef class MPolynomialRing_base(CommutativeRing):
 
         A complicated nested example::
 
-            sage: # optional - magma, needs sage.rings.finite_rings
+            sage: # optional - magma
             sage: R.<a,b,c> = PolynomialRing(GF(9,'a')); S.<T,W> = R[]; S
             Multivariate Polynomial Ring in T, W over Multivariate
             Polynomial Ring in a, b, c over Finite Field in a of size 3^2
@@ -819,7 +809,6 @@ cdef class MPolynomialRing_base(CommutativeRing):
 
         EXAMPLES::
 
-            sage: # needs sage.libs.gap sage.rings.number_field
             sage: F = CyclotomicField(8)
             sage: P.<x,y> = F[]
             sage: gap(P)     # indirect doctest
@@ -868,6 +857,21 @@ cdef class MPolynomialRing_base(CommutativeRing):
         return False
 
     def term_order(self):
+        """
+        Return the term order of ``self``.
+
+        OUTPUT: a :class:`~sage.rings.polynomial.term_order.TermOrder` of the
+        variables of ``self``.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = PolynomialRing(ZZ, 3)
+            sage: R.term_order()
+            Degree reverse lexicographic term order
+            sage: S.<t,u> = PolynomialRing(QQ, 2, order='lex')
+            sage: S.term_order()
+            Lexicographic term order
+        """
         return self._term_order
 
     def characteristic(self):
@@ -886,6 +890,29 @@ cdef class MPolynomialRing_base(CommutativeRing):
         return self.base_ring().characteristic()
 
     def gen(self, n=0):
+        """
+        Return the ``n``-th indeterminate generator of ``self``.
+
+        INPUT:
+
+        - ``n`` -- integer (default: ``0``); number of the generator
+
+        EXAMPLES::
+
+            sage: R = CC['x,y,z']
+            sage: x = R.gen()
+            sage: x
+            x
+            sage: parent(x)
+            Multivariate Polynomial Ring in x, y, z over Complex Field with 53
+            bits of precision
+            sage: R.gen(2)
+            z
+            sage: R.gen(23)
+            Traceback (most recent call last):
+            ...
+            ValueError: generator not defined
+        """
         if n < 0 or n >= self._ngens:
             raise ValueError("generator not defined")
         return self._gens[int(n)]
@@ -943,9 +970,30 @@ cdef class MPolynomialRing_base(CommutativeRing):
                 return self.base_ring()
 
     def krull_dimension(self):
+        """
+        Return the Krull dimension of ``self``.
+
+        EXAMPLES::
+
+            sage: R = ZZ['t,u']
+            sage: R.krull_dimension()
+            3
+            sage: S = QQ['x,y']
+            sage: S.krull_dimension()
+            2
+        """
         return self.base_ring().krull_dimension() + self.ngens()
 
     def ngens(self):
+        """
+        Return the number of indeterminate generators of ``self``.
+
+        EXAMPLES::
+
+            sage: R = RR['x,y']
+            sage: R.ngens()
+            2
+        """
         return self._ngens
 
     def _monomial_order_function(self):
@@ -1192,7 +1240,6 @@ cdef class MPolynomialRing_base(CommutativeRing):
         Default values apply if no degree and/or number of terms is
         provided::
 
-            sage: # needs sage.modules
             sage: M = random_matrix(QQ['x,y,z'], 2, 2)
             sage: all(a.degree() <= 2 for a in M.list())
             True
@@ -1432,7 +1479,6 @@ cdef class MPolynomialRing_base(CommutativeRing):
 
         EXAMPLES::
 
-            sage: # needs sage.combinat
             sage: R.<x,y,z> = ZZ[]
             sage: mons = R.monomials_of_degree(2)
             sage: mons

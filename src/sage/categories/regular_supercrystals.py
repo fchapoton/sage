@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-categories
 # sage.doctest: needs sage.combinat sage.graphs
 r"""
 Regular Supercrystals
@@ -127,8 +126,7 @@ class RegularSuperCrystals(Category_singleton):
                 x = x.e(i)
                 if x is None:
                     return string_length
-                else:
-                    string_length += 1
+                string_length += 1
 
         def phi(self, i):
             r"""
@@ -152,8 +150,7 @@ class RegularSuperCrystals(Category_singleton):
                 x = x.f(i)
                 if x is None:
                     return string_length
-                else:
-                    string_length += 1
+                string_length += 1
 
     class TensorProducts(TensorProductsCategory):
         """

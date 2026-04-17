@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-categories
 r"""
 Finite fields
 """
@@ -67,7 +66,7 @@ class FiniteFields(CategoryWithAxiom):
         """
         return [EnumeratedSets().Finite()]
 
-    def __contains__(self, x):
+    def __contains__(self, x) -> bool:
         """
         EXAMPLES::
 
@@ -459,13 +458,11 @@ class FiniteFields(CategoryWithAxiom):
                 if all:
                     # we return a 1-tuple because the GF implementation does it
                     return (square_root,)
-                else:
-                    return square_root
+                return square_root
             if not self.is_square():
                 if all:
                     return ()
-                else:
-                    raise ValueError("element is not a square")
+                raise ValueError("element is not a square")
             if cardinality % 4 == 3:
                 square_root = self**((cardinality+1)//4)
             elif algorithm == 'tonelli':

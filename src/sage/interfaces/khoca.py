@@ -1,7 +1,7 @@
 r"""
 Interface to Khoca
 
-Khoca is computer program writen by Lukas Lewark to calculate sl(N)-homology
+Khoca is computer program written by Lukas Lewark to calculate sl(N)-homology
 of knots and links. It calculates the following:
 
 * Khovanov sl(2)-homology of arbitrary links, given as a braid or in PD code.
@@ -213,3 +213,6 @@ def khoca_raw_data(link, ring, red_typ=True, **kwds):
         else:
             raise TypeError('reduced must be a boolean')
     return raw_data['unred']
+
+
+Khoca = khoca_interface

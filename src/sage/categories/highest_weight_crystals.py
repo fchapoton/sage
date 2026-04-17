@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-categories
 # sage.doctest: needs sage.combinat sage.graphs
 r"""
 Highest Weight Crystals
@@ -156,8 +155,7 @@ class HighestWeightCrystals(Category_singleton):
             hw = self.highest_weight_vectors()
             if len(hw) == 1:
                 return hw[0]
-            else:
-                raise RuntimeError("The crystal does not have exactly one highest weight vector")
+            raise RuntimeError("The crystal does not have exactly one highest weight vector")
 
         # TODO: Not every highest weight crystal is a lowest weight crystal
         @cached_method

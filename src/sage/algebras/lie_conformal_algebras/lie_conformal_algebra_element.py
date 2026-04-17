@@ -69,11 +69,10 @@ class LCAWithGeneratorsElement(IndexedFreeModuleElement):
             if (a, m + n) in p._indices:
                 return coef * prod(range(m + 1, m + n + 1))\
                     * p.monomial((a, m + n))
-            else:
-                return p.zero()
+            return p.zero()
         return sum(mon.T(n) for mon in self.terms())
 
-    def is_monomial(self):
+    def is_monomial(self) -> bool:
         """
         Whether this element is a monomial.
 

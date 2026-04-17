@@ -4,7 +4,7 @@ project(
   version: files('VERSION.txt'),
   license: 'GPL v3',
   default_options: ['c_std=c17', 'cpp_std=c++17', 'python.install_env=auto'],
-  meson_version: '>=1.2',
+  meson_version: '>=1.5',
 )
 
 # Python module
@@ -221,3 +221,8 @@ root = meson.current_source_dir()
 root_build = meson.current_build_dir()
 
 subdir('src')
+
+py.install_sources(
+  'conftest.py',
+  subdir: 'sage',
+)

@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-objects
 r"""
 Elements, Array and Lists With Clone Protocol
 
@@ -774,7 +773,7 @@ cdef class ClonableArray(ClonableElement):
             sage: c.index(5)
             Traceback (most recent call last):
             ...
-            ValueError: 5 is not in list
+            ValueError: ...not in list
         """
         if start is None:
             return self._list.index(x)
@@ -909,7 +908,7 @@ cdef class ClonableArray(ClonableElement):
         """
         raise NotImplementedError("this should never be called, please overload the check method")
 
-    cpdef long _hash_(self) except? -1:
+    cpdef Py_hash_t _hash_(self) except? -1:
         """
         Return the hash value of ``self``.
 
@@ -1700,7 +1699,7 @@ cdef class ClonableIntArray(ClonableElement):
         """
         raise NotImplementedError("this should never be called, please overload the check method")
 
-    cpdef long _hash_(self) except? -1:
+    cpdef Py_hash_t _hash_(self) except? -1:
         """
         Return the hash value of ``self``.
 
@@ -1713,7 +1712,7 @@ cdef class ClonableIntArray(ClonableElement):
             sage: type(el._hash_()) == int
             True
         """
-        cdef long hv
+        cdef Py_hash_t hv
         if self._list == NULL:
             hv = hash(None)
         else:

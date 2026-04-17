@@ -10,6 +10,7 @@ py.install_sources(
   'morphism.py',
   'number_field.py',
   'number_field_base.pxd',
+  'number_field_base.pyi',
   'number_field_base.pyx',
   'number_field_element.pxd',
   'number_field_element.pyx',
@@ -37,11 +38,11 @@ py.install_sources(
 )
 
 extension_data = {
-  'number_field_base' : files('number_field_base.pyx'),
-  'number_field_element_base' : files('number_field_element_base.pyx'),
-  'number_field_morphisms' : files('number_field_morphisms.pyx'),
-  'totallyreal' : files('totallyreal.pyx'),
-  'totallyreal_data' : files('totallyreal_data.pyx'),
+  'number_field_base': files('number_field_base.pyx'),
+  'number_field_element_base': files('number_field_element_base.pyx'),
+  'number_field_morphisms': files('number_field_morphisms.pyx'),
+  'totallyreal': files('totallyreal.pyx'),
+  'totallyreal_data': files('totallyreal_data.pyx'),
 }
 
 foreach name, pyx : extension_data

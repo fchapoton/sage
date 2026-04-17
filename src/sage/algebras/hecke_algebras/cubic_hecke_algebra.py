@@ -102,7 +102,7 @@ algebra as well::
     sage: s^2
     (c0*c1*c2*c3*c4)^2
     sage: t = CHA6.an_element() * c4; t
-    (-w)*c0*c1^-1*c4 + v*c0*c2^-1*c4 + u*c2*c1*c4 + ((-v*w+u)/w)*c4
+    -w*c0*c1^-1*c4 + v*c0*c2^-1*c4 + u*c2*c1*c4 - ((v*w-u)/w)*c4
 
 REFERENCES:
 
@@ -717,7 +717,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         True
         sage: CHA4 = algebras.CubicHecke(4)     # optional database_cubic_hecke
         sage: ele4 = CHA4(ele3); ele4           # optional database_cubic_hecke
-        c0*c1*c0^-1*c1 + u*c0^-1*c1*c0 + (-v)*c0*c1^-1 + v*c1^-1*c0 + (-u)*c0*c1*c0^-1
+        c0*c1*c0^-1*c1 + u*c0^-1*c1*c0 - v*c0*c1^-1 + v*c1^-1*c0 - u*c0*c1*c0^-1
 
     Cubic Hecke algebra over the ring of definition using different variable
     names::
@@ -1252,7 +1252,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
                     xbv = xb.to_vector()
                     img_xbv = vector([self.base_ring()(cf) for cf in xbv])
                     return self.from_vector(img_xbv)
-                elif other_ngens < ngens:
+                if other_ngens < ngens:
                     sub_alg = self.cubic_hecke_subalgebra(other_ngens+1)
                     return self(sub_alg(xb))
 
@@ -1473,12 +1473,11 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         if n == 2:
             c1, = first_gens
             return const + v*c1
-        elif n == 3:
+        if n == 3:
             c1, c2 = first_gens
             return const + v*c1 - w*c1*~c2 + u*c2
-        else:
-            c1, c2, c3 = first_gens
-            return const + v*c1*~c3 - w*c1*~c2 + u*c3*c2
+        c1, c2, c3 = first_gens
+        return const + v*c1*~c3 - w*c1*~c2 + u*c3*c2
 
     @cached_method
     def chevie(self):
@@ -1913,6 +1912,9 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: F = CHA3.base_ring().fraction_field()
             sage: par = tuple([F(p) for p in CHA3.cubic_equation_parameters()])
             sage: CHA3F = algebras.CubicHecke(3, cubic_equation_parameters=par)
+            doctest:warning
+            ...
+            UserWarning: Assuming h^3 - u*h^2 + v*h - w to have maximal Galois group!
             sage: CHA3F._braid_image_from_filecache(br)
             1/w*c0*c1*c0^-1*c1 + v/w*c1^-1*c0 - u/w*c0*c1*c0^-1
             sage: section = CHA3.filecache_section().braid_images
@@ -2570,10 +2572,9 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         if list(cubic_braid_tietze) in tietze_list:
             verbose('cubic_braid_tietze: %s in basis' % str(cubic_braid_tietze), level=2)
             return cubic_braid_tietze
-        else:
-            if cubic_braid in self._finite_sub_basis_tuples.keys():
-                verbose('cubic_braid: %s in finite_sub_basis' % cubic_braid, level=2)
-                return self._finite_sub_basis_tuples[cubic_braid]
+        if cubic_braid in self._finite_sub_basis_tuples.keys():
+            verbose('cubic_braid: %s in finite_sub_basis' % cubic_braid, level=2)
+            return self._finite_sub_basis_tuples[cubic_braid]
 
         for tup in tietze_list:
             cb_tup = self.cubic_braid_group()(tup)
@@ -2754,9 +2755,10 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         """
         return self._filecache.section
 
-    def is_filecache_empty(self, section=None):
+    def is_filecache_empty(self, section=None) -> bool:
         r"""
         Return ``True`` if the file cache of the given ``section`` is empty.
+
         If no ``section`` is given the answer is given for the complete
         file cache.
 
@@ -3025,8 +3027,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         """
         if generic:
             return self._generic_cubic_equation_roots
-        else:
-            return self._cubic_equation_roots
+        return self._cubic_equation_roots
 
     # --------------------------------------------------------------------------
     # cubic_equation_roots
@@ -3054,8 +3055,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         """
         if generic:
             return self._generic_cubic_equation_parameters
-        else:
-            return self._cubic_equation_parameters
+        return self._cubic_equation_parameters
 
     # --------------------------------------------------------------------------
     # base_ring
@@ -3080,8 +3080,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         """
         if generic:
             return self._ring_of_definition
-        else:
-            return super().base_ring()
+        return super().base_ring()
 
     # --------------------------------------------------------------------------
     # extension_ring
@@ -3112,8 +3111,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         """
         if generic:
             return self._generic_extension_ring
-        else:
-            return self._extension_ring
+        return self._extension_ring
 
     # --------------------------------------------------------------------------
     # cyclotomic_generator
@@ -3143,8 +3141,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         e3gen = self.extension_ring(generic=True).cyclotomic_generator()
         if generic:
             return e3gen
-        else:
-            return self._generic_extension_ring_map(e3gen)
+        return self._generic_extension_ring_map(e3gen)
 
     # --------------------------------------------------------------------------
     # braid_group
@@ -3419,9 +3416,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         generic_result = [GER(s) for s in gap3_result]
         if generic:
             return list(generic_result)
-        else:
-            ER = self.extension_ring()
-            return [ER(s) for s in generic_result]
+        ER = self.extension_ring()
+        return [ER(s) for s in generic_result]
 
     # --------------------------------------------------------------------------
     # Schur element

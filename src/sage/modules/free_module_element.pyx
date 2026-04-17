@@ -135,26 +135,6 @@ __one__ = smallInteger(1)
 __two__ = smallInteger(2)
 
 
-def is_FreeModuleElement(x):
-    """
-    EXAMPLES::
-
-        sage: sage.modules.free_module_element.is_FreeModuleElement(0)
-        doctest:warning...
-        DeprecationWarning: The function is_FreeModuleElement is deprecated;
-        use 'isinstance(..., FreeModuleElement)' instead.
-        See https://github.com/sagemath/sage/issues/38184 for details.
-        False
-        sage: sage.modules.free_module_element.is_FreeModuleElement(vector([1,2,3]))
-        True
-    """
-    from sage.misc.superseded import deprecation_cython
-    deprecation_cython(38184,
-                       "The function is_FreeModuleElement is deprecated; "
-                       "use 'isinstance(..., FreeModuleElement)' instead.")
-    return isinstance(x, FreeModuleElement)
-
-
 def vector(arg0, arg1=None, arg2=None, sparse=None, immutable=False):
     r"""
     Return a vector or free module element with specified entries.
@@ -1085,7 +1065,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         Create the multiplication table of `GF(4)` using GP::
 
             sage: # needs sage.libs.pari
-            sage: k.<a> = GF(4, impl='pari_ffelt')
+            sage: k.<a> = GF(4, implementation="pari_ffelt")
             sage: v = gp(vector(list(k)))
             sage: v
             [0, 1, a, a + 1]
@@ -1920,15 +1900,20 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 
     def get(self, i):
         """
-        Like ``__getitem__`` but without bounds checking:
-        `i` must satisfy ``0 <= i < self.degree``.
+        Return the `i`-th entry of ``self``.
+
+        This is equivalent to ``self[i]``.
 
         EXAMPLES::
 
             sage: vector(SR, [1/2,2/5,0]).get(0)                                        # needs sage.symbolic
             1/2
+            sage: zero_vector(3).get(5)
+            Traceback (most recent call last):
+            ...
+            IndexError: vector index out of range
         """
-        return self.get_unsafe(i)
+        return self[i]
 
     def __setitem__(self, i, value):
         """
@@ -1982,19 +1967,23 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 
     def set(self, i, value):
         """
-        Like ``__setitem__`` but without type or bounds checking:
-        `i` must satisfy ``0 <= i < self.degree`` and ``value`` must be
-        an element of the coordinate ring.
+        Set the `i`-th entry of ``self`` to ``value``.
+
+        This is equivalent to ``self[i] = value``.
 
         EXAMPLES::
 
-            sage: v = vector(SR, [1/2,2/5,0]); v                                        # needs sage.symbolic
+            sage: # needs sage.symbolic
+            sage: v = vector(SR, [1/2,2/5,0]); v
             (1/2, 2/5, 0)
-            sage: v.set(2, pi); v                                                       # needs sage.symbolic
+            sage: v.set(2, pi); v
             (1/2, 2/5, pi)
+            sage: v.set(5, 1)
+            Traceback (most recent call last):
+            ...
+            IndexError: vector index out of range
         """
-        assert value.parent() is self.coordinate_ring()
-        self.set_unsafe(i, value)
+        self[i] = value
 
     def __invert__(self):
         """
@@ -4671,8 +4660,9 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         """
         EXAMPLES::
 
-            sage: v = vector(RR, [-1,0,2/3,pi])                                         # needs sage.symbolic
-            sage: v.get(3)                                                              # needs sage.symbolic
+            sage: # needs sage.symbolic
+            sage: v = vector(RR, [-1,0,2/3,pi])
+            sage: v.get(3)
             3.14159265358979
 
         ::
@@ -4708,9 +4698,10 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         """
         EXAMPLES::
 
-            sage: v = vector(RR, [-1, 0, 2/3, pi])                                      # needs sage.symbolic
-            sage: v.set(3, RR(1))                                                       # needs sage.symbolic
-            sage: v                                                                     # needs sage.symbolic
+            sage: # needs sage.symbolic
+            sage: v = vector(RR, [-1, 0, 2/3, pi])
+            sage: v.set(3, RR(1))
+            sage: v
             (-1.00000000000000, 0.000000000000000, 0.666666666666667, 1.00000000000000)
         """
         self._entries[i] = value
@@ -4970,7 +4961,6 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
         Test that :issue:`17101` is fixed::
 
-            sage: # needs sage.rings.real_interval_field
             sage: v = vector([RIF(-1, 1)], sparse=True)
             sage: v.is_zero()
             False
@@ -5302,16 +5292,16 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         """
         EXAMPLES::
 
-            sage: v = vector([-1,0,2/3,pi], sparse=True)                                # needs sage.symbolic
-            sage: v.get(1)                                                              # needs sage.symbolic
+            sage: # needs sage.symbolic
+            sage: v = vector([-1,0,2/3,pi], sparse=True)
+            sage: v.get(1)
             0
-            sage: v.get(2)                                                              # needs sage.symbolic
+            sage: v.get(2)
             2/3
-
-        For this class, 0 is returned if the access is out of bounds::
-
-            sage: v.get(10)                                                             # needs sage.symbolic
-            0
+            sage: v.get(10)
+            Traceback (most recent call last):
+            ...
+            IndexError: vector index out of range
         """
         try:
             return self._entries[i]
@@ -5336,7 +5326,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             ...
             TypeError: self must be a numeric expression
 
-        ::
+        TESTS::
 
             sage: # needs sage.symbolic
             sage: v = vector([1,2/3,pi], sparse=True)
@@ -5349,13 +5339,11 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
         This assignment is illegal::
 
-            sage: v.set(10, pi)                                                         # needs sage.symbolic
-
-        This lack of bounds checking causes trouble later::
-
-            sage: v                                                                     # needs sage.symbolic
-            <repr(<sage.modules.free_module.FreeModule_ambient_field_with_category.element_class at 0x...>) failed:
-             IndexError: list assignment index out of range>
+            sage: # needs sage.symbolic
+            sage: v.set(10, pi)
+            Traceback (most recent call last):
+            ...
+            IndexError: vector index out of range
         """
         if value:
             self._entries[i] = value

@@ -1,6 +1,5 @@
 py.install_sources(
   '__init__.py',
-  '_py2_random.py',
   'all.py',
   'atexit.pyx',
   'builtin_types.pyx',
@@ -28,14 +27,14 @@ py.install_sources(
 )
 
 extension_data = {
-  'atexit' : files('atexit.pyx'),
-  'builtin_types' : files('builtin_types.pyx'),
-  'cython_metaclass' : files('cython_metaclass.pyx'),
-  'debug' : files('debug.pyx'),
-  'dict_del_by_value' : files('dict_del_by_value.pyx'),
-  'getattr' : files('getattr.pyx'),
-  'string' : files('string.pyx'),
-  'type' : files('type.pyx'),
+  'atexit': files('atexit.pyx'),
+  'builtin_types': files('builtin_types.pyx'),
+  'cython_metaclass': files('cython_metaclass.pyx'),
+  'debug': files('debug.pyx'),
+  'dict_del_by_value': files('dict_del_by_value.pyx'),
+  'getattr': files('getattr.pyx'),
+  'string': files('string.pyx'),
+  'type': files('type.pyx'),
 }
 
 foreach name, pyx : extension_data

@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-objects
 # sage.doctest: needs sage.groups sage.modules
 r"""
 Group algebras and beyond: the Algebra functorial construction
@@ -708,9 +707,8 @@ class AlgebrasCategory(CovariantConstructionCategory, Category_over_base_ring):
         base_category_class = cls._base_category_class[0]
         if isinstance(category, base_category_class):
             return super(FunctorialConstructionCategory, cls).__classcall__(cls, category, R)
-        else:
-            # category should now be the base ring ...
-            return cls.category_of(base_category_class(), category)
+        # category should now be the base ring ...
+        return cls.category_of(base_category_class(), category)
 
     class ParentMethods:
 

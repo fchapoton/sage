@@ -8,8 +8,9 @@ Sage-the-distribution (classical build)
 .. note::
 
    This section describes the classical build process using
-   ``./configure && make``.
-   It is recommended to use the modern Meson build system instead;
+   ``./configure && make``, which at the end will invoke Meson build system
+   to build the main sagelib Python module. However,
+   it is recommended to use the modern Meson build system directly;
    see :ref:`section-build-source`.
 
 
@@ -325,12 +326,52 @@ Then SageMath will be built either using the compilers provided by the
 operating system, or its own compilers.
 
 
-Tcl/Tk (and system's Python)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Using an external Python installed by uv
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you want to use `Tcl/Tk <https://www.tcl.tk/>`_ libraries in Sage, and you
-are going to use your OS's Python3 as Sage's Python, you merely need to install
-its **Tkinter** module.  On Linux systems, it is usually provided by the
+If you want Sage's classical ``./configure && make`` build to use an
+external Python that is not provided by your system package manager, you can
+install one with `uv <https://docs.astral.sh/uv/>`_.
+
+Sage no longer builds its own Python interpreter, so you need to provide one
+either from your system package manager or from a tool such as ``uv``.
+
+Sage's ``./configure`` currently accepts Python versions in the range
+``>= 3.12`` and ``< 3.15``. It also checks that the interpreter provides the
+modules ``sqlite3``, ``ctypes``, ``math``, ``hashlib``, ``socket``, ``ssl``,
+``ensurepip``, and ``zlib``.
+
+On Python 3.12 and newer, Sage additionally checks for ``setuptools`` because
+``distutils`` was removed from the Python standard library. The configure test
+creates a fresh virtual environment from the selected interpreter and then
+imports ``setuptools`` there before compiling small C and C++ extension
+modules. Therefore it is not enough to install ``setuptools`` into an
+unrelated project environment; it needs to be available from the Python
+interpreter that you pass to ``./configure``.
+
+For a ``uv``-managed Python, ``uv`` marks the interpreter as externally
+managed, so installing ``setuptools`` into it requires
+``--break-system-packages``. Also, ``--with-python`` should point to the
+actual Python executable path. One way to prepare such a Python is::
+
+    $ uv python install 3.13
+    $ PYTHON3="$(uv python find --managed-python --resolve-links 3.13)"
+    $ uv pip install --python "$PYTHON3" --break-system-packages setuptools
+    $ ./configure --with-python="$PYTHON3"
+
+You can replace ``3.13`` by another supported minor version such as ``3.12``
+or ``3.14``. After ``./configure`` succeeds, continue with the usual build
+step::
+
+    $ make
+
+
+Tcl/Tk
+^^^^^^
+
+If you want to use `Tcl/Tk <https://www.tcl.tk/>`_ libraries in Sage, make sure
+that the Python installation used by Sage provides the **Tkinter** module. On
+Linux systems, it is usually provided by the
 **python3-tk** or a similarly named (e.g. **python3-tkinter**) package,
 which can be installed using::
 
@@ -338,39 +379,13 @@ which can be installed using::
 
 or similar commands.
 
-Tcl/Tk (and Sage's own Python)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+If you are using an external Python, check that exact interpreter before
+running ``./configure``::
 
-If you want to use `Tcl/Tk <https://www.tcl.tk/>`_ libraries in Sage,
-and you are going to build Sage's Python from source, you need to install
-these, and the corresponding headers.
-On Linux systems, these are usually provided by the **tk** and **tk-dev**
-(or **tk-devel**) packages which can be installed using::
+    $ "$PYTHON3" -c "import tkinter"
 
-    $ sudo apt-get install tk tk-dev
-
-or similar commands.
-
-
-Sage's Python will then automatically recognize your system's install of Tcl/Tk.
-If you installed Sage first, all is not lost. You just need to rebuild
-Sage's Python and any part of Sage relying on it::
-
-    $ sage -f python3  # rebuild Python3
-    $ make             # rebuild components of Sage depending on Python
-
-after installing the Tcl/Tk development libraries as above.
-
-If
-
-.. skip
-
-.. CODE-BLOCK:: ipycon
-
-   sage: import _tkinter
-   sage: import Tkinter
-
-does not raise an :class:`ImportError`, then it worked.
+If this command raises an :class:`ImportError`, then the selected Python does
+not provide Tcl/Tk support yet.
 
 
 .. _build-from-source-step-by-step:
@@ -378,7 +393,7 @@ does not raise an :class:`ImportError`, then it worked.
 Installation steps
 ------------------
 
-.. hint:: 
+.. hint::
 
   The following steps use the classical ``./configure && make`` build
   process. The modern Meson build system is also supported, see
@@ -488,14 +503,14 @@ Installation steps
 
    After Sage has started, try a simple command:
 
-   .. CODE-BLOCK:: ipycon
+   .. code-block:: ipycon
 
        sage: 2 + 2
        4
 
    Or something slightly more complicated:
 
-   .. CODE-BLOCK:: ipycon
+   .. code-block:: ipycon
 
        sage: factor(2005)
        5 * 401
@@ -532,7 +547,7 @@ Installation steps
    script should pass along all of its arguments.
    For example, a ``maple`` script might look like:
 
-   .. CODE-BLOCK:: bash
+   .. code-block:: bash
 
        #!/bin/sh
 
@@ -552,14 +567,14 @@ Installation steps
    - Copy :sage_root:`sage` to a location in your :envvar:`PATH`.
      If you do this, make sure you edit the line:
 
-     .. CODE-BLOCK:: bash
+     .. code-block:: bash
 
          #SAGE_ROOT=/path/to/sage-version
 
      at the beginning of the copied ``sage`` script according to the direction
      given there to something like:
 
-     .. CODE-BLOCK:: bash
+     .. code-block:: bash
 
          SAGE_ROOT=<SAGE_ROOT>
 
@@ -570,7 +585,7 @@ Installation steps
      ``sage`` containing the lines
      (note that you have to change ``<SAGE_ROOT>`` below!):
 
-     .. CODE-BLOCK:: bash
+     .. code-block:: bash
 
          #!/usr/bin/env bash
 
@@ -591,7 +606,7 @@ Installation steps
      For example, put something similar to the following line in your
      :file:`.bashrc` file:
 
-     .. CODE-BLOCK:: bash
+     .. code-block:: bash
 
          alias sage=<SAGE_ROOT>/sage
 
@@ -986,21 +1001,18 @@ Environment variables controlling the documentation build
 
 .. envvar:: SAGE_DOCBUILD_OPTS
 
-  The value of this variable is passed as an
-  argument to ``sage --docbuild all html`` or ``sage --docbuild all pdf`` when
-  you run ``make``, ``make doc``, or ``make doc-pdf``.  For example:
+  The contents of this variable are passed as additional arguments to
+  the documentation builder when you run ``make``, ``make doc``, or
+  ``make doc-pdf``.  For example:
 
   - add ``--no-plot`` to this variable to avoid building the graphics coming from
     the ``.. PLOT`` directive within the documentation,
 
-  - add ``--no-preparsed-examples`` to only show the original Sage code of
-    "EXAMPLES" blocks, suppressing the tab with the preparsed, plain Python
-    version, or
-
   - add ``--include-tests-blocks`` to include all "TESTS" blocks in the reference
     manual.
 
-  Run ``sage --docbuild help`` to see the full list of options.
+  A full list of valid options can be found at the top of
+  ``src/sage_docbuild/__main__.py``.
 
 .. envvar:: SAGE_SPKG_INSTALL_DOCS
 
@@ -1048,7 +1060,7 @@ Environment variables controlling the documentation build
     ``SAGE_JUPYTER_SERVER=http://localhost:8889``, run a local Jupyter server
     by
 
-    .. CODE-BLOCK:: bash
+    .. code-block:: bash
 
         ./sage --notebook=jupyterlab \
                --ServerApp.token='secret' \
@@ -1253,14 +1265,14 @@ Start from the directory created when you used ``git clone``, perhaps
 looking at the hidden ``.git`` subdirectory. It will looks like this,
 but the exact contents can vary::
 
-  [alice@localhost sage]$ ls .git
+  $ ls .git
   COMMIT_EDITMSG HEAD           branches       description    gitk.cache
   index          logs           packed-refs    FETCH_HEAD     ORIG_HEAD
   config         hooks          info           objects        refs
 
 Good. Now let's see what worktrees already exist::
 
-  [alice@localhost sage]$ git worktree list
+  $ git worktree list
   /home/alice/sage/sage                     c0ffeefe10 [master]
 
 We see just one line, the directory created when you used ``git clone``.
@@ -1271,7 +1283,7 @@ we're on (``master``).
 To try out a new version of Sage, let's fetch it first from the main
 repository::
 
-  [alice@localhost sage]$ git fetch upstream 10.3.beta8
+  $ git fetch upstream 10.3.beta8
   From https://github.com/sagemath/sage
    * tag                     10.3.beta8 -> FETCH_HEAD
 
@@ -1282,7 +1294,7 @@ directory containing a Sage installation cannot be moved without
 breaking the installation in it, it may be a good idea to choose
 a memorable name without much meaning::
 
-  [alice@localhost sage]$ git worktree add worktree-purple FETCH_HEAD
+  $ git worktree add worktree-purple FETCH_HEAD
   Preparing worktree (detached HEAD 30b3d78fac)
   Updating files: 100% (11191/11191), done.
   HEAD is now at 30b3d78fac Updated SageMath version to 10.3.beta8
@@ -1290,24 +1302,24 @@ a memorable name without much meaning::
 We now have a subdirectory ``worktree-purple``. This is a
 "linked worktree"::
 
-  [alice@localhost sage]$ git worktree list
+  $ git worktree list
   /home/alice/sage/sage                     c0ffeefe10 [master]
   /home/alice/sage/sage/worktree-purple     30b3d78fac (detached HEAD)
-  [alice@localhost sage]$ cd worktree-purple
-  [alice@localhost worktree-purple]$ cat VERSION.txt
+  $ cd worktree-purple
+  $ cat VERSION.txt
   SageMath version 10.3.beta8, Release Date: 2024-02-13
 
 All worktrees created in this way share the same repository,
 so they have access to all branches::
 
-  [alice@localhost worktree-purple]$ git --no-pager branch -v
+  $ git --no-pager branch -v
   * (no branch) 30b3d78fac Updated SageMath version to 10.3.beta8
   + master      2a9a4267f9 Updated SageMath version to 10.2
 
 In fact, ``.git`` here is not a directory, just a hidden
 file::
 
-  [alice@localhost worktree-purple]$ ls -l .git
+  $ ls -l .git
   -rw-r--r--  1 alice  staff  59 Feb 20 18:16 .git
 
 In the new worktree, we now build Sage from scratch. This
@@ -1327,11 +1339,11 @@ share it with the main worktree, let's create a symbolic
 link. This is an optional step that will avoid
 re-downloading files that you already have::
 
-  [alice@localhost worktree-purple]$ ln -s ../upstream/ .
+  $ ln -s ../upstream/ .
 
 Now let's build Sage, starting with the step::
 
-  [alice@localhost worktree-purple]$ make configure
+  $ make configure
 
 Refer to the file `README.md <https://github.com/sagemath/sage/#readme>`_
 for the following steps.

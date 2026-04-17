@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-repl
 """
 Detecting external software
 
@@ -496,8 +495,7 @@ class AvailableSoftware:
             if not self._seen[idx]:
                 self._seen[idx] = 1
             return True
-        else:
-            return False
+        return False
 
     def issuperset(self, other):
         """
