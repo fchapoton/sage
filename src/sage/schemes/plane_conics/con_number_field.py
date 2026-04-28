@@ -214,14 +214,12 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
                 # a rational point is already known, return True
                 if point or obstruction:
                     return True, self._rational_point
-                else:
-                    return True
+                return True
             if self._local_obstruction is not None:
                 # a local obstruction is already known, return False
                 if point or obstruction:
                     return False, self._local_obstruction
-                else:
-                    return False
+                return False
             # `_(in)finite_obstructions` is ``None`` if the cache is empty,
             # so we explicitly check against a list:
             if (not point) and self._finite_obstructions == [] and \
@@ -306,10 +304,10 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
                 return True
             if isinstance(B, RationalField):
                 K = B
-                [KtoB, BtoK] = [K.hom(K) for i in range(2)]
+                KtoB, BtoK = (K.hom(K) for i in range(2))
             else:
                 K = B.absolute_field('Y')
-                [KtoB, BtoK] = K.structure()
+                KtoB, BtoK = K.structure()
             X = PolynomialRing(K, 'X').gen()
             d = BtoK(-abc[1] / abc[0])
             den = d.denominator()
@@ -318,7 +316,7 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
             if isnorm[0]:
 
                 pt = self.point(T * vector([KtoB(isnorm[1][0]),
-                                          KtoB(isnorm[1][1] * den), 1]))
+                                            KtoB(isnorm[1][1] * den), 1]))
                 if point:
                     return True, pt
                 return True

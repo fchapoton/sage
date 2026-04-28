@@ -85,14 +85,14 @@ Or you can create a homomorphism from one lattice to any other::
 # The "tutorial" above is a truncated version of one in toric_lattice.py.
 
 
-#*****************************************************************************
+# ***************************************************************************
 #       Copyright (C) 2010 Andrey Novoseltsev <novoselt@gmail.com>
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ***************************************************************************
 
 from sage.libs.gmp.mpz cimport *
 
@@ -101,39 +101,6 @@ from sage.structure.coerce_exceptions import CoercionException
 from sage.structure.element cimport Vector
 from sage.rings.integer cimport Integer
 from sage.structure.richcmp cimport richcmp_not_equal
-
-
-def is_ToricLatticeElement(x):
-    r"""
-    Check if ``x`` is an element of a toric lattice.
-
-    INPUT:
-
-    - ``x`` -- anything
-
-    OUTPUT: ``True`` if ``x`` is an element of a toric lattice, ``False`` otherwise
-
-    EXAMPLES::
-
-        sage: from sage.geometry.toric_lattice_element import (
-        ....:   is_ToricLatticeElement)
-        sage: is_ToricLatticeElement(1)
-        doctest:warning...
-        DeprecationWarning: The function is_ToricLatticeElement is deprecated;
-        use 'isinstance(..., ToricLatticeElement)' instead.
-        See https://github.com/sagemath/sage/issues/38126 for details.
-        False
-        sage: e = ToricLattice(3).an_element()
-        sage: e
-        N(1, 0, 0)
-        sage: is_ToricLatticeElement(e)
-        True
-    """
-    from sage.misc.superseded import deprecation_cython
-    deprecation_cython(38126,
-                       "The function is_ToricLatticeElement is deprecated; "
-                       "use 'isinstance(..., ToricLatticeElement)' instead.")
-    return isinstance(x, ToricLatticeElement)
 
 
 # Why do we need a special class:
@@ -368,7 +335,7 @@ cdef class ToricLatticeElement(Vector_integer_dense):
             N(1, 2, 3)
         """
         return (unpickle_v1, (self._parent, self.list(), self._degree,
-                              not self._is_immutable))
+                              self._is_immutable))
 
     def plot(self, **options):
         r"""
@@ -394,7 +361,7 @@ cdef class ToricLatticeElement(Vector_integer_dense):
         return tp.plot_points([self])
 
 
-def unpickle_v1(parent, entries, degree, is_mutable):
+def unpickle_v1(parent, entries, degree, immutable):
     """
     Unpickle a :class:`ToricLatticeElement`.
 
@@ -406,7 +373,7 @@ def unpickle_v1(parent, entries, degree, is_mutable):
 
     - ``degree`` -- integer; the dimension of the toric lattice
 
-    - ``is_mutable`` -- boolean; whether the lattice element is mutable
+    - ``immutable`` -- boolean; whether the lattice element is immutable
 
     OUTPUT: the :class:`ToricLatticeElement` determined by the input data
 
@@ -427,5 +394,5 @@ def unpickle_v1(parent, entries, degree, is_mutable):
     for i in range(degree):
         z = Integer(entries[i])
         mpz_set(v._entries[i], z.value)
-    v._is_immutable = not is_mutable
+    v._is_immutable = immutable
     return v
