@@ -6,7 +6,8 @@ Dimensions of spaces of Siegel modular forms
     This is in a very preliminary state, and should incorporate
     more material from LMFDB.
 
-Let `\Gamma_2` denote the integral symplectic group `\operatorname{Sp}(4, \ZZ)`.
+Let `\Gamma_2` denote the integral symplectic group
+`\operatorname{Sp}(4, \ZZ)`.
 
 This file is about the dimensions of the spaces of Siegel modular forms and
 Siegel cusp forms for the group `\Gamma_2`
@@ -38,7 +39,8 @@ REFERENCES:
 
 - [IbWa2009] Tomoyoshi Ibukiyama and Satoshi Wakatsuki,
   *Siegel modular forms of small weight and the Witt operator*,
-  in Quadratic forms – algebra, arithmetic, and geometry. Contemporary Mathematics 493, 189-209 (2009).
+  in Quadratic forms – algebra, arithmetic, and geometry.
+  Contemporary Mathematics 493, 189-209 (2009).
 
 - [Peter2015] Dan Petersen, *Cohomology of
   local systems on the moduli of principally polarized abelian surfaces*,
@@ -63,8 +65,6 @@ from sage.modular.dims import dimension_cusp_forms, dimension_modular_forms
 from sage.rings.integer_ring import ZZ
 from sage.rings.lazy_series_ring import LazyPowerSeriesRing
 from sage.rings.number_field.number_field import CyclotomicField
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.rational_field import QQ
 
 
@@ -80,6 +80,7 @@ def dimension_cusp_forms_sp4z(k, J):
 
     EXAMPLES::
 
+        sage: from sage.modular.siegel.dimension_formulas import *
         sage: dimension_cusp_forms_sp4z(5, 64)
         38
     """
@@ -134,6 +135,7 @@ def generating_series_cusp_forms_sp4z_wt3():
 
     EXAMPLES::
 
+        sage: from sage.modular.siegel.dimension_formulas import *
         sage: generating_series_cusp_forms_sp4z_wt3()
         x^36 + x^42 + O(x^43)
     """
@@ -150,6 +152,7 @@ def generating_series_modular_forms_sp4z_wt4():
 
     EXAMPLES::
 
+        sage: from sage.modular.siegel.dimension_formulas import *
         sage: generating_series_modular_forms_sp4z_wt4()
         x^8 + x^12 + x^14 + O(x^15)
     """
@@ -167,6 +170,7 @@ def generating_series_cusp_forms_sp4z_wt4():
 
     EXAMPLES::
 
+        sage: from sage.modular.siegel.dimension_formulas import *
         sage: generating_series_cusp_forms_sp4z_wt4()
         x^24 + x^28 + x^30 + O(x^31)
     """
@@ -184,6 +188,7 @@ def generating_series_cusp_forms_sp4z_wt5():
 
     EXAMPLES::
 
+        sage: from sage.modular.siegel.dimension_formulas import *
         sage: generating_series_cusp_forms_sp4z_wt5()
         x^18 + x^20 + 2*x^24 + O(x^25)
     """
@@ -201,6 +206,7 @@ def generating_series_cusp_forms_sp4z_wt7():
 
     EXAMPLES::
 
+        sage: from sage.modular.siegel.dimension_formulas import *
         sage: generating_series_cusp_forms_sp4z_wt7()
         x^12 + x^14 + x^16 + 2*x^18 + O(x^19)
     """
@@ -239,6 +245,7 @@ def generating_series_modular_forms_sp4z_j10_even_wt():
 
     EXAMPLES::
 
+        sage: from sage.modular.siegel.dimension_formulas import *
         sage: generating_series_modular_forms_sp4z_j10_even_wt()
         y^6 + y^8 + 3*y^10 + 4*y^12 + O(y^13)
     """
@@ -257,6 +264,7 @@ def generating_series_modular_forms_sp4z_j10_odd_wt():
 
     EXAMPLES::
 
+        sage: from sage.modular.siegel.dimension_formulas import *
         sage: generating_series_modular_forms_sp4z_j10_odd_wt()
         y^9 + y^11 + 2*y^13 + 5*y^15 + O(y^16)
     """
@@ -274,6 +282,7 @@ def generating_series_modular_forms_sp4z_j0_even_wt():
 
     EXAMPLES::
 
+        sage: from sage.modular.siegel.dimension_formulas import *
         sage: generating_series_modular_forms_sp4z_j0_even_wt()
         1 + y^4 + y^6 + O(y^7)
     """
@@ -288,6 +297,7 @@ def generating_series_modular_forms_sp4z_j0_odd_wt():
 
     EXAMPLES::
 
+        sage: from sage.modular.siegel.dimension_formulas import *
         sage: generating_series_modular_forms_sp4z_j0_odd_wt()
         y^35 + y^39 + y^41 + O(y^42)
     """
@@ -300,6 +310,7 @@ def generating_function_cusp_forms_sp4z_k(k):
     """
     EXAMPLES::
 
+        sage: from sage.modular.siegel.dimension_formulas import *
         sage: generating_function_cusp_forms_sp4z_k(7)
         O(x^7)
     """
@@ -313,6 +324,7 @@ def generating_function_cusp_forms_sp4z_j(j):
     """
     EXAMPLES::
 
+        sage: from sage.modular.siegel.dimension_formulas import *
         sage: generating_function_cusp_forms_sp4z_j(7)
         O(x^7)
     """
@@ -328,6 +340,7 @@ def dimension_modular_forms_sp4z(k, j):
 
     EXAMPLES::
 
+        sage: from sage.modular.siegel.dimension_formulas import *
         sage: dimension_modular_forms_sp4z(5, 24)
         2
     """
@@ -362,6 +375,7 @@ def dimension_cusp_forms_Gamma_e(k, j):
 
     EXAMPLES::
 
+        sage: from sage.modular.siegel.dimension_formulas import *
         sage: dimension_cusp_forms_Gamma_e(5, 26)
         9
     """
@@ -451,10 +465,14 @@ def dimension_V(k, j):
     """
     if not k % 2:
         d1 = dimension_cusp_forms(1, k + j / 2)
-        d2 = sum(dimension_cusp_forms(1, k + j - 2 * a) * dimension_cusp_forms(1, k + 2 * a) for a in range(j / 2 + 1))
+        d2 = sum(dimension_cusp_forms(1, k + j - 2 * a) *
+                 dimension_cusp_forms(1, k + 2 * a)
+                 for a in range(j / 2 + 1))
     else:
         d1 = - dimension_cusp_forms(1, k + j / 2)
-        d2 = sum(dimension_cusp_forms(1, k - 1 + j - 2 * a) * dimension_cusp_forms(1, k + 1 + 2 * a) for a in range(j / 2))
+        d2 = sum(dimension_cusp_forms(1, k - 1 + j - 2 * a) *
+                 dimension_cusp_forms(1, k + 1 + 2 * a)
+                 for a in range(j / 2))
 
     return (d1 + d2) // 2
 
@@ -466,7 +484,9 @@ def dimension_V2(k, j):
     The space `\tilde{V}_{k,j}` is described in Theorem 6.1 of [IbWa2009]_.
     """
     d1 = (-1)**k * dimension_cusp_forms(1, k + j / 2)
-    d2 = sum(dimension_cusp_forms(1, k + j - a) * dimension_cusp_forms(1, k + a) for a in range(j + 1))
+    d2 = sum(dimension_cusp_forms(1, k + j - a) *
+             dimension_cusp_forms(1, k + a)
+             for a in range(j + 1))
     return (d1 + d2) // 2
 
 
@@ -477,5 +497,7 @@ def dimension_W(k, j):
     The space `W_{k,j}` is described in Theorem 7.1 of [IbWa2009]_.
     """
     d1 = (-1)**(k + 1) * dimension_modular_forms(1, k + j / 2 - 6)
-    d2 = sum(dimension_modular_forms(1, k + j - a - 6) * dimension_modular_forms(1, k + a - 6) for a in range(j + 1))
+    d2 = sum(dimension_modular_forms(1, k + j - a - 6) *
+             dimension_modular_forms(1, k + a - 6)
+             for a in range(j + 1))
     return (d1 + d2) // 2
