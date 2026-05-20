@@ -677,7 +677,7 @@ cdef class CategoryObject(SageObject):
             sage: R, x = PolynomialRing(QQ, 'x', 12).objgens()
             sage: x
             (x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11)
-            sage: R.latex_variable_names ()
+            sage: R.latex_variable_names()
             ['x_{0}', 'x_{1}', 'x_{2}', 'x_{3}', 'x_{4}', 'x_{5}', 'x_{6}',
              'x_{7}', 'x_{8}', 'x_{9}', 'x_{10}', 'x_{11}']
             sage: f = x[0]^3 + 15/3 * x[1]^10
@@ -699,11 +699,11 @@ cdef class CategoryObject(SageObject):
     def latex_name(self):
         return self.latex_variable_names()[0]
 
-    #################################################################################
+    ##########################################################################
     # Give all objects with generators a dictionary, so that attribute setting
-    # works.   It would be nice if this functionality were standard in Cython,
+    # works. It would be nice if this functionality were standard in Cython,
     # i.e., just define __dict__ as an attribute and all this code gets generated.
-    #################################################################################
+    ###########################################################################
     def __getstate__(self):
         try:
             d = self.__dict__.copy()  # so we can add elements

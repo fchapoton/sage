@@ -192,6 +192,9 @@ class Fields(CategoryWithAxiom):
     Finite = LazyImport('sage.categories.finite_fields', 'FiniteFields', at_startup=True)
 
     class ParentMethods:
+        def gens(self) -> tuple:
+            return (self.gen(),)
+
         def krull_dimension(self):
             """
             Return the Krull dimension of this field, which is 0.

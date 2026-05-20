@@ -132,7 +132,7 @@ from sage.categories.noetherian_rings import NoetherianRings
 _Rings = Rings()
 _CommutativeRings = CommutativeRings()
 
-cdef class Ring(ParentWithGens):
+cdef class Ring(Parent):
     """
     Generic ring class.
 
@@ -253,11 +253,6 @@ cdef class Ring(ParentWithGens):
             sage: R
             Multivariate Polynomial Ring in x, y over Rational Field
         """
-        # Unfortunately, ParentWithGens inherits from sage.structure.parent_old.Parent.
-        # Its __init__ method does *not* call Parent.__init__, since this would somehow
-        # yield an infinite recursion. But when we call it from here, it works.
-        # This is done in order to ensure that __init_extra__ is called.
-        #
         # This is a low-level class. For performance, we trust that the category
         # is fine, if it is provided. If it isn't, we use the category of rings.
         if base is None:

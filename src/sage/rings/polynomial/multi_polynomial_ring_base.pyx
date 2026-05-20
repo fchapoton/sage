@@ -929,7 +929,17 @@ cdef class MPolynomialRing_base(Ring):
         """
         if n < 0 or n >= self._ngens:
             raise ValueError("generator not defined")
-        return self._gens[int(n)]
+        e_i = ETuple([1 if i == n else 0 for i in range(self._ngens)])
+        return self({e_i: self.base_ring().one()})
+
+    def gens(self) -> tuple:
+        """
+        """
+        return tuple(self.gen(i) for i in range(self._ngens))
+
+    def latex_variable_names(self):
+        from sage.misc.latex import latex_variable_name
+        return [latex_variable_name(var) for var in self.variable_names()]
 
     def variable_names_recursive(self, depth=sage.rings.infinity.infinity):
         r"""

@@ -2746,10 +2746,23 @@ cdef class MPolynomial(CommutativePolynomial):
             tester.assertEqual(self.subs(**d).parent(), self.parent())
 
             # test error checking: partial substitution by elements
-            # from another ring is not allowed
-            d = {str(gens[0]): other_gens[0]}
-            with tester.assertRaises((ValueError, TypeError)):
-                self.subs(**d)
+            # from another ring are allowed if and only if
+            # either {variables substituted} contains {variables in self} 
+            # or these sets are disjoint
+            _vars = self.variables()
+            d = {str(gen): other_gen
+                 for gen, other_gen in zip(_vars, other_gens)}
+            if d:
+                tester.assertEqual(self.subs(**d).parent(), other)
+            d = {str(gen): other_gen
+                 for gen, other_gen in zip(gens, other_gens)
+                 if gen not in _vars}
+            tester.assertEqual(self.subs(**d).parent(), self.parent())
+            # and fails otherwise
+            if 1 < len(_vars):
+                d = {_vars[0]: other_gens[0]}
+                with tester.assertRaises((ValueError, TypeError)):
+                    self.subs(**d)
 
     def is_lorentzian(self, explain=False):
         r"""

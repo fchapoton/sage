@@ -1214,7 +1214,10 @@ class PolynomialRing_generic(Ring):
         """
         if n != 0:
             raise IndexError("generator n not defined")
-        return self.element_class(self, [0,1], is_gen=True)
+        return self.element_class(self, [0, 1], is_gen=True)
+
+    def gens(self) -> tuple:
+        return (self.gen(),)
 
     def gens_dict(self) -> dict:
         """

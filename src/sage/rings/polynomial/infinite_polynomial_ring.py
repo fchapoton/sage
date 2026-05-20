@@ -1298,6 +1298,9 @@ class InfinitePolynomialRing_sparse(Ring):
             self._cache__gen[key] = res
         return res
 
+    def gens(self):
+        return tuple(self.gen(i) for i in range(self.ngens()))
+
     def _first_ngens(self, n):
         """
         Used by the preparser for R.<x> = ...

@@ -730,6 +730,10 @@ cdef class NCPolynomialRing_plural(Ring):
         return (f"Noncommutative Multivariate Polynomial Ring in {varstr} "
                 f"over {self.base_ring()}, nc-relations: {relations}")
 
+    def latex_variable_names(self):
+        from sage.misc.latex import latex_variable_name
+        return [latex_variable_name(var) for var in self.variable_names()]
+
     def _ringlist(self):
         """
         Return an internal list representation of the noncommutative ring.
@@ -851,7 +855,7 @@ cdef class NCPolynomialRing_plural(Ring):
         cdef ring *_ring = self._ring
 
         if n < 0 or n >= self._ngens:
-            raise ValueError("Generator not defined.")
+            raise ValueError("generator not defined")
 
         rChangeCurrRing(_ring)
         _p = p_ISet(1, _ring)
@@ -872,7 +876,11 @@ cdef class NCPolynomialRing_plural(Ring):
             Finite family {'x': x, 'y': y, 'z': z}
         """
         from sage.sets.family import Family
-        return Family(self.gens_dict())
+        dico = dict(zip(self.variable_names(),
+                        [self.gen(n) for n in range(self._ngens)]))
+        return Family(dico)
+
+    gens = algebra_generators
 
     def ideal(self, *gens, **kwds):
         """

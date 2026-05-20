@@ -1065,7 +1065,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
         cdef ring *_ring = self._ring
 
         if n < 0 or n >= self._ngens:
-            raise ValueError("Generator not defined.")
+            raise ValueError("generator not defined")
 
         rChangeCurrRing(_ring)
         _p = p_ISet(1, _ring)
