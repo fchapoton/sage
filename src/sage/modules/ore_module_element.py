@@ -67,7 +67,7 @@ class OreModuleElement(FreeModuleElement_generic_dense):
         parent = self.parent()
         if parent._names is None:
             return self.parent()._latex_element(self)
-        names = parent._latex_names
+        names = parent.latex_variable_names()
         return repr_lincomb([(names[i], self[i]) for i in range(len(names))], is_latex=True)
 
     def is_mutable(self) -> bool:

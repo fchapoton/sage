@@ -541,7 +541,7 @@ class OreModule(UniqueRepresentation, FreeModule_ambient):
             else:
                 s += "\\texttt{ twisted by }" + twist
         else:
-            s = "\\left<" + ", ".join(self._latex_names) + "\\right>"
+            s = "\\left<" + ", ".join(self.latex_variable_names()) + "\\right>"
             s += "_{%s" % latex(self.base_ring())
             twist = self._ore._latex_twist()
             if twist != "":

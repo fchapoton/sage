@@ -1511,7 +1511,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             raise TypeError("len(names) doesn't equal self.ngens()")
 
         old = self._names, self._latex_names
-        (self._names, self._latex_names) = names, latex_names
+        self._names, self._latex_names = names, latex_names
 
         _names = <char**>omAlloc0(sizeof(char*)*_ring.N)
         for i from 0 <= i < _ring.N:

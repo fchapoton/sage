@@ -1022,7 +1022,8 @@ class TateAlgebra_generic(Parent):
             '\\Bold{Q}_{2}\\{u_{1},u_{2}\\}_{(1,2)}'
         """
         from sage.misc.latex import latex
-        s = r"%s\{%s\}" % (latex(self._field), ",".join(self._latex_names))
+        s = r"%s\{%s\}" % (latex(self._field),
+                           ",".join(self.latex_variable_names()))
         if self._integral:
             s += r"^{\circ}"
         if any(radius != 0 for radius in self._log_radii):

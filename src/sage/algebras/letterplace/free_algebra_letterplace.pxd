@@ -31,4 +31,3 @@ cdef class FreeAlgebra_letterplace(Parent):
     cdef str exponents_to_string(self, E)
     cdef str exponents_to_latex(self, E)
     cdef tuple _degrees
-    cdef public object _latex_names

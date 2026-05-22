@@ -530,7 +530,7 @@ cdef class CategoryObject(SageObject):
         # and self.variable_names() raises a ValueError
         try:
             old = self.variable_names(), self.latex_variable_names()
-        except ValueError:
+        except (ValueError, AttributeError):
             old = None, None
         self._names, self._latex_names = names, latex_names
         return old

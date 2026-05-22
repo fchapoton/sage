@@ -260,9 +260,10 @@ cdef class TateAlgebraTerm(MonoidElement):
             s = "\\left(%s\\right)" % self._coeff._latex_()
         for i in range(parent._ngens):
             if self._exponent[i] == 1:
-                s += "%s" % parent._latex_names[i]
+                s += "%s" % parent.latex_variable_names()[i]
             elif self._exponent[i] > 1:
-                s += "%s^{%s}" % (parent._latex_names[i], self._exponent[i])
+                s += "%s^{%s}" % (parent.latex_variable_names()[i],
+                                  self._exponent[i])
         if s[0] == "*":
             return s[1:]
         else:

@@ -24,6 +24,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
     cdef object __minpoly
     cdef poly *_one_element_poly
     cdef ring *_ring
+    cdef public object _latex_names
 
 # new polynomials
 cdef MPolynomial_libsingular new_MP(MPolynomialRing_libsingular parent, poly *p)
