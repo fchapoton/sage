@@ -25,6 +25,7 @@ cdef class NCPolynomialRing_plural(Ring):
 #    cdef NCPolynomial_plural _zero_element
 
     cdef public object _relations,_relations_commutative
+    cdef public object _latex_names
     pass
 
 cdef class ExteriorAlgebra_plural(NCPolynomialRing_plural):
