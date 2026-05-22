@@ -444,7 +444,8 @@ cdef class CategoryObject(SageObject):
             ValueError: variable names cannot be changed after object creation.
         """
         # this will eventually all be handled by the printer
-        if names is None: return
+        if names is None:
+            return
         if normalize:
             if ngens is None:
                 ngens = -1  # unknown
@@ -521,7 +522,7 @@ cdef class CategoryObject(SageObject):
             [0 0]
         """
         # old = self._names, self._latex_names
-        # We cannot assume that self *has* _latex_variable_names.
+        # We cannot assume that self *has* _latex_names.
         # But there is a method that returns them and sets
         # the attribute at the same time, if needed.
         # Simon King: It is not necessarily the case that variable
