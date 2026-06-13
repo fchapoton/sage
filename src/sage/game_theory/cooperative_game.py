@@ -20,7 +20,8 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from itertools import permutations, combinations
+from itertools import combinations, permutations
+
 from sage.combinat.subset import powerset
 from sage.rings.integer import Integer
 from sage.structure.sage_object import SageObject
@@ -252,7 +253,7 @@ class CooperativeGame(SageObject):
         sage: letter_game.is_symmetric({'A': 0, 'C': 35, 'B': 3})
         True
     """
-    def __init__(self, characteristic_function):
+    def __init__(self, characteristic_function) -> None:
         r"""
         Initialize a co-operative game and checks the inputs.
 
@@ -395,7 +396,7 @@ class CooperativeGame(SageObject):
 
         return payoff_vector
 
-    def is_monotone(self):
+    def is_monotone(self) -> bool:
         r"""
         Return ``True`` if ``self`` is monotonic.
 
@@ -457,7 +458,7 @@ class CooperativeGame(SageObject):
         return not any(set(p1) <= set(p2) and self.ch_f[p1] > self.ch_f[p2]
                        for p1, p2 in permutations(self.ch_f.keys(), 2))
 
-    def is_superadditive(self):
+    def is_superadditive(self) -> bool:
         r"""
         Return ``True`` if ``self`` is superadditive.
 
@@ -548,7 +549,7 @@ class CooperativeGame(SageObject):
                     return False
         return True
 
-    def _repr_(self):
+    def _repr_(self) -> str:
         r"""
         Return a concise description of ``self``.
 
@@ -568,7 +569,7 @@ class CooperativeGame(SageObject):
         """
         return "A {} player co-operative game".format(self.number_players)
 
-    def _latex_(self):
+    def _latex_(self) -> str:
         r"""
         Return the LaTeX code representing the characteristic function.
 
@@ -606,7 +607,7 @@ class CooperativeGame(SageObject):
         output += "\\end{cases}"
         return output
 
-    def is_efficient(self, payoff_vector):
+    def is_efficient(self, payoff_vector) -> bool:
         r"""
         Return ``True`` if ``payoff_vector`` is efficient.
 
@@ -756,16 +757,18 @@ class CooperativeGame(SageObject):
             False
         """
         for player in self.player_list:
-            results = []
+            results = True
             for coalit in self.ch_f:
                 if player in coalit:
                     t = tuple(sorted(set(coalit) - {player}))
-                    results.append(self.ch_f[coalit] == self.ch_f[t])
-            if all(results) and payoff_vector[player] != 0:
+                    if self.ch_f[coalit] != self.ch_f[t]:
+                        results = False
+                        break
+            if results and payoff_vector[player] != 0:
                 return False
         return True
 
-    def is_symmetric(self, payoff_vector):
+    def is_symmetric(self, payoff_vector) -> bool:
         r"""
         Return ``True`` if ``payoff_vector`` possesses the symmetry property.
 

@@ -22,7 +22,7 @@ class Parser:
     the ``'LCP'`` algorithm.
     """
 
-    def __init__(self, raw_string):
+    def __init__(self, raw_string) -> None:
         """
         Initialise a Parser instance by storing a ``raw_string``
         (currently only used with H representation of a game).
@@ -51,9 +51,9 @@ class Parser:
         """
         self.raw_string = raw_string
 
-    def format_lrs(self):
+    def format_lrs(self) -> list[list[tuple]]:
         r"""
-        Parses the output of lrs so as to return vectors
+        Parse the output of lrs so as to return vectors
         corresponding to equilibria.
 
         TESTS::
@@ -139,24 +139,27 @@ class Parser:
 
         The former legacy format has been removed in :issue:`39464`.
         """
-        equilibria = []
+        from itertools import dropwhile, groupby
+
         from sage.misc.sage_eval import sage_eval
-        from itertools import groupby, dropwhile
+
+        equilibria = []
         lines = iter(self.raw_string)
         # Skip comment lines starting with a single star
         lines = dropwhile(lambda line: line.startswith('*'), lines)
-        for collection in [list(x[1]) for x in groupby(lines, lambda x: x == '\n')]:
+        for x in groupby(lines, lambda x: x == '\n'):
+            collection = list(x[1])
             if collection[0].startswith('2'):
                 s1 = tuple([sage_eval(k) for k in collection[-1].split()][1:-1])
                 for s2 in collection[:-1]:
-                    s2 = tuple([sage_eval(k) for k in s2.split()][1:-1])
-                    equilibria.append([s1, s2])
+                    fix_s2 = tuple([sage_eval(k) for k in s2.split()][1:-1])
+                    equilibria.append([s1, fix_s2])
 
         return equilibria
 
-    def format_gambit(self, gambit_game):
+    def format_gambit(self, gambit_game) -> list[list[tuple]]:
         r"""
-        Parses the output of gambit so as to return vectors
+        Parse the output of gambit so as to return vectors
         corresponding to equilibria obtained using the LCP algorithm.
 
         TESTS:
@@ -263,8 +266,8 @@ class Parser:
         the fact that the game is degenerate.
         """
         nice_stuff = []
-        for gambitstrategy in self.raw_string:
-            gambitstrategy = list(gambitstrategy)
+        for _gambitstrategy in self.raw_string:
+            gambitstrategy = list(_gambitstrategy)
             profile = [tuple(gambitstrategy[:len(gambit_game.players[0].strategies)])]
             for player in list(gambit_game.players)[1:]:
                 previousplayerstrategylength = len(profile[-1])

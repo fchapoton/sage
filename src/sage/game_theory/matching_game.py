@@ -20,10 +20,11 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from sage.structure.sage_object import SageObject
-from sage.rings.integer_ring import ZZ
 from copy import deepcopy
+
 from sage.graphs.bipartite_graph import BipartiteGraph
+from sage.rings.integer_ring import ZZ
+from sage.structure.sage_object import SageObject
 
 
 class MatchingGame(SageObject):
@@ -321,7 +322,7 @@ class MatchingGame(SageObject):
         sage: g.solve()
         {1: -1, 2: -2, 3: -3}
     """
-    def __init__(self, generator, revr=None):
+    def __init__(self, generator, revr=None) -> None:
         r"""
         Initialize a matching game and check the inputs.
 
@@ -379,7 +380,7 @@ class MatchingGame(SageObject):
         else:
             raise TypeError("generator must be an integer or a pair of 2 dictionaries")
 
-    def _repr_(self):
+    def _repr_(self) -> str:
         r"""
         Return a basic representation of the game stating how many
         players are in the game.
@@ -395,7 +396,7 @@ class MatchingGame(SageObject):
         txt = 'A matching game with {} suitors and {} reviewers'
         return txt.format(len(self._suitors), len(self._reviewers))
 
-    def _latex_(self):
+    def _latex_(self) -> str:
         r"""
         Create the LaTeX representation of the dictionaries for suitors
         and reviewers.
@@ -425,7 +426,7 @@ class MatchingGame(SageObject):
             output += "\n\\\\ %s & \\to %s" % (reviewer, reviewer.pref)
         return output + "\n\\end{aligned}"
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         """
         Check equality.
 
@@ -551,7 +552,7 @@ class MatchingGame(SageObject):
         graph = BipartiteGraph(self._sol_dict)
         return graph
 
-    def _is_solved(self):
+    def _is_solved(self) -> None:
         r"""
         Raise an error if the game has not been solved yet.
 
@@ -575,7 +576,7 @@ class MatchingGame(SageObject):
         if not suitor_check or not reviewer_check:
             raise ValueError("game has not been solved yet")
 
-    def _is_complete(self):
+    def _is_complete(self) -> None:
         r"""
         Raise an error if all players do not have acceptable preferences.
 
@@ -670,7 +671,7 @@ class MatchingGame(SageObject):
             if len(set(suitor.pref)) < len(suitor.pref):
                 raise ValueError("suitor preferences contain repetitions")
 
-    def add_suitor(self, name=None):
+    def add_suitor(self, name=None) -> None:
         r"""
         Add a suitor to the game.
 
@@ -741,7 +742,7 @@ class MatchingGame(SageObject):
         for r in self._reviewers:
             r.pref = []
 
-    def add_reviewer(self, name=None):
+    def add_reviewer(self, name=None) -> None:
         r"""
         Add a reviewer to the game.
 
@@ -805,14 +806,14 @@ class MatchingGame(SageObject):
             while name in self._reviewers:
                 name -= 1
         if any(r._name == name for r in self._reviewers):
-            raise ValueError('a reviewer with name "{}" already exists'.format(name))
+            raise ValueError(f'a reviewer with name "{name}" already exists')
 
         new_reviewer = Player(name)
         self._reviewers.append(new_reviewer)
         for s in self._suitors:
             s.pref = []
 
-    def suitors(self):
+    def suitors(self) -> tuple:
         """
         Return the suitors of ``self``.
 
@@ -822,9 +823,9 @@ class MatchingGame(SageObject):
             sage: g.suitors()
             (1, 2)
         """
-        return tuple(sorted(self._suitors, key=lambda s:str(s._name)))
+        return tuple(sorted(self._suitors, key=lambda s: str(s._name)))
 
-    def reviewers(self):
+    def reviewers(self) -> tuple:
         """
         Return the reviewers of ``self``.
 
@@ -834,7 +835,7 @@ class MatchingGame(SageObject):
             sage: g.reviewers()
             (-1, -2)
         """
-        return tuple(sorted(self._reviewers, key=lambda r:str(r._name)))
+        return tuple(sorted(self._reviewers, key=lambda r: str(r._name)))
 
     def solve(self, invert=False):
         r"""
@@ -947,7 +948,7 @@ class Player:
     These instances are used when initiating players and to keep track of
     whether or not partners have a preference.
     """
-    def __init__(self, name):
+    def __init__(self, name) -> None:
         r"""
         TESTS::
 
@@ -964,7 +965,7 @@ class Player:
         self.pref = []
         self.partner = None
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         r"""
         TESTS::
 
@@ -976,7 +977,7 @@ class Player:
         """
         return hash(self._name)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         r"""
         TESTS::
 
@@ -991,7 +992,7 @@ class Player:
         """
         return repr(self._name)
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         r"""
 
         Tests equality of two players. This only checks the name of the player
@@ -1023,10 +1024,11 @@ class Player:
             return self._name == other._name
         return self._name == other
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         """
-        Test less than inequality of two players. Allows for players to be
-        sorted on their names.
+        Test less than inequality of two players.
+
+        This allows for players to be sorted on their names.
 
         TESTS::
 
@@ -1049,10 +1051,11 @@ class Player:
             return self._name < other._name
         return self._name < other
 
-    def __gt__(self, other):
+    def __gt__(self, other) -> bool:
         """
-        Test greater than inequality of two players. Allows for players to be
-        sorted on their names.
+        Test greater than inequality of two players.
+
+        This allows for players to be sorted on their names.
 
         TESTS::
 
@@ -1075,10 +1078,11 @@ class Player:
             return self._name > other._name
         return self._name > other
 
-    def __ge__(self, other):
+    def __ge__(self, other) -> bool:
         """
-        Test greater than or equal inequality of two players. Allows for
-        players to be sorted on their names.
+        Test greater than or equal inequality of two players.
+
+        This allows for players to be sorted on their names.
 
         TESTS::
 
@@ -1111,10 +1115,11 @@ class Player:
             return self._name >= other._name
         return self._name >= other
 
-    def __le__(self, other):
+    def __le__(self, other) -> bool:
         """
-        Test less than or equal inequality of two players. Allows for
-        players to be sorted on their names.
+        Test less than or equal inequality of two players.
+
+        This allows for players to be sorted on their names.
 
         TESTS::
 
@@ -1147,10 +1152,11 @@ class Player:
             return self._name <= other._name
         return self._name <= other
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         """
-        Test inequality of two players. Allows for
-        players to be sorted on their names.
+        Test inequality of two players.
+
+        This allows for players to be sorted on their names.
 
         TESTS::
 

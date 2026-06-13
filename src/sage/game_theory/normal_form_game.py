@@ -636,16 +636,17 @@ AUTHORS:
 
 from collections.abc import MutableMapping
 from itertools import product
+
 from .parser import Parser
-from sage.misc.latex import latex
 from sage.combinat.subset import powerset
-from sage.rings.rational_field import QQ
-from sage.structure.sage_object import SageObject
+from sage.cpython.string import bytes_to_str
 from sage.matrix.constructor import matrix
 from sage.matrix.constructor import vector
+from sage.misc.latex import latex
 from sage.misc.temporary_file import tmp_filename
 from sage.numerical.mip import MixedIntegerLinearProgram
-from sage.cpython.string import bytes_to_str
+from sage.rings.rational_field import QQ
+from sage.structure.sage_object import SageObject
 
 try:
     from gambit import Game
@@ -667,7 +668,7 @@ class NormalFormGame(SageObject, MutableMapping):
       blank
     """
 
-    def __init__(self, generator=None):
+    def __init__(self, generator=None) -> None:
         r"""
         Initialize a Normal Form game and checks the inputs.
 
@@ -767,21 +768,21 @@ class NormalFormGame(SageObject, MutableMapping):
         self.utilities = {}
         matrices = []
         if generator is not None:
-            if type(generator) is not list and type(generator) is not Game:
+            if not isinstance(generator, (list, Game)):
                 raise TypeError("Generator function must be a list, gambit game or nothing")
 
-        if type(generator) is list:
+        if isinstance(generator, list):
             if len(generator) == 1:
                 generator.append(-generator[-1])
             matrices = generator
             if matrices[0].dimensions() != matrices[1].dimensions():
                 raise ValueError("matrices must be the same size")
             self._two_matrix_game(matrices)
-        elif type(generator) is Game:
+        elif isinstance(generator, Game):
             game = generator
             self._gambit_game(game)
 
-    def __delitem__(self, key):
+    def __delitem__(self, key) -> None:
         r"""
         This method is one of a collection that aims to make a game
         instance behave like a dictionary which can be used if a game
@@ -802,7 +803,7 @@ class NormalFormGame(SageObject, MutableMapping):
         """
         self.utilities.pop(key, None)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key) -> None:
         r"""
         This method is one of a collection that aims to make a game
         instance behave like a dictionary which can be used if a game
@@ -821,7 +822,6 @@ class NormalFormGame(SageObject, MutableMapping):
             ...
             KeyError: (0, 1)
         """
-
         return self.utilities[key]
 
     def __iter__(self):
@@ -845,7 +845,7 @@ class NormalFormGame(SageObject, MutableMapping):
         """
         return iter(self.utilities)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, value) -> None:
         r"""
         This method is one of a collection that aims to make a game
         instance behave like a dictionary which can be used if a game
@@ -876,7 +876,7 @@ class NormalFormGame(SageObject, MutableMapping):
         """
         self.utilities[key] = value
 
-    def __len__(self):
+    def __len__(self) -> int:
         r"""
         Return the length of the game to be the length of the utilities.
 
@@ -946,7 +946,7 @@ class NormalFormGame(SageObject, MutableMapping):
             return r"\left(%s, %s\right)" % (M1._latex_(), M2._latex_())
         return latex(str(self))
 
-    def _two_matrix_game(self, matrices):
+    def _two_matrix_game(self, matrices) -> None:
         r"""
         Populate ``self.utilities`` with the values from 2 matrices.
 
@@ -967,7 +967,7 @@ class NormalFormGame(SageObject, MutableMapping):
             self.utilities[strategy_profile] = [matrices[0][strategy_profile],
                                                 matrices[1][strategy_profile]]
 
-    def _gambit_game(self, game):
+    def _gambit_game(self, game) -> None:
         r"""
         Create a ``NormalFormGame`` object from a Gambit game.
 
@@ -1147,9 +1147,7 @@ class NormalFormGame(SageObject, MutableMapping):
         strategy_sizes = [p.num_strategies for p in self.players]
         g = Game.new_table(strategy_sizes)
 
-        sgn = 1
-        if not maximization:
-            sgn = -1
+        sgn = 1 if maximization else -1
 
         players = len(strategy_sizes)
 
@@ -1161,7 +1159,7 @@ class NormalFormGame(SageObject, MutableMapping):
                     g[strategy_profile][i] = sgn * Decimal(float(self.utilities[strategy_profile][i]))
         return g
 
-    def is_constant_sum(self):
+    def is_constant_sum(self) -> bool:
         r"""
         Check if the game is constant sum.
 
@@ -1262,7 +1260,7 @@ class NormalFormGame(SageObject, MutableMapping):
             m2[strategy_profile] = self[strategy_profile][1]
         return m1, m2
 
-    def add_player(self, num_strategies):
+    def add_player(self, num_strategies) -> None:
         r"""
         Add a player to a NormalFormGame.
 
@@ -1284,7 +1282,7 @@ class NormalFormGame(SageObject, MutableMapping):
         self.players.append(_Player(num_strategies))
         self._generate_utilities(True)
 
-    def _generate_utilities(self, replacement):
+    def _generate_utilities(self, replacement) -> None:
         r"""
         Create all the required keys for ``self.utilities``.
 
@@ -1338,7 +1336,7 @@ class NormalFormGame(SageObject, MutableMapping):
             if profile not in self.utilities.keys():
                 self.utilities[profile] = [False] * len(self.players)
 
-    def add_strategy(self, player):
+    def add_strategy(self, player) -> None:
         r"""
         Add a strategy to a player, will not affect already completed
         strategy profiles.
@@ -1369,7 +1367,7 @@ class NormalFormGame(SageObject, MutableMapping):
         self.players[player].add_strategy()
         self._generate_utilities(False)
 
-    def _is_complete(self):
+    def _is_complete(self) -> bool:
         r"""
         Check if ``utilities`` has been completed and return a
         boolean.
@@ -1392,6 +1390,7 @@ class NormalFormGame(SageObject, MutableMapping):
     def obtain_nash(self, algorithm=False, maximization=True, solver=None):
         r"""
         A function to return the Nash equilibrium for the game.
+
         Optional arguments can be used to specify the algorithm used.
         If no algorithm is passed then an attempt is made to use the most
         appropriate algorithm.
@@ -1873,9 +1872,7 @@ class NormalFormGame(SageObject, MutableMapping):
         if solver == 'gambit':
             return self._solve_gambit_LP(maximization)
 
-        sgn = 1
-        if not maximization:
-            sgn = -1
+        sgn = 1 if maximization else -1
 
         strategy_sizes = [p.num_strategies for p in self.players]
 
@@ -2011,7 +2008,6 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: N._solve_enumeration()
             [[(0, 1), (0, 0, 1)]]
         """
-
         M1, M2 = self.payoff_matrices()
         if maximization is False:
             M1 = -M1
@@ -2164,7 +2160,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         return result
 
-    def _is_NE(self, a, b, p1_support, p2_support, M1, M2):
+    def _is_NE(self, a, b, p1_support, p2_support, M1, M2) -> bool:
         r"""
         For vectors that obey indifference for a given support pair,
         checks if it corresponds to a Nash equilibria (support is obeyed and
@@ -2237,7 +2233,7 @@ class NormalFormGame(SageObject, MutableMapping):
         return any(i in p2_support for i, x in enumerate(p2_payoffs)
                    if x == max(p2_payoffs))
 
-    def _lrs_nash_format(self, m1, m2):
+    def _lrs_nash_format(self, m1, m2) -> str:
         r"""
         Create the input format for ``lrsnash``, version 6.1 or newer.
 
@@ -2274,7 +2270,7 @@ class NormalFormGame(SageObject, MutableMapping):
         s += '\n'
         return s
 
-    def is_degenerate(self, certificate=False) -> bool:
+    def is_degenerate(self, certificate=False) -> bool | tuple:
         """
         A function to check whether the game is degenerate or not.
 
@@ -2472,11 +2468,13 @@ class NormalFormGame(SageObject, MutableMapping):
             return False, ()
         return False
 
-    def best_responses(self, strategy, player):
+    def best_responses(self, strategy, player) -> list:
         """
         For a given strategy for a player and the index of the opponent,
         computes the payoff for the opponent and returns a list of the indices
-        of the best responses. Only implemented for two player games
+        of the best responses.
+
+        Only implemented for two player games.
 
         INPUT:
 
@@ -2598,11 +2596,9 @@ class NormalFormGame(SageObject, MutableMapping):
             raise ValueError('Strategy is not of correct dimension')
 
         payoffs = list(payoff_matrix * strategy)
-        indices = [i for i, j in enumerate(payoffs) if j == max(payoffs)]
+        return [i for i, j in enumerate(payoffs) if j == max(payoffs)]
 
-        return indices
-
-    def _is_degenerate_pure(self, certificate=False):
+    def _is_degenerate_pure(self, certificate=False) -> bool | tuple:
         """
         Check whether a game is degenerate in pure strategies.
 
@@ -2664,7 +2660,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
 
 class _Player:
-    def __init__(self, num_strategies):
+    def __init__(self, num_strategies) -> None:
         r"""
         TESTS::
 
@@ -2675,7 +2671,7 @@ class _Player:
         """
         self.num_strategies = num_strategies
 
-    def add_strategy(self):
+    def add_strategy(self) -> None:
         r"""
         TESTS::
 
