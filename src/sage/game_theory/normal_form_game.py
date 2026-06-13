@@ -740,7 +740,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: error = NormalFormGame([p1, p2])
             Traceback (most recent call last):
             ...
-            ValueError: matrices must be the same size
+            ValueError: matrices must have the same size
 
         Note that when initializing, a single argument must be passed::
 
@@ -766,21 +766,20 @@ class NormalFormGame(SageObject, MutableMapping):
         """
         self.players = []
         self.utilities = {}
-        matrices = []
-        if generator is not None:
-            if not isinstance(generator, (list, Game)):
-                raise TypeError("Generator function must be a list, gambit game or nothing")
 
-        if isinstance(generator, list):
+        if generator is None:
+            pass
+        elif isinstance(generator, list):
             if len(generator) == 1:
                 generator.append(-generator[-1])
-            matrices = generator
-            if matrices[0].dimensions() != matrices[1].dimensions():
-                raise ValueError("matrices must be the same size")
-            self._two_matrix_game(matrices)
-        elif isinstance(generator, Game):
-            game = generator
-            self._gambit_game(game)
+            if generator[0].dimensions() != generator[1].dimensions():
+                raise ValueError("matrices must have the same size")
+            self._two_matrix_game(generator)
+        elif type(generator) is Game:
+            self._gambit_game(generator)
+        else:
+            raise TypeError("Generator function must be a list, gambit game or nothing")
+
 
     def __delitem__(self, key) -> None:
         r"""
