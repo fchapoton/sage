@@ -1790,7 +1790,8 @@ class LazyLaurentSeriesRing(LazySeriesRing):
             sage: f != g
             True
 
-        This can be verified by :meth:`~sage.rings.lazy_series.is_nonzero()`,
+        This can be verified by
+        :meth:`is_nonzero() <sage.rings.lazy_series.LazyModuleElement.is_nonzero>`,
         which only returns ``True`` if the series is known to be nonzero::
 
             sage: (f - g).is_nonzero()
@@ -2119,8 +2120,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
             sage: def g(s, i):
             ....:     if i < 0:
             ....:         return 1
-            ....:     else:
-            ....:         return s.coefficient(i - 1) + i
+            ....:     return s.coefficient(i - 1) + i
             sage: e = L.series(g, -5); e
             z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + 2*z + O(z^2)
             sage: f = e^-1; f
@@ -2570,7 +2570,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
             0: A015128: Number of overpartitions of n: ... overlined.
             1: A004402: Expansion of 1 / Sum_{n=-oo..oo} x^(n^2).
 
-        We give an example over the :class:`SymbolicRing` with the input
+        We give an example over the :class:`~sage.symbolic.ring.SymbolicRing` with the input
         `w = e^{\pi i z}` and verify the periodicity::
 
             sage: L.<q> = LazyLaurentSeriesRing(SR)
@@ -2828,7 +2828,7 @@ class LazyPowerSeriesRing(LazySeriesRing):
     def construction(self):
         """
         Return a pair ``(F, R)``, where ``F`` is a
-        :class:`CompletionFunctor` and `R` is a ring, such that
+        :class:`~sage.categories.pushout.CompletionFunctor` and `R` is a ring, such that
         ``F(R)`` returns ``self``.
 
         EXAMPLES::
@@ -3999,7 +3999,7 @@ class LazyDirichletSeriesRing(LazySeriesRing):
         elif base_ring in Rings().Commutative():
             category = category.Commutative()
         category = category.Infinite()
-        Parent.__init__(self, base=base_ring, names=names,
+        Parent.__init__(self, base=base_ring, names=names, normalize=False,
                         category=category)
 
     def _repr_(self):

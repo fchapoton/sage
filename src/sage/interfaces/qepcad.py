@@ -393,7 +393,7 @@ symbolically and numerically.
 
 For programmatic access to cells, we have defined a \sage wrapper class
 :class:`QepcadCell`.  These cells can be created with the
-:meth:`cell` method; for example::
+:meth:`~sage.interfaces.qepcad.Qepcad.cell` method; for example::
 
     sage: c = qe.cell(3, 4); c                       # optional - qepcad
     QEPCAD cell (3, 4)
@@ -419,10 +419,12 @@ as \sage algebraic real numbers. ::
     sage: c.sample_point_dict()                      # optional - qepcad
     {'x': 0, 'y': 1.732050807568878?}
 
-We have seen that we can get cells using the :meth:`cell` method.
+We have seen that we can get cells using the
+:meth:`~sage.interfaces.qepcad.Qepcad.cell` method.
 There are several QEPCAD commands that print lists of cells; we can
-also get cells using the :meth:`make_cells` method, passing it the
-output of one of these commands. ::
+also get cells using the
+:meth:`~sage.interfaces.qepcad.Qepcad.make_cells` method, passing it
+the output of one of these commands. ::
 
     sage: qe.make_cells(qe.d_true_cells())           # optional - qepcad
     [QEPCAD cell (4, 2), QEPCAD cell (3, 4), QEPCAD cell (3, 2),
@@ -863,7 +865,7 @@ class Qepcad:
                 # and ensure they match up with the variables in the formula.
                 if frozenset(varlist) != (fvars | frozenset(fqvars)):
                     raise ValueError("specified vars don't match vars in formula")
-                if len(fqvars) and varlist[-len(fqvars):] != fqvars:
+                if fqvars and varlist[-len(fqvars):] != fqvars:
                     raise ValueError("specified vars don't match quantified vars")
             free_vars = len(fvars)
             formula = repr(formula)
@@ -925,7 +927,7 @@ class Qepcad:
         """
         if not isinstance(assume, str):
             assume = qepcad_formula.formula(assume)
-            if len(assume.qvars):
+            if assume.qvars:
                 raise ValueError("assumptions cannot be quantified")
             if not assume.vars.issubset(frozenset(self._varlist[:self._free_vars])):
                 raise ValueError("assumption contains variables not "
@@ -933,7 +935,7 @@ class Qepcad:
             assume = repr(assume)
         assume = assume.replace('_', '')
         result = self._eval_line("assume [%s]" % assume)
-        if len(result):
+        if result:
             return AsciiArtString(result)
 
     def solution_extension(self, kind):
@@ -1019,7 +1021,7 @@ class Qepcad:
         if loc >= 0:
             result = result[loc + len(tagline):]
         result = result.strip()
-        if len(result):
+        if result:
             return AsciiArtString(result)
 
     def set_truth_value(self, index, nv):
@@ -1192,7 +1194,7 @@ class Qepcad:
     def make_cells(self, text):
         r"""
         Given the result of some QEPCAD command that returns cells
-        (such as :meth:`d_cell`, :meth:`d_witness_list`, etc.),
+        (such as ``d_cell``, ``d_witness_list``, etc.),
         return a list of cell objects.
 
         EXAMPLES::
@@ -1325,7 +1327,7 @@ class Qepcad:
         pre_phase = self.phase()
         result = self._eval_line('{} {}'.format(name, ' '.join(args)))
         post_phase = self.phase()
-        if len(result) and post_phase != 'EXITED':
+        if result and post_phase != 'EXITED':
             return AsciiArtString(result)
         if pre_phase != post_phase:
             if post_phase == 'EXITED' and name != 'quit':
@@ -1361,7 +1363,7 @@ def _format_cell_index(a):
         '(5)'
     """
     a = flatten([a])
-    if len(a) and isinstance(a[0], QepcadCell):
+    if a and isinstance(a[0], QepcadCell):
         a[0:1] = a[0].index()
     if len(a) == 1:
         return '(%s)' % a[0]
@@ -1625,7 +1627,7 @@ def qepcad(formula, assume=None, interact=False, solution=None,
     use_witness = False
     if solution == 'any-point':
         formula = qepcad_formula.formula(formula)
-        if len(formula.qvars) == 0:
+        if not formula.qvars:
             if vars is None:
                 vars = sorted(formula.vars)
             formula = qepcad_formula.exists(vars, formula)
@@ -1659,7 +1661,7 @@ def qepcad(formula, assume=None, interact=False, solution=None,
         else:
             cells = qe.make_cells(qe.d_true_cells())
         qe.quit()
-        if len(cells) == 0:
+        if not cells:
             raise ValueError("input formula is false everywhere")
         return cells[0].sample_point_dict()
     if solution == 'cell-points':
@@ -1884,7 +1886,7 @@ class qepcad_formula_factory:
         vars = frozenset()
         for f in formulas:
             vars = vars | f.vars
-            if len(f.qvars):
+            if f.qvars:
                 raise ValueError("QEPCAD formulas must be in prenex"
                                  " (quantifiers outermost) form")
         return formula_strs, vars
@@ -2567,7 +2569,7 @@ class QepcadCell:
             ind = '(%s)' % ind[0]
         else:
             ind = str(ind)
-        return ('QEPCAD cell %s' % ind)
+        return f'QEPCAD cell {ind}'
 
     def index(self):
         r"""

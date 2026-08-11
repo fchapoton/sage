@@ -3976,8 +3976,8 @@ def binomial(x, m, **kwds):
         2
 
     For symbolic manipulation, you should use the function
-    :func:`~sage.functions.other.binomial` from the module
-    :mod:`sage.functions.other`::
+    :class:`binomial <sage.functions.other.Function_binomial>` from the
+    module :mod:`sage.functions.other`::
 
         sage: from sage.functions.other import binomial
         sage: binomial(k, i)                                                            # needs sage.symbolic
@@ -6093,8 +6093,7 @@ def sort_complex_numbers_for_display(nums):
         sage: def truncate(n):
         ....:     if n.real() < 1e-10:
         ....:         return 0
-        ....:     else:
-        ....:         return n.real().n(digits=9)
+        ....:     return n.real().n(digits=9)
         sage: for i in range(first_non_real, len(nums)-1):
         ....:     assert truncate(nums[i]) <= truncate(nums[i + 1])
         ....:     if truncate(nums[i]) == truncate(nums[i + 1]):

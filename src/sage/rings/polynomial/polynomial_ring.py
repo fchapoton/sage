@@ -111,6 +111,18 @@ to the default FLINT implementation, but not vice versa::
     sage: (R.0 + S.0).parent() is S                                                     # needs sage.libs.flint sage.libs.ntl
     True
 
+We verify Alpoge's counterexample to the Jacobian conjecture::
+
+    sage: P.<x,y,z> = QQ[]
+    sage: l = [(1+x*y)^3*z + y^2*(1+x*y)*(4+3*x*y), y+3*x*(1+x*y)^2*z + 3*x*y^2*(4+3*x*y), 2*x-3*x^2*y-x^3*z]
+    sage: M = Matrix([[l[i].derivative(j) for j in [x,y,z]] for i in range(3)])
+    sage: M.det()
+    -2
+    sage: [f(0,0,-1/4) for f in l]
+    [-1/4, 0, 0]
+    sage: [f(1,-3/2,13/2) for f in l]
+    [-1/4, 0, 0]
+
 TESTS::
 
     sage: K.<x> = FractionField(QQ['x'])
@@ -144,13 +156,12 @@ from sage import categories
 from sage.categories.morphism import IdentityMorphism
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.categories.rings import Rings
-from sage.misc.superseded import deprecation
 from sage.rings import rational_field
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.number_field.number_field_base import NumberField
 from sage.rings.rational_field import QQ
-from sage.rings.ring import CommutativeRing, Ring
+from sage.rings.ring import Ring
 from sage.structure.category_object import check_default_category
 from sage.structure.element import Element, RingElement
 
@@ -1053,7 +1064,7 @@ class PolynomialRing_generic(Ring):
 
         return PolynomialRing(R, names=self.variable_name(), sparse=self.is_sparse())
 
-    def change_var(self, var):
+    def change_variable_name(self, var):
         r"""
         Return the polynomial ring in variable ``var`` over the same base
         ring.
@@ -1062,12 +1073,14 @@ class PolynomialRing_generic(Ring):
 
             sage: R.<x> = ZZ[]; R
             Univariate Polynomial Ring in x over Integer Ring
-            sage: R.change_var('y')
+            sage: R.change_variable_name('y')
             Univariate Polynomial Ring in y over Integer Ring
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
         return PolynomialRing(self.base_ring(), names=var, sparse=self.is_sparse())
+
+    change_var = change_variable_name
 
     def extend_variables(self, added_names, order='degrevlex'):
         r"""
@@ -1585,7 +1598,7 @@ class PolynomialRing_generic(Ring):
     def karatsuba_threshold(self):
         """
         Return the Karatsuba threshold used for this ring by the method
-        :meth:`_mul_karatsuba` to fall back to the schoolbook algorithm.
+        ``_mul_karatsuba`` to fall back to the schoolbook algorithm.
 
         EXAMPLES::
 
@@ -1601,7 +1614,7 @@ class PolynomialRing_generic(Ring):
     def set_karatsuba_threshold(self, Karatsuba_threshold):
         """
         Changes the default threshold for this ring in the method
-        :meth:`_mul_karatsuba` to fall back to the schoolbook algorithm.
+        ``_mul_karatsuba`` to fall back to the schoolbook algorithm.
 
         .. warning::
 
@@ -1827,6 +1840,20 @@ class PolynomialRing_commutative(PolynomialRing_generic):
         from sage.algebras.weyl_algebra import DifferentialWeylAlgebra
         return DifferentialWeylAlgebra(self)
 
+    def _fricas_init_(self) -> str:
+        """
+        Return a string that yields a representation of ``self`` in FriCAS.
+
+        EXAMPLES::
+
+            sage: F = GF(3, 2)
+            sage: P.<x> = F[]
+            sage: fricas(P)     # indirect doctest  # optional - fricas
+            UnivariatePolynomial(x,FiniteField(3,2))
+        """
+        v = self.variable_name()
+        return f'UnivariatePolynomial({v},{self.base_ring()._fricas_init_()})'
+
     def _roots_univariate_polynomial(self, p, ring=None, multiplicities=True, algorithm=None, degree_bound=None):
         """
         Return the list of roots of ``p``.
@@ -1877,9 +1904,9 @@ class PolynomialRing_commutative(PolynomialRing_generic):
         return roots
 
 
-class PolynomialRing_integral_domain(PolynomialRing_commutative, PolynomialRing_singular_repr, CommutativeRing):
+class PolynomialRing_integral_domain(PolynomialRing_commutative, PolynomialRing_singular_repr, Ring):
     def __init__(self, base_ring, name='x', sparse=False, implementation=None,
-            element_class=None, category=None):
+                 element_class=None, category=None):
         """
         TESTS::
 
@@ -1960,9 +1987,10 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, PolynomialRing_
 
             More documentation and additional options are available using the
             iterator
-            :class:`sage.rings.polynomial.weil.weil_polynomials.WeilPolynomials`
+            :class:`~sage.rings.polynomial.weil.weil_polynomials.WeilPolynomials`
             directly. In addition, polynomials have a method
-            :meth:`is_weil_polynomial` to test whether or not the given
+            :meth:`~sage.rings.polynomial.polynomial_element.Polynomial.is_weil_polynomial`
+            to test whether or not the given
             polynomial is a Weil polynomial.
 
         EXAMPLES::
@@ -3272,7 +3300,8 @@ class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
         if sparse:
             return NotImplemented
         modulus = base_ring.order()
-        if modulus <= sys.maxsize:
+
+        if modulus <= (sys.maxsize << 1) + 1:
             defaults = ["FLINT", None]
         elif implementation == "FLINT":
             raise ValueError("FLINT does not support modulus %s" % modulus)
@@ -3377,8 +3406,8 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
             sage: type(P.gen())
             <class 'sage.rings.polynomial.polynomial_modn_dense_ntl.Polynomial_dense_mod_p'>
 
-            sage: P = PolynomialRing_dense_mod_p(GF(9223372036854775837), 'x'); P       # needs sage.libs.ntl sage.rings.finite_rings
-            Univariate Polynomial Ring in x over Finite Field of size 9223372036854775837 (using NTL)
+            sage: P = PolynomialRing_dense_mod_p(GF(18446744073709551629), 'x'); P       # needs sage.libs.ntl sage.rings.finite_rings
+            Univariate Polynomial Ring in x over Finite Field of size 18446744073709551629 (using NTL)
             sage: type(P.gen())                                                         # needs sage.libs.ntl sage.rings.finite_rings
             <class 'sage.rings.polynomial.polynomial_modn_dense_ntl.Polynomial_dense_mod_p'>
 
@@ -3463,7 +3492,7 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
             defaults = ["GF2X", "NTL", None]
         elif implementation == "GF2X":
             raise ValueError("GF2X only supports modulus 2")
-        elif modulus <= sys.maxsize:
+        elif modulus <= (sys.maxsize << 1) + 1:
             defaults = ["FLINT", None]
         elif implementation == "FLINT":
             raise ValueError("FLINT does not support modulus %s" % modulus)
