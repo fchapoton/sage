@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-categories
 # sage.doctest: needs sage.combinat
 r"""
 Examples of filtered modules with basis
@@ -108,7 +107,7 @@ class FilteredPartitionModule(CombinatorialFreeModule):
         - ``t`` -- the index of an element of the basis of this module,
           i.e. a partition
 
-        OUTPUT: an integer, the degree of the corresponding basis element
+        OUTPUT: integer; the degree of the corresponding basis element
 
         EXAMPLES::
 

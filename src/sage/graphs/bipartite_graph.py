@@ -37,15 +37,15 @@ TESTS::
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+import itertools
 from collections import defaultdict
 from collections.abc import Iterable
-import itertools
 
-from .generic_graph import GenericGraph
-from .graph import Graph
-from sage.rings.integer import Integer
+from sage.graphs.generic_graph import GenericGraph
+from sage.graphs.graph import Graph
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import lazy_import
+from sage.rings.integer import Integer
 
 lazy_import('networkx', ['MultiGraph', 'Graph'], as_=['networkx_MultiGraph', 'networkx_Graph'])
 
@@ -77,11 +77,12 @@ class BipartiteGraph(Graph):
          The alist file format is described at
          http://www.inference.phy.cam.ac.uk/mackay/codes/alist.html
 
-      #. A ``graph6`` string (see documentation of :meth:`~graph6_string`).
+      #. A ``graph6`` string (see documentation of
+         :meth:`~sage.graphs.graph.Graph.graph6_string`).
 
       #. From a NetworkX bipartite graph.
 
-    - ``partition`` -- (default: ``None``); a tuple defining vertices of the left
+    - ``partition`` -- (default: ``None``) a tuple defining vertices of the left
       and right partition of the graph. Partitions will be determined
       automatically if ``partition`` is ``None``.
 
@@ -196,7 +197,6 @@ class BipartiteGraph(Graph):
 
     #. From a reduced adjacency matrix::
 
-        sage: # needs sage.modules
         sage: M = Matrix([(1,1,1,0,0,0,0), (1,0,0,1,1,0,0),
         ....:             (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
         sage: M
@@ -243,7 +243,6 @@ class BipartiteGraph(Graph):
 
        ::
 
-         sage: # needs sage.modules sage.rings.finite_rings
          sage: F.<a> = GF(4)
          sage: MS = MatrixSpace(F, 2, 3)
          sage: M = MS.matrix([[0, 1, a + 1], [a, 1, 1]])
@@ -256,15 +255,15 @@ class BipartiteGraph(Graph):
     #. From an alist file::
 
          sage: import tempfile
-         sage: with tempfile.NamedTemporaryFile(mode="w+t") as f:
+         sage: with tempfile.NamedTemporaryFile(mode='w+t', delete_on_close=False) as f:
          ....:     _ = f.write("7 4 \n 3 4 \n 3 3 1 3 1 1 1 \n\
          ....:                  3 3 3 4 \n 1 2 4 \n 1 3 4 \n 1 0 0 \n\
          ....:                  2 3 4 \n 2 0 0 \n 3 0 0 \n 4 0 0 \n\
          ....:                  1 2 3 0 \n 1 4 5 0 \n 2 4 6 0 \n\
          ....:                  1 2 4 7 \n")
-         ....:     f.flush()
+         ....:     f.close()
          ....:     B = BipartiteGraph(f.name)
-         sage: B.is_isomorphic(H)                                                       # needs sage.modules
+         sage: B.is_isomorphic(H)
          True
 
     #. From a ``graph6`` string::
@@ -329,7 +328,6 @@ class BipartiteGraph(Graph):
     Ensure that we can construct a ``BipartiteGraph`` with isolated vertices via
     the reduced adjacency matrix (:issue:`10356`)::
 
-        sage: # needs sage.modules
         sage: a = BipartiteGraph(matrix(2, 2, [1, 0, 1, 0]))
         sage: a
         Bipartite graph on 4 vertices
@@ -355,6 +353,22 @@ class BipartiteGraph(Graph):
         ...
         ValueError: cannot add edge from 0 to 0 in graph without loops
 
+    Check that construction from a file works with immutable graphs::
+
+        sage: import tempfile, os
+        sage: content = "2 2\n2 2\n2 2\n2 2\n1 2\n1 2\n1 2\n1 2\n"
+        sage: fd, path = tempfile.mkstemp()
+        sage: with os.fdopen(fd, 'w') as f:
+        ....:     _ = f.write(content)
+        sage: B = BipartiteGraph(path, immutable=False)
+        sage: B.is_immutable()
+        False
+        sage: B = BipartiteGraph(path, immutable=True)
+        sage: B.is_immutable()
+        True
+        sage: set((u, v) for u, v, _ in B.edges()) == {(0,2), (0,3), (1,2), (1,3)}
+        True
+        sage: os.unlink(path)
     """
 
     def __init__(self, data=None, partition=None, check=True, hash_labels=None, *args, **kwds):
@@ -392,6 +406,25 @@ class BipartiteGraph(Graph):
             Traceback (most recent call last):
             ...
             LookupError: vertex (7) is not a vertex of the graph
+
+        Check that :issue:`39295` is fixed::
+
+            sage: B = BipartiteGraph(matrix([[1, 1], [1, 1]]), immutable=True)
+            sage: print(B.vertices(), B.edges())
+            [0, 1, 2, 3] [(0, 2, None), (0, 3, None), (1, 2, None), (1, 3, None)]
+            sage: B.add_vertices([4], left=True)
+            Traceback (most recent call last):
+            ...
+            TypeError: this graph is immutable and so cannot be changed
+
+        Check that :issue:`39756` is fixed::
+
+            sage: B = BipartiteGraph([(0,2), (0,3), (1,2), (1,3)])
+            sage: B.left, B.right
+            ({0, 1}, {2, 3})
+            sage: B.clear()
+            sage: B.left, B.right
+            (set(), set())
         """
         if kwds is None:
             kwds = {'loops': False}
@@ -399,6 +432,8 @@ class BipartiteGraph(Graph):
             if 'loops' in kwds and kwds['loops']:
                 raise ValueError('loops are not allowed in bipartite graphs')
             kwds['loops'] = False
+
+        immutable_request = kwds.get("immutable", False)
 
         if data is None:
             if partition is not None and check:
@@ -408,6 +443,7 @@ class BipartiteGraph(Graph):
             self.left = set()
             self.right = set()
             self._hash_labels = hash_labels
+
             return
 
         # need to turn off partition checking for Graph.__init__() adding
@@ -418,8 +454,6 @@ class BipartiteGraph(Graph):
         self.add_vertices = MethodType(Graph.add_vertices, self)
         self.add_edge = MethodType(Graph.add_edge, self)
         self.add_edges = MethodType(Graph.add_edges, self)
-        alist_file = True
-
         from sage.structure.element import Matrix
         if isinstance(data, BipartiteGraph):
             Graph.__init__(self, data, *args, **kwds)
@@ -428,21 +462,23 @@ class BipartiteGraph(Graph):
         elif isinstance(data, str):
             import os
             alist_file = os.path.exists(data)
-            Graph.__init__(self, data=None if alist_file else data, *args, **kwds)
+            if alist_file:
+                self.load_afile(data, immutable=immutable_request)
+            else:
+                Graph.__init__(self, data, *args, **kwds)
 
-            # methods; initialize left and right attributes
-            self.left = set()
-            self.right = set()
+                # methods; initialize left and right attributes
+                self.left = set()
+                self.right = set()
 
-            # determine partitions and populate self.left and self.right
-            if not alist_file:
+                # determine partitions and populate self.left and self.right
                 if partition is not None:
                     left, right = set(partition[0]), set(partition[1])
 
                 # Some error checking.
                     if left & right:
                         raise ValueError("the parts are not disjoint")
-                    if len(left) + len(right) != self.num_verts():
+                    if len(left) + len(right) != self.n_vertices():
                         raise ValueError("not all vertices appear in partition")
 
                     if check:
@@ -468,32 +504,31 @@ class BipartiteGraph(Graph):
             if kwds.get("multiedges", False) and kwds.get("weighted", False):
                 raise TypeError("weighted multi-edge bipartite graphs from "
                                 "reduced adjacency matrix not supported")
-            Graph.__init__(self, *args, **kwds)
             ncols = data.ncols()
             nrows = data.nrows()
             self.left = set(range(ncols))
             self.right = set(range(ncols, nrows + ncols))
 
-            # ensure that the vertices exist even if there
-            # are no associated edges (trac #10356)
-            self.add_vertices(self.left)
-            self.add_vertices(self.right)
+            def edges():
+                if kwds.get("multiedges", False):
+                    for ii in range(ncols):
+                        for jj in range(nrows):
+                            for _ in range(data[jj, ii]):
+                                yield (ii, jj + ncols)
+                elif kwds.get("weighted", False):
+                    for ii in range(ncols):
+                        for jj in range(nrows):
+                            if data[jj, ii]:
+                                yield (ii, jj + ncols, data[jj, ii])
+                else:
+                    for ii in range(ncols):
+                        for jj in range(nrows):
+                            if data[jj, ii]:
+                                yield (ii, jj + ncols)
 
-            if kwds.get("multiedges", False):
-                for ii in range(ncols):
-                    for jj in range(nrows):
-                        if data[jj, ii]:
-                            self.add_edges([(ii, jj + ncols)] * data[jj, ii])
-            elif kwds.get("weighted", False):
-                for ii in range(ncols):
-                    for jj in range(nrows):
-                        if data[jj, ii]:
-                            self.add_edge((ii, jj + ncols, data[jj, ii]))
-            else:
-                for ii in range(ncols):
-                    for jj in range(nrows):
-                        if data[jj, ii]:
-                            self.add_edge((ii, jj + ncols))
+            # ensure that construction works
+            # when immutable=True (issue #39295)
+            Graph.__init__(self, data=[range(nrows + ncols), edges()], format='vertices_and_edges', *args, **kwds)
         else:
             if partition is not None:
                 left, right = set(partition[0]), set(partition[1])
@@ -506,7 +541,7 @@ class BipartiteGraph(Graph):
                 # Some error checking.
                 if left & right:
                     raise ValueError("the parts are not disjoint")
-                if len(left) + len(right) != self.num_verts():
+                if len(left) + len(right) != self.n_vertices():
                     raise ValueError("not all vertices appear in partition")
 
             if isinstance(data, (networkx_MultiGraph, networkx_Graph)):
@@ -549,11 +584,6 @@ class BipartiteGraph(Graph):
         del self.add_edge
         del self.add_edges
 
-        # post-processing
-        if isinstance(data, str):
-            if alist_file:
-                self.load_afile(data)
-
         if hash_labels is None and hasattr(data, '_hash_labels'):
             hash_labels = data._hash_labels
         self._hash_labels = hash_labels
@@ -591,7 +621,7 @@ class BipartiteGraph(Graph):
             sage: B.__hash__()
             Traceback (most recent call last):
             ...
-            TypeError: unhashable type: 'dict'
+            TypeError: ...unhashable type: 'dict'...
         """
         if self.is_immutable():
             # Determine whether to hash edge labels
@@ -639,7 +669,7 @@ class BipartiteGraph(Graph):
 
     def __repr__(self):
         r"""
-        Return a short string representation of self.
+        Return a short string representation of ``self``.
 
         EXAMPLES::
 
@@ -659,16 +689,16 @@ class BipartiteGraph(Graph):
 
         INPUT:
 
-        - ``name`` -- (default: ``None``); name of the new vertex. If no name is
+        - ``name`` -- (default: ``None``) name of the new vertex. If no name is
           specified, then the vertex will be represented by the least
-          non-negative integer not already representing a vertex. Name must be
+          nonnegative integer not already representing a vertex. Name must be
           an immutable object and cannot be ``None``.
 
         - ``left`` -- boolean (default: ``False``); if ``True``, puts the new
-          vertex in the left partition.
+          vertex in the left partition
 
         - ``right`` -- boolean (default: ``False``); if ``True``, puts the new
-          vertex in the right partition.
+          vertex in the right partition
 
         Obviously, ``left`` and ``right`` are mutually exclusive.
 
@@ -756,13 +786,13 @@ class BipartiteGraph(Graph):
 
         INPUT:
 
-        - ``vertices`` -- sequence of vertices to add.
+        - ``vertices`` -- sequence of vertices to add
 
-        - ``left`` -- (default: ``False``); either ``True`` or sequence of same
-          length as ``vertices`` with ``True``/``False`` elements.
+        - ``left`` -- (default: ``False``) either ``True`` or sequence of same
+          length as ``vertices`` with boolean elements
 
-        - ``right`` -- (default: ``False``); either ``True`` or sequence of the
-          same length as ``vertices`` with ``True``/``False`` elements.
+        - ``right`` -- (default: ``False``) either ``True`` or sequence of the
+          same length as ``vertices`` with boolean elements
 
         Only one of ``left`` and ``right`` keywords should be provided.  See
         the examples below.
@@ -800,12 +830,26 @@ class BipartiteGraph(Graph):
             RuntimeError: cannot add duplicate vertex to other partition
             sage: (bg.left, bg.right)
             ({0, 1, 2}, set())
+            sage: bg.add_vertices([0, 1, 2], left=[False])
+            Traceback (most recent call last):
+            ...
+            ValueError: zip() argument 2 is longer than argument 1
+
+
+        Check that :issue:`42512` is fixed::
+
+            sage: bg = BipartiteGraph()
+            sage: bg.add_vertices(iter(range(5)), left=True)
+            sage: list(bg)
+            [0, 1, 2, 3, 4]
         """
         # sanity check on partition specifiers
         if left and right:  # also triggered if both lists are specified
             raise RuntimeError("only one partition may be specified")
         if not (left or right):
             raise RuntimeError("partition must be specified (e.g. left=True)")
+
+        vertices = list(vertices)
 
         # handle partitions
         if left and (not isinstance(left, Iterable)):
@@ -820,7 +864,7 @@ class BipartiteGraph(Graph):
                 left = [not tf for tf in right]
             new_left = set()
             new_right = set()
-            for tf, vv in zip(left, vertices):
+            for tf, vv in zip(left, vertices, strict=True):
                 if tf:
                     new_left.add(vv)
                 else:
@@ -846,11 +890,11 @@ class BipartiteGraph(Graph):
 
         INPUT:
 
-        - ``vertex`` -- a vertex to delete.
+        - ``vertex`` -- a vertex to delete
 
-        - ``in_order`` -- boolean (default ``False``); if ``True``, deletes the
+        - ``in_order`` -- boolean (default: ``False``); if ``True``, deletes the
           `i`-th vertex in the sorted list of vertices,
-          i.e. ``G.vertices(sort=True)[i]``.
+          i.e. ``G.vertices(sort=True)[i]``
 
         EXAMPLES::
 
@@ -935,7 +979,20 @@ class BipartiteGraph(Graph):
             Traceback (most recent call last):
             ...
             ValueError: vertex (0) not in the graph
+
+        TESTS:
+
+        Check that :issue:`39756` is fixed::
+
+            sage: B = BipartiteGraph([(0,2), (0,3), (1,2), (1,3)])
+            sage: B.left, B.right
+            ({0, 1}, {2, 3})
+            sage: B.delete_vertices(B.vertex_iterator())
+            sage: B.left, B.right
+            (set(), set())
         """
+        vertices = list(vertices)
+
         # remove vertices from the graph
         Graph.delete_vertices(self, vertices)
 
@@ -987,12 +1044,12 @@ class BipartiteGraph(Graph):
 
         INPUT:
 
-        - ``u`` -- the tail of an edge.
+        - ``u`` -- the tail of an edge
 
-        - ``v`` -- (default: ``None``); the head of an edge. If ``v=None``, then
-          attempt to understand ``u`` as a edge tuple.
+        - ``v`` -- (default: ``None``) the head of an edge. If ``v=None``, then
+          attempt to understand ``u`` as a edge tuple
 
-        - ``label`` -- (default: ``None``); the label of the edge ``(u, v)``.
+        - ``label`` -- (default: ``None``) the label of the edge ``(u, v)``
 
         The following forms are all accepted:
 
@@ -1003,7 +1060,7 @@ class BipartiteGraph(Graph):
         - ``G.add_edge((1, 2, 'label'))``
         - ``G.add_edges([(1, 2, 'label')])``
 
-        See :meth:`~sage.graphs.graph.Graph.add_edge` for more detail.
+        See :meth:`~sage.graphs.generic_graph.GenericGraph.add_edge` for more detail.
 
         This method simply checks that the edge endpoints are in different
         partitions. If a new vertex is to be created, it will be added to the
@@ -1045,9 +1102,8 @@ class BipartiteGraph(Graph):
                 except Exception:
                     u, v = u
                     label = None
-        else:
-            if v is None:
-                u, v = u
+        elif v is None:
+            u, v = u
 
         # if endpoints are in the same partition
         if self.left.issuperset((u, v)) or self.right.issuperset((u, v)):
@@ -1071,7 +1127,6 @@ class BipartiteGraph(Graph):
 
         # add the edge
         Graph.add_edge(self, u, v, label)
-        return
 
     def add_edges(self, edges, loops=True):
         """
@@ -1080,11 +1135,11 @@ class BipartiteGraph(Graph):
         INPUT:
 
         - ``edges`` -- an iterable of edges, given either as ``(u, v)``
-          or ``(u, v, label)``.
+          or ``(u, v, label)``
 
         - ``loops`` -- ignored
 
-        See :meth:`~sage.graphs.graph.Graph.add_edges` for more detail.
+        See :meth:`~sage.graphs.generic_graph.GenericGraph.add_edges` for more detail.
 
         This method simply checks that the edge endpoints are in different
         partitions. If a new vertex is to be created, it will be added to the
@@ -1190,7 +1245,7 @@ class BipartiteGraph(Graph):
         INPUT:
 
         - ``edges`` -- an iterable of edges, given either as ``(u, v)``
-          or ``(u, v, label)``.
+          or ``(u, v, label)``
 
         TESTS::
 
@@ -1254,7 +1309,7 @@ class BipartiteGraph(Graph):
 
     def allow_loops(self, new, check=True):
         """
-        Change whether loops are permitted in the (di)graph
+        Change whether loops are permitted in the (di)graph.
 
         .. NOTE::
 
@@ -1276,6 +1331,218 @@ class BipartiteGraph(Graph):
         """
         if new is True:
             raise ValueError("loops are not allowed in bipartite graphs")
+
+    def relabel(self, perm=None, inplace=True, return_map=False, check_input=True, complete_partial_function=True, immutable=None):
+        r"""
+        Relabel the vertices of ``self``.
+
+        INPUT:
+
+        - ``perm`` -- a function, dictionary, iterable, permutation, or
+          ``None`` (default: ``None``)
+
+        - ``inplace`` -- boolean (default: ``True``)
+
+        - ``return_map`` -- boolean (default: ``False``)
+
+        - ``check_input`` -- boolean; whether to test input for
+          correctness. *This can potentially be very time-consuming !*
+
+        - ``complete_partial_function`` -- boolean; whether to automatically
+          complete the permutation if some elements of the graph are not
+          associated with any new name. In this case, those elements are not
+          relabeled *This can potentially be very time-consuming !*.
+
+        - ``immutable`` -- boolean; with ``inplace=False``, whether to create
+          a mutable/immutable relabelled copy. ``immutable=None`` (default)
+          means that the graph and its copy will behave the same way.
+
+        If ``perm`` is a function ``f``, then each vertex ``v`` is
+        relabeled to ``f(v)``.
+
+        If ``perm`` is a dictionary ``d``, then each vertex ``v`` (which should
+        be a key of ``d``) is relabeled to ``d[v]``.
+
+        If ``perm`` is a list (or more generally, any iterable) of
+        length ``n``, then the first vertex returned by
+        ``G.vertices(sort=True)``
+        is relabeled to ``l[0]``, the second to ``l[1]``, ...
+
+        If ``perm`` is a permutation, then each vertex ``v`` is
+        relabeled to ``perm(v)``.
+
+        If ``perm`` is ``None``, the graph is relabeled to be on the
+        vertices `\{0,1,...,n-1\}`. This is *not* any kind of canonical
+        labeling, but it is consistent (relabeling twice will give the
+        same result).
+
+        If ``inplace`` is ``True``, the graph is modified in place and
+        ``None`` is returned. Otherwise a relabeled copy of the graph
+        is returned.
+
+        If ``return_map`` is ``True`` a dictionary representing the
+        relabelling map is returned (incompatible with ``inplace==False``).
+
+        EXAMPLES::
+
+            sage: G = BipartiteGraph(graphs.PathGraph(3))
+            sage: G.am()                                                                # needs sage.modules
+            [0 1 0]
+            [1 0 1]
+            [0 1 0]
+
+        Relabeling using a dictionary. Note that the dictionary does not define
+        the new label of vertex `0`::
+
+            sage: G.relabel({1:2,2:1}, inplace=False).am()                              # needs sage.modules
+            [0 0 1]
+            [0 0 1]
+            [1 1 0]
+
+        This is because the method automatically "extends" the relabeling to the
+        missing vertices (whose label will not change). Checking that all
+        vertices have an image can require some time, and this feature can be
+        disabled (at your own risk)::
+
+            sage: G.relabel({1:2,2:1}, inplace=False,                                   # needs sage.modules
+            ....:           complete_partial_function=False).am()
+            Traceback (most recent call last):
+            ...
+            KeyError: 0
+
+        Relabeling using a list::
+
+            sage: G.relabel([0,2,1], inplace=False).am()                                # needs sage.modules
+            [0 0 1]
+            [0 0 1]
+            [1 1 0]
+
+        Relabeling using an iterable::
+
+            sage: G.relabel(iter((0,2,1)), inplace=False).am()                          # needs sage.modules
+            [0 0 1]
+            [0 0 1]
+            [1 1 0]
+
+        Relabeling using a Sage permutation::
+
+            sage: G = BipartiteGraph(graphs.PathGraph(3))
+            sage: from sage.groups.perm_gps.permgroup_named import SymmetricGroup       # needs sage.groups
+            sage: S = SymmetricGroup(3)                                                 # needs sage.groups
+            sage: gamma = S('(1,2)')                                                    # needs sage.groups
+            sage: G.relabel(gamma, inplace=False).am()                                  # needs sage.groups sage.modules
+            [0 0 1]
+            [0 0 1]
+            [1 1 0]
+
+            sage: C4 = BipartiteGraph(graphs.CycleGraph(4))
+            sage: C4.relabel({u: str(u) for u in C4}, inplace=True)
+            sage: ar = C4.automorphism_group().random_element()
+            sage: R = C4.relabel(ar, inplace=False)
+            sage: perm = C4.is_isomorphic(R, certificate=True)[1]
+            sage: perm == {u: ar(u) for u in C4}
+            True
+
+        Relabeling using an injective function::
+
+            sage: G.edges(sort=True)
+            [(0, 1, None), (1, 2, None)]
+            sage: H = G.relabel(lambda i: i+10, inplace=False)
+            sage: H.vertices(sort=True)
+            [10, 11, 12]
+            sage: H.edges(sort=True)
+            [(10, 11, None), (11, 12, None)]
+
+        Relabeling using a non injective function has no meaning::
+
+            sage: G.edges(sort=True)
+            [(0, 1, None), (1, 2, None)]
+            sage: G.relabel(lambda i: 0, inplace=False)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Non injective relabeling
+
+        But this test can be disabled, which can lead to ... problems::
+
+            sage: G.edges(sort=True)
+            [(0, 1, None), (1, 2, None)]
+            sage: G.relabel(lambda i: 0, check_input = False)
+            sage: G.edges(sort=True)
+            []
+
+        Recovering the relabeling with ``return_map``::
+
+            sage: G = BipartiteGraph(graphs.CubeGraph(3))
+            sage: G.relabel(range(8), return_map=True)
+            {'000': 0,
+             '001': 1,
+             '010': 2,
+             '011': 3,
+             '100': 4,
+             '101': 5,
+             '110': 6,
+             '111': 7}
+
+        When no permutation is given, the relabeling is done to integers
+        from 0 to N-1 but in an arbitrary order::
+
+            sage: G = BipartiteGraph(graphs.CubeGraph(3))
+            sage: G.vertices(sort=True)
+            ['000', '001', '010', '011', '100', '101', '110', '111']
+            sage: G.relabel()
+            sage: G.vertices(sort=True)
+            [0, 1, 2, 3, 4, 5, 6, 7]
+
+        In the above case, the mapping is arbitrary but consistent::
+
+            sage: map1 = G.relabel(inplace=False, return_map=True)
+            sage: map2 = G.relabel(inplace=False, return_map=True)
+            sage: map1 == map2
+            True
+
+        ::
+
+            sage: G = BipartiteGraph(graphs.PathGraph(3))
+            sage: G.relabel(lambda i: i+10, return_map=True)
+            {0: 10, 1: 11, 2: 12}
+
+        TESTS::
+
+            sage: G = BipartiteGraph({1: [2,3]}, partition=({1}, {2, 3}))
+            sage: H, perm = G.relabel({1: 'a'}, inplace=False, return_map=True)
+            sage: perm
+            {1: 'a', 2: 2, 3: 3}
+
+        Ensure that the underlying bipartition is updated (:issue:`42509`)::
+
+            sage: H.bipartition()
+            ({'a'}, {2, 3})
+            sage: G.relabel({3: 'z'})
+            sage: G.bipartition()
+            ({1}, {2, 'z'})
+
+        """
+        x = GenericGraph.relabel(
+            self,
+            perm=perm,
+            inplace=inplace,
+            return_map=True,
+            check_input=check_input,
+            complete_partial_function=complete_partial_function,
+            immutable=immutable,
+        )
+
+        G, perm = (self, x) if inplace else x
+        G.left = {perm[v] for v in G.left}
+        G.right = {perm[v] for v in G.right}
+
+        if inplace and return_map:
+            return perm
+        if inplace:
+            return
+        if return_map:
+            return G, perm
+        return G
 
     def is_bipartite(self, certificate=False):
         r"""
@@ -1415,9 +1682,15 @@ class BipartiteGraph(Graph):
         """
         return (self.left, self.right)
 
-    def project_left(self):
+    def project_left(self, immutable=None):
         r"""
         Project ``self`` onto left vertices. Edges are 2-paths in the original.
+
+        INPUT:
+
+        - ``immutable`` -- boolean (default: ``None``); whether to create a
+          mutable/immutable graph. ``immutable=None`` (default) means that the
+          bipartite graph and its projection will behave the same way.
 
         EXAMPLES::
 
@@ -1425,17 +1698,41 @@ class BipartiteGraph(Graph):
             sage: G = B.project_left()
             sage: G.order(), G.size()
             (10, 10)
-        """
-        G = Graph()
-        G.add_vertices(self.left)
-        for v in G:
-            for u in self.neighbor_iterator(v):
-                G.add_edges(((v, w) for w in self.neighbor_iterator(u)), loops=False)
-        return G
 
-    def project_right(self):
+        TESTS:
+
+        Check the behavior of parameter ``immutable``::
+
+            sage: B = BipartiteGraph(graphs.CycleGraph(4))
+            sage: B.project_left().is_immutable()
+            False
+            sage: B.project_left(immutable=True).is_immutable()
+            True
+            sage: B = BipartiteGraph(graphs.CycleGraph(4), immutable=True)
+            sage: B.project_left().is_immutable()
+            True
+            sage: B.project_left(immutable=False).is_immutable()
+            False
+        """
+        if immutable is None:
+            immutable = self.is_immutable()
+        edges = ((v, w)
+                 for v in self.left
+                 for u in self.neighbor_iterator(v)
+                 for w in self.neighbor_iterator(u)
+                 if v != w)
+        return Graph([self.left, edges], format="vertices_and_edges",
+                     immutable=immutable)
+
+    def project_right(self, immutable=None):
         r"""
         Project ``self`` onto right vertices. Edges are 2-paths in the original.
+
+        INPUT:
+
+        - ``immutable`` -- boolean (default: ``None``); whether to create a
+          mutable/immutable graph. ``immutable=None`` (default) means that the
+          bipartite graph and its projection will behave the same way.
 
         EXAMPLES::
 
@@ -1453,13 +1750,29 @@ class BipartiteGraph(Graph):
             [0, 2, 4]
             sage: B.project_right().vertices(sort=True)
             [1, 3, 5]
+
+        Check the behavior of parameter ``immutable``::
+
+            sage: B = BipartiteGraph(graphs.CycleGraph(4))
+            sage: B.project_right().is_immutable()
+            False
+            sage: B.project_right(immutable=True).is_immutable()
+            True
+            sage: B = BipartiteGraph(graphs.CycleGraph(4), immutable=True)
+            sage: B.project_right().is_immutable()
+            True
+            sage: B.project_right(immutable=False).is_immutable()
+            False
         """
-        G = Graph()
-        G.add_vertices(self.right)
-        for v in G:
-            for u in self.neighbor_iterator(v):
-                G.add_edges(((v, w) for w in self.neighbor_iterator(u)), loops=False)
-        return G
+        if immutable is None:
+            immutable = self.is_immutable()
+        edges = ((v, w)
+                 for v in self.right
+                 for u in self.neighbor_iterator(v)
+                 for w in self.neighbor_iterator(u)
+                 if v != w)
+        return Graph([self.right, edges], format="vertices_and_edges",
+                     immutable=immutable)
 
     def plot(self, *args, **kwds):
         r"""
@@ -1485,7 +1798,7 @@ class BipartiteGraph(Graph):
             kwds["pos"] = pos
         return Graph.plot(self, *args, **kwds)
 
-    def matching_polynomial(self, algorithm="Godsil", name=None):
+    def matching_polynomial(self, algorithm='Godsil', name=None):
         r"""
         Compute the matching polynomial.
 
@@ -1498,7 +1811,7 @@ class BipartiteGraph(Graph):
 
         INPUT:
 
-        - ``algorithm`` -- string (default: ``"Godsil"``); either "Godsil" or
+        - ``algorithm`` -- string (default: ``'Godsil'``); either "Godsil" or
           "rook"; "rook" is usually faster for larger graphs
 
         - ``name`` -- string (default: ``None``); name of the variable in the
@@ -1535,16 +1848,15 @@ class BipartiteGraph(Graph):
 
         TESTS::
 
-            sage: # needs sage.modules
             sage: g = BipartiteGraph(matrix.ones(4, 3))
             sage: g.matching_polynomial()                                               # needs sage.libs.flint
             x^7 - 12*x^5 + 36*x^3 - 24*x
-            sage: g.matching_polynomial(algorithm="rook")
+            sage: g.matching_polynomial(algorithm='rook')
             x^7 - 12*x^5 + 36*x^3 - 24*x
         """
         if algorithm == "Godsil":
             return Graph.matching_polynomial(self, complement=False, name=name)
-        elif algorithm == "rook":
+        if algorithm == "rook":
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             A = self.reduced_adjacency_matrix()
             a = A.rook_vector()
@@ -1712,10 +2024,17 @@ class BipartiteGraph(Graph):
         for m in rec(G):
             yield from itertools.product(*[edges[frozenset(e)] for e in m])
 
-    def load_afile(self, fname):
+    def load_afile(self, fname, immutable=False):
         r"""
         Load into the current object the bipartite graph specified in the given
         file name.
+
+        INPUT:
+
+        - ``fname`` -- string; file name in alist format
+
+        - ``immutable`` -- boolean (default: ``False``); whether to load
+          the graph with an immutable backend
 
         This file should follow David MacKay's alist format, see
         http://www.inference.phy.cam.ac.uk/mackay/codes/data.html for examples
@@ -1724,13 +2043,13 @@ class BipartiteGraph(Graph):
         EXAMPLES::
 
             sage: import tempfile
-            sage: with tempfile.NamedTemporaryFile(mode="w+t") as f:
+            sage: with tempfile.NamedTemporaryFile(mode='w+t', delete_on_close=False) as f:
             ....:     _ = f.write("7 4 \n 3 4 \n 3 3 1 3 1 1 1 \n\
             ....:                 3 3 3 4 \n 1 2 4 \n 1 3 4 \n\
             ....:                 1 0 0 \n 2 3 4 \n 2 0 0 \n 3 0 0 \n\
             ....:                 4 0 0 \n 1 2 3 0 \n 1 4 5 0 \n\
             ....:                 2 4 6 0 \n 1 2 4 7 \n")
-            ....:     f.flush()
+            ....:     f.close()
             ....:     B = BipartiteGraph()
             ....:     B2 = BipartiteGraph(f.name)
             ....:     B.load_afile(f.name)
@@ -1752,46 +2071,61 @@ class BipartiteGraph(Graph):
              sage: B2 == B
              True
         """
+        from types import MethodType
+
         # open the file
         try:
-            fi = open(fname, "r")
+            fi = open(fname)
         except OSError:
             print("unable to open file <<" + fname + ">>")
             return None
 
-        # read header information
-        num_cols, num_rows = (int(_) for _ in fi.readline().split())
-        # next are max_col_degree, max_row_degree, not used
-        _ = [int(_) for _ in fi.readline().split()]
-        col_degrees = [int(_) for _ in fi.readline().split()]
-        row_degrees = [int(_) for _ in fi.readline().split()]
+        with fi:
+            # read header information
+            num_cols, num_rows = (int(_) for _ in fi.readline().split())
+            # next are max_col_degree, max_row_degree, not used
+            _ = [int(_) for _ in fi.readline().split()]
+            col_degrees = [int(_) for _ in fi.readline().split()]
+            row_degrees = [int(_) for _ in fi.readline().split()]
 
-        # sanity checks on header info
-        if len(col_degrees) != num_cols:
-            print("invalid Alist format: ")
-            print("number of column degree entries does not match number of columns")
-            return None
-        if len(row_degrees) != num_rows:
-            print("invalid Alist format: ")
-            print("number of row degree entries does not match number of rows")
-            return None
+            # sanity checks on header info
+            if len(col_degrees) != num_cols:
+                print("invalid Alist format: ")
+                print("number of column degree entries does not match number of columns")
+                return None
+            if len(row_degrees) != num_rows:
+                print("invalid Alist format: ")
+                print("number of row degree entries does not match number of rows")
+                return None
 
-        # clear out self
-        self.clear()
-        self.add_vertices(range(num_cols), left=True)
-        self.add_vertices(range(num_cols, num_cols + num_rows), right=True)
+            def edges():
+                # A-list uses 1-based indices with 0s as place-holders.
+                for cidx in range(num_cols):
+                    for ridx in map(int, fi.readline().split()):
+                        if ridx > 0:
+                            yield (cidx, num_cols + ridx - 1)
 
-        # read adjacency information
-        for cidx in range(num_cols):
-            for ridx in map(int, fi.readline().split()):
-                # A-list uses 1-based indices with 0's as place-holders
-                if ridx > 0:
-                    self.add_edge(cidx, num_cols + ridx - 1)
+            saved_methods = {}
+            graph_methods = (("add_vertex", Graph.add_vertex),
+                             ("add_vertices", Graph.add_vertices),
+                             ("add_edge", Graph.add_edge),
+                             ("add_edges", Graph.add_edges))
+            for name, method in graph_methods:
+                if name in self.__dict__:
+                    saved_methods[name] = self.__dict__[name]
+                setattr(self, name, MethodType(method, self))
 
-        # NOTE:: we could read in the row adjacency information as well to
-        #        double-check....
-        # NOTE:: we could check the actual node degrees against the reported
-        #        node degrees....
+            try:
+                Graph.__init__(self, [range(num_cols + num_rows), edges()],
+                               format='vertices_and_edges',
+                               loops=False, multiedges=False,
+                               immutable=immutable)
+            finally:
+                for name, _ in graph_methods:
+                    if name in saved_methods:
+                        setattr(self, name, saved_methods[name])
+                    else:
+                        delattr(self, name)
 
         # now we have all the edges in our graph, just fill in the
         # bipartite partitioning
@@ -1811,7 +2145,6 @@ class BipartiteGraph(Graph):
 
         EXAMPLES::
 
-            sage: # needs sage.modules
             sage: M = Matrix([(1,1,1,0,0,0,0), (1,0,0,1,1,0,0),
             ....:             (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
             sage: M
@@ -1821,7 +2154,7 @@ class BipartiteGraph(Graph):
             [1 1 0 1 0 0 1]
             sage: b = BipartiteGraph(M)
             sage: import tempfile
-            sage: with tempfile.NamedTemporaryFile() as f:
+            sage: with tempfile.NamedTemporaryFile(delete_on_close=False) as f:
             ....:     b.save_afile(f.name)
             ....:     b2 = BipartiteGraph(f.name)
             sage: b.is_isomorphic(b2)
@@ -1830,27 +2163,27 @@ class BipartiteGraph(Graph):
         TESTS::
 
             sage: import tempfile
-            sage: f = tempfile.NamedTemporaryFile()
-            sage: for order in range(3, 13, 3):                                         # needs sage.combinat
-            ....:     num_chks = int(order / 3)
-            ....:     num_vars = order - num_chks
-            ....:     partition = (list(range(num_vars)), list(range(num_vars, num_vars+num_chks)))
-            ....:     for idx in range(100):
-            ....:         g = graphs.RandomGNP(order, 0.5)
-            ....:         try:
-            ....:             b = BipartiteGraph(g, partition, check=False)
-            ....:             b.save_afile(f.name)
-            ....:             b2 = BipartiteGraph(f.name)
-            ....:             if not b.is_isomorphic(b2):
-            ....:                 print("Load/save failed for code with edges:")
-            ....:                 print(b.edges(sort=True))
-            ....:                 break
-            ....:         except Exception:
-            ....:             print("Exception encountered for graph of order "+ str(order))
-            ....:             print("with edges: ")
-            ....:             g.edges(sort=True)
-            ....:             raise
-            sage: f.close()  # this removes the file
+            sage: with tempfile.NamedTemporaryFile(delete_on_close=False) as f:
+            ....:     for order in range(3, 13, 3):
+            ....:         num_chks = int(order / 3)
+            ....:         num_vars = order - num_chks
+            ....:         partition = (list(range(num_vars)), list(range(num_vars, num_vars+num_chks)))
+            ....:         for idx in range(100):
+            ....:             g = graphs.RandomGNP(order, 0.5)
+            ....:             try:
+            ....:                 b = BipartiteGraph(g, partition, check=False)
+            ....:                 b.save_afile(f.name)
+            ....:                 b2 = BipartiteGraph(f.name)
+            ....:                 if not b.is_isomorphic(b2):
+            ....:                     print("Load/save failed for code with edges:")
+            ....:                     print(b.edges(sort=True))
+            ....:                     break
+            ....:             except Exception:
+            ....:                 print("Exception encountered for graph of order "+ str(order))
+            ....:                 print("with edges: ")
+            ....:                 g.edges(sort=True)
+            ....:                 raise
+
         """
         # open the file
         try:
@@ -1929,7 +2262,6 @@ class BipartiteGraph(Graph):
         Bipartite graphs that are not weighted will return a matrix over ZZ,
         unless a base ring is specified::
 
-            sage: # needs sage.modules
             sage: M = Matrix([(1,1,1,0,0,0,0), (1,0,0,1,1,0,0),
             ....:             (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
             sage: B = BipartiteGraph(M)
@@ -1953,7 +2285,6 @@ class BipartiteGraph(Graph):
         Multi-edge graphs also return a matrix over ZZ,
         unless a base ring is specified::
 
-            sage: # needs sage.modules
             sage: M = Matrix([(1,1,2,0,0), (0,2,1,1,1), (0,1,2,1,1)])
             sage: B = BipartiteGraph(M, multiedges=True, sparse=True)
             sage: N = B.reduced_adjacency_matrix()
@@ -1968,7 +2299,6 @@ class BipartiteGraph(Graph):
         Weighted graphs will return a matrix over the ring given by their
         (first) weights, unless a base ring is specified::
 
-            sage: # needs sage.modules sage.rings.finite_rings
             sage: F.<a> = GF(4)
             sage: MS = MatrixSpace(F, 2, 3)
             sage: M = MS.matrix([[0, 1, a+1], [a, 1, 1]])
@@ -1998,7 +2328,6 @@ class BipartiteGraph(Graph):
         An error is raised if the specified base ring is not compatible with the
         type of the weights of the bipartite graph::
 
-            sage: # needs sage.modules sage.rings.finite_rings
             sage: F.<a> = GF(4)
             sage: MS = MatrixSpace(F, 2, 3)
             sage: M = MS.matrix([[0, 1, a+1], [a, 1, 1]])
@@ -2061,29 +2390,29 @@ class BipartiteGraph(Graph):
         - ``value_only`` -- boolean (default: ``False``); when set to ``True``,
           only the cardinal (or the weight) of the matching is returned
 
-        - ``algorithm`` -- string (default: ``"Hopcroft-Karp"`` if
-          ``use_edge_labels==False``, otherwise ``"Edmonds"``); algorithm to use
+        - ``algorithm`` -- string (default: ``'Hopcroft-Karp'`` if
+          ``use_edge_labels==False``, otherwise ``'Edmonds'``); algorithm to use
           among:
 
-          - ``"Hopcroft-Karp"`` selects the default bipartite graph algorithm as
+          - ``'Hopcroft-Karp'`` selects the default bipartite graph algorithm as
             implemented in NetworkX
 
-          - ``"Eppstein"`` selects Eppstein's algorithm as implemented in
+          - ``'Eppstein'`` selects Eppstein's algorithm as implemented in
             NetworkX
 
-          - ``"Edmonds"`` selects Edmonds' algorithm as implemented in NetworkX
+          - ``'Edmonds'`` selects Edmonds' algorithm as implemented in NetworkX
 
-          - ``"LP"`` uses a Linear Program formulation of the matching problem
+          - ``'LP'`` uses a Linear Program formulation of the matching problem
 
         - ``use_edge_labels`` -- boolean (default: ``False``)
 
           - when set to ``True``, computes a weighted matching where each edge
             is weighted by its label (if an edge has no label, `1` is assumed);
-            only if ``algorithm`` is ``"Edmonds"``, ``"LP"``
+            only if ``algorithm`` is ``'Edmonds'``, ``'LP'``
 
           - when set to ``False``, each edge has weight `1`
 
-        - ``solver`` -- string (default: ``None``); specify a Mixed
+        - ``solver`` -- string (default: ``None``); specifies a Mixed
           Integer Linear Programming (MILP) solver to be used. If set
           to ``None``, the default one is used. For more information
           on MILP solvers and which default solver is used, see the
@@ -2092,7 +2421,7 @@ class BipartiteGraph(Graph):
           class :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` -- integer (default: ``0``); sets the level of
+        - ``verbose`` -- integer (default: 0); sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
         - ``integrality_tolerance`` -- float; parameter for use with
@@ -2116,7 +2445,7 @@ class BipartiteGraph(Graph):
         Eppstein::
 
             sage: G = BipartiteGraph(graphs.CompleteBipartiteGraph(4,5))
-            sage: G.matching(algorithm="Eppstein", value_only=True)                     # needs networkx
+            sage: G.matching(algorithm='Eppstein', value_only=True)                     # needs networkx
             4
 
         TESTS:
@@ -2125,7 +2454,7 @@ class BipartiteGraph(Graph):
         exception is raised::
 
             sage: G = BipartiteGraph(graphs.CompleteBipartiteGraph(4,5))
-            sage: G.matching(algorithm="somethingdifferent")
+            sage: G.matching(algorithm='somethingdifferent')
             Traceback (most recent call last):
             ...
             ValueError: algorithm must be "Hopcroft-Karp", "Eppstein", "Edmonds" or "LP"
@@ -2216,7 +2545,7 @@ class BipartiteGraph(Graph):
                 return Integer(len(d))
             return d
 
-        elif algorithm == "Edmonds" or algorithm == "LP":
+        if algorithm == "Edmonds" or algorithm == "LP":
             return Graph.matching(self, value_only=value_only,
                                   algorithm=algorithm,
                                   use_edge_labels=use_edge_labels,
@@ -2225,11 +2554,11 @@ class BipartiteGraph(Graph):
         raise ValueError('algorithm must be "Hopcroft-Karp", '
                          '"Eppstein", "Edmonds" or "LP"')
 
-    def vertex_cover(self, algorithm="Konig", value_only=False,
+    def vertex_cover(self, algorithm='Konig', value_only=False,
                      reduction_rules=True, solver=None, verbose=0,
                      *, integrality_tolerance=1e-3):
         r"""
-        Return a minimum vertex cover of self represented by a set of vertices.
+        Return a minimum vertex cover of ``self`` represented by a set of vertices.
 
         A minimum vertex cover of a graph is a set `S` of vertices such that
         each edge is incident to at least one element of `S`, and such that `S`
@@ -2249,19 +2578,19 @@ class BipartiteGraph(Graph):
 
         INPUT:
 
-        - ``algorithm`` -- string (default: ``"Konig"``); algorithm to use
+        - ``algorithm`` -- string (default: ``'Konig'``); algorithm to use
           among:
 
-          - ``"Konig"`` will compute a minimum vertex cover using Konig's
+          - ``'Konig'`` will compute a minimum vertex cover using Konig's
             algorithm (:wikipedia:`Kőnig%27s_theorem_(graph_theory)`)
 
-          - ``"Cliquer"`` will compute a minimum vertex cover
+          - ``'Cliquer'`` will compute a minimum vertex cover
             using the Cliquer package
 
-          - ``"MILP"`` will compute a minimum vertex cover through a mixed
+          - ``'MILP'`` will compute a minimum vertex cover through a mixed
             integer linear program
 
-          - ``"mcqd"`` will use the MCQD solver
+          - ``'mcqd'`` will use the MCQD solver
             (`<http://www.sicmm.org/~konc/maxclique/>`_), and the MCQD
             package must be installed
 
@@ -2269,13 +2598,13 @@ class BipartiteGraph(Graph):
           only the size of a minimum vertex cover is returned. Otherwise,
           a minimum vertex cover is returned as a list of vertices.
 
-        - ``reduction_rules`` -- (default: ``True``); specify if the reductions
+        - ``reduction_rules`` -- (default: ``True``) specify if the reductions
           rules from kernelization must be applied as pre-processing or not.
           See [ACFLSS04]_ for more details. Note that depending on the instance,
           it might be faster to disable reduction rules.  This parameter is
           currently ignored when ``algorithm == "Konig"``.
 
-        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+        - ``solver`` -- string (default: ``None``); specifies a Mixed Integer
           Linear Programming (MILP) solver to be used. If set to ``None``, the
           default one is used. For more information on MILP solvers and which
           default solver is used, see the method :meth:`solve
@@ -2283,7 +2612,7 @@ class BipartiteGraph(Graph):
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` -- integer (default: ``0``); sets the level of
+        - ``verbose`` -- integer (default: 0); sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
         - ``integrality_tolerance`` -- float; parameter for use with MILP
@@ -2304,8 +2633,8 @@ class BipartiteGraph(Graph):
 
            sage: # needs networkx numpy
            sage: g = BipartiteGraph(graphs.RandomBipartite(10, 10, .5))
-           sage: vc1 = g.vertex_cover(algorithm="Konig")
-           sage: vc2 = g.vertex_cover(algorithm="Cliquer")
+           sage: vc1 = g.vertex_cover(algorithm='Konig')
+           sage: vc2 = g.vertex_cover(algorithm='Cliquer')
            sage: len(vc1) == len(vc2)
            True
 
@@ -2315,6 +2644,8 @@ class BipartiteGraph(Graph):
 
             sage: B = BipartiteGraph(graphs.CycleGraph(4) * 2)
             sage: len(B.vertex_cover())                                                 # needs networkx
+            4
+            sage: B.vertex_cover(value_only=True)                                       # needs networkx
             4
 
         Empty bipartite graph and bipartite graphs without edges::
@@ -2341,16 +2672,16 @@ class BipartiteGraph(Graph):
                                       verbose=verbose,
                                       integrality_tolerance=integrality_tolerance)
 
+        if value_only:
+            return len(self.matching())
         if not self.is_connected():
             VC = []
             for b in self.connected_components_subgraphs():
                 if b.size():
-                    VC.extend(b.vertex_cover(algorithm="Konig"))
-            if value_only:
-                return sum(VC)
+                    VC.extend(b.vertex_cover(algorithm='Konig'))
             return VC
 
-        M = Graph(self.matching())
+        M = Graph(self.matching(), format='list_of_edges')
         left = set(self.left)
         right = set(self.right)
 
@@ -2379,11 +2710,7 @@ class BipartiteGraph(Graph):
             Z.update(X)
 
         # The solution is (left \ Z) + (right \cap Z)
-        VC = list((left.difference(Z)).union(right.intersection(Z)))
-
-        if value_only:
-            return len(VC)
-        return VC
+        return list((left.difference(Z)).union(right.intersection(Z)))
 
     def _subgraph_by_adding(self, vertices=None, edges=None, edge_property=None, immutable=None):
         r"""
@@ -2397,14 +2724,14 @@ class BipartiteGraph(Graph):
 
         - ``vertices`` -- list (default: ``None``); list of vertices
 
-        - ``edges`` -- (default: ``None``); either a single edge or an iterable
+        - ``edges`` -- (default: ``None``) either a single edge or an iterable
           container of edges (e.g., a list, set, file, numeric array, etc.). If
           no edges are specified, then all edges are assumed and the returned
           graph is an induced subgraph. In the case of multiple edges,
           specifying an edge as `(u, v)` means to keep all edges `(u, v)`,
           regardless of the label.
 
-        - ``edge_property`` -- (default: ``None``); if specified, this is
+        - ``edge_property`` -- (default: ``None``) if specified, this is
           expected to be a function on edges, which is intersected with the
           edges specified, if any are
 
@@ -2457,12 +2784,8 @@ class BipartiteGraph(Graph):
 
         B.add_edges(edges_to_keep)
 
-        attributes_to_update = ('_pos', '_assoc')
-        for attr in attributes_to_update:
-            if hasattr(self, attr) and getattr(self, attr) is not None:
-                d = getattr(self, attr)
-                value = {v: d.get(v, None) for v in B}
-                setattr(B, attr, value)
+        B._copy_attribute_from(self, '_pos')
+        B._copy_attribute_from(self, '_assoc')
 
         return B
 
@@ -2478,7 +2801,7 @@ class BipartiteGraph(Graph):
 
         - ``vertices`` -- list (default: ``None``); list of vertices
 
-        - ``edges`` -- (default: ``None``); either a single edge or an iterable
+        - ``edges`` -- (default: ``None``) either a single edge or an iterable
           container of edges (e.g., a list, set, file, numeric array, etc.). If
           no edges are specified, then all edges are assumed and the returned
           graph is an induced subgraph. In the case of multiple edges,
@@ -2489,7 +2812,7 @@ class BipartiteGraph(Graph):
           current graph is modified in place by deleting the extra vertices and
           edges. Otherwise a modified copy of the graph is returned
 
-        - ``edge_property`` -- (default: ``None``); if specified, this is
+        - ``edge_property`` -- (default: ``None``) if specified, this is
           expected to be a function on edges, which is intersected with the
           edges specified, if any are
 
@@ -2521,12 +2844,8 @@ class BipartiteGraph(Graph):
         else:
             # We make a copy of the graph
             B = BipartiteGraph(data=self.edges(sort=True), partition=[self.left, self.right])
-            attributes_to_update = ('_pos', '_assoc')
-            for attr in attributes_to_update:
-                if hasattr(self, attr) and getattr(self, attr) is not None:
-                    d = getattr(self, attr)
-                    value = {v: d.get(v, None) for v in B}
-                    setattr(B, attr, value)
+            B._copy_attribute_from(self, '_pos')
+            B._copy_attribute_from(self, '_assoc')
         B.name("Subgraph of ({})".format(self.name()))
 
         vertices = set(vertices)
@@ -2551,7 +2870,8 @@ class BipartiteGraph(Graph):
         return B
 
     def canonical_label(self, partition=None, certificate=False,
-                        edge_labels=False, algorithm=None, return_graph=True):
+                        edge_labels=False, algorithm=None, return_graph=True,
+                        immutable=None):
         r"""
         Return the canonical graph.
 
@@ -2567,15 +2887,15 @@ class BipartiteGraph(Graph):
           to this set partition will be computed. The default is the unit
           set partition.
 
-        - ``certificate`` -- boolean (default: ``False``). When set to
+        - ``certificate`` -- boolean (default: ``False``); when set to
           ``True``, a dictionary mapping from the vertices of the (di)graph
-          to its canonical label will also be returned.
+          to its canonical label will also be returned
 
-        - ``edge_labels`` -- boolean (default: ``False``). When set to
-          ``True``, allows only permutations respecting edge labels.
+        - ``edge_labels`` -- boolean (default: ``False``); when set to
+          ``True``, allows only permutations respecting edge labels
 
-        - ``algorithm`` -- a string (default: ``None``). The algorithm to use;
-          currently available:
+        - ``algorithm`` -- string (default: ``None``); the algorithm to use.
+          Currently available:
 
           * ``'bliss'``: use the optional package bliss
             (http://www.tcs.tkk.fi/Software/bliss/index.html);
@@ -2587,10 +2907,14 @@ class BipartiteGraph(Graph):
                 Make sure you always compare canonical forms obtained by the
                 same algorithm.
 
-        - ``return_graph`` -- boolean (default: ``True``). When set to
+        - ``return_graph`` -- boolean (default: ``True``); when set to
           ``False``, returns the list of edges of the canonical graph
-          instead of the canonical graph; only available when ``'bliss'``
+          instead of the canonical graph. Only available when ``'bliss'``
           is explicitly set as algorithm.
+
+        - ``immutable`` -- boolean (default: ``None``); whether to create a
+          mutable/immutable (di)graph. ``immutable=None`` (default) means that
+          the (di)graph and its canonical (di)graph will behave the same way.
 
         EXAMPLES::
 
@@ -2634,24 +2958,55 @@ class BipartiteGraph(Graph):
             sage: C.right
             {4, 5, 6}
 
+        TESTS:
+
+        Check that :issue:`38832` is fixed::
+
+            sage: B = BipartiteGraph(matrix([[1, 1], [1, 1]]))
+            sage: B.canonical_label()
+            Bipartite graph on 4 vertices
+            sage: B.canonical_label(certificate=True)[0]
+            Bipartite graph on 4 vertices
+            sage: B.canonical_label(edge_labels=True)
+            Bipartite graph on 4 vertices
+            sage: B.allow_multiple_edges(True)
+            sage: B.add_edges(B.edges())
+            sage: B.canonical_label()
+            Bipartite multi-graph on 4 vertices
+
+        Check the behavior for immutable graphs::
+
+            sage: G = BipartiteGraph(graphs.CycleGraph(4))
+            sage: G.canonical_label().is_immutable()
+            False
+            sage: G.canonical_label(immutable=True).is_immutable()
+            True
+            sage: G = BipartiteGraph(graphs.CycleGraph(4), immutable=True)
+            sage: G.canonical_label().is_immutable()
+            True
+            sage: G.canonical_label(immutable=False).is_immutable()
+            False
+
         .. SEEALSO::
 
             :meth:`~sage.graphs.generic_graph.GenericGraph.canonical_label()`
-
         """
-
         if certificate:
             C, cert = GenericGraph.canonical_label(self, partition=partition,
                                                    certificate=certificate,
                                                    edge_labels=edge_labels,
                                                    algorithm=algorithm,
-                                                   return_graph=return_graph)
+                                                   return_graph=return_graph,
+                                                   immutable=immutable)
 
         else:
-            from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
-            from sage.graphs.graph import Graph
-            from sage.graphs.generic_graph import graph_isom_equivalent_non_edge_labeled_graph
             from itertools import chain
+
+            from sage.graphs.generic_graph import (
+                graph_isom_equivalent_non_edge_labeled_graph,
+            )
+            from sage.graphs.graph import Graph
+            from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
 
             cert = {}
 
@@ -2671,6 +3026,8 @@ class BipartiteGraph(Graph):
                 cert = {v: c[G_to[relabeling[v]]] for v in self}
 
             else:
+                if partition is None:
+                    partition = self.bipartition()
                 G_vertices = list(chain(*partition))
                 G_to = {u: i for i, u in enumerate(G_vertices)}
                 H = Graph(len(G_vertices))
@@ -2682,7 +3039,9 @@ class BipartiteGraph(Graph):
                 a, b, c = search_tree(GC, partition, certificate=True, dig=False)
                 cert = {v: c[G_to[v]] for v in G_to}
 
-            C = self.relabel(perm=cert, inplace=False)
+            if immutable is None:
+                immutable = self.is_immutable()
+            C = self.relabel(perm=cert, inplace=False, immutable=immutable)
 
         C.left = {cert[v] for v in self.left}
         C.right = {cert[v] for v in self.right}

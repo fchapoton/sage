@@ -108,9 +108,11 @@ from cysignals.memory cimport check_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_str, sig_off
 
 cimport sage.matrix.matrix_dense as matrix_dense
-from sage.matrix.args cimport SparseEntry, MatrixArgs_init
+from sage.matrix.args cimport SparseEntry, MatrixArgs_init, MA_ENTRIES_NDARRAY
+from sage.matrix.matrix_utils cimport check_matrix_multiplication_sizes
 from libc.stdio cimport *
 from sage.structure.element cimport (Matrix, Vector)
+from sage.matrix.matrix0 cimport Matrix as Matrix0
 from sage.modules.free_module_element cimport FreeModuleElement
 from sage.libs.gmp.random cimport *
 from sage.misc.randstate cimport randstate, current_randstate
@@ -118,7 +120,7 @@ from sage.misc.verbose import verbose, get_verbose
 VectorSpace = None
 from sage.modules.vector_mod2_dense cimport Vector_mod2_dense
 from sage.structure.richcmp cimport rich_to_bool
-from sage.cpython.string cimport bytes_to_str, char_to_str, str_to_bytes
+from sage.cpython.string cimport char_to_str
 from sage.cpython.string import FS_ENCODING
 
 cdef extern from "gd.h":
@@ -148,6 +150,8 @@ atexit.register(m4ri_destroy_all_codes)
 cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
     """
     Dense matrix over GF(2).
+
+    .. automethod:: _right_kernel_matrix
     """
     def __cinit__(self):
         """
@@ -223,7 +227,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         - ``copy`` -- ignored (for backwards compatibility)
 
-        - ``coerce`` -- if False, assume without checking that the
+        - ``coerce`` -- if ``False``, assume without checking that the
           entries lie in the base ring
 
         EXAMPLES::
@@ -257,13 +261,37 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             []
             sage: Matrix(GF(2),0,2)
             []
+
+        Make sure construction from numpy array is reasonably fast::
+
+            sage: # needs numpy
+            sage: import numpy as np
+            sage: n = 5000
+            sage: M = matrix(GF(2), np.random.randint(0, 2, (n, n)))  # around 700ms
+
+        Unsupported numpy data types (slower but still works)::
+
+            sage: # needs numpy
+            sage: n = 100
+            sage: M = matrix(GF(2), np.random.randint(0, 2, (n, n)).astype(np.float32))
         """
+        if entries is None:
+            # ``__cinit__`` already initialized the matrix to zero
+            # (``mzd_init``). Returning here avoids building a ``MatrixArgs``
+            # object and iterating over an empty generator, which makes
+            # creating a zero matrix from scratch significantly faster
+            # (see :issue:`36146`).
+            return
         ma = MatrixArgs_init(parent, entries)
+        if ma.get_type() == MA_ENTRIES_NDARRAY:
+            from ..modules.numpy_util import set_matrix_mod2_from_numpy
+            if set_matrix_mod2_from_numpy(self, ma.entries):
+                return
         for t in ma.iter(coerce, True):
             se = <SparseEntry>t
             mzd_write_bit(self._entries, se.i, se.j, se.entry)
 
-    cdef long _hash_(self) except -1:
+    cdef Py_hash_t _hash_(self) except -1:
         r"""
         EXAMPLES::
 
@@ -311,7 +339,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef long C[5]
         self.get_hash_constants(C)
 
-        cdef long h = 0, k, l
+        cdef Py_hash_t h = 0
+        cdef long k, l
         cdef Py_ssize_t i, j
         sig_on()
         for i in range(self._nrows):
@@ -330,7 +359,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
     # this exists for compatibility with matrix_modn_dense
     cdef void set_unsafe_int(self, Py_ssize_t i, Py_ssize_t j, int value) noexcept:
         """
-        Set the (i,j) entry of self to the int value.
+        Set the (i,j) entry of ``self`` to the int value.
         """
         mzd_write_bit(self._entries, i, j, int(value))
 
@@ -340,8 +369,47 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         if mzd_read_bit(self._entries, i, j):
             return self._one
-        else:
-            return self._zero
+        return self._zero
+
+    cdef copy_from_unsafe(self, Py_ssize_t iDst, Py_ssize_t jDst, src, Py_ssize_t iSrc, Py_ssize_t jSrc):
+        r"""
+        Copy the ``(iSrc, jSrc)`` entry of ``src`` into the ``(iDst, jDst)``
+        entry of ``self``.
+
+        INPUT:
+
+        - ``iDst`` - the row to be copied to in ``self``.
+        - ``jDst`` - the column to be copied to in ``self``.
+        - ``src`` - the matrix to copy from. Should be a Matrix_mod2_dense with
+                    the same base ring as ``self``.
+        - ``iSrc``  - the row to be copied from in ``src``.
+        - ``jSrc`` - the column to be copied from in ``src``.
+
+        TESTS::
+
+            sage: m = matrix(GF(2),3,4,[is_prime(i) for i in range(12)])
+            sage: m
+            [0 0 1 1]
+            [0 1 0 1]
+            [0 0 0 1]
+            sage: m.transpose()
+            [0 0 0]
+            [0 1 0]
+            [1 0 0]
+            [1 1 1]
+            sage: m.matrix_from_rows([0,2])
+            [0 0 1 1]
+            [0 0 0 1]
+            sage: m.matrix_from_columns([1,3])
+            [0 1]
+            [1 1]
+            [0 1]
+            sage: m.matrix_from_rows_and_columns([1,2],[0,3])
+            [0 1]
+            [0 1]
+        """
+        cdef Matrix_mod2_dense _src = <Matrix_mod2_dense>src
+        mzd_write_bit(self._entries, iDst, jDst, mzd_read_bit(_src._entries, iSrc, jSrc))
 
     def str(self, rep_mapping=None, zero=None, plus_one=None, minus_one=None,
             *, unicode=False, shape=None, character_art=False,
@@ -352,7 +420,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         INPUT:
 
-        - ``rep_mapping`` -- a dictionary or callable used to override
+        - ``rep_mapping`` -- dictionary or callable used to override
           the usual representation of elements.  For a dictionary,
           keys should be elements of the base ring and values the
           desired string representation.
@@ -365,14 +433,14 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
           use the value of ``plus_one`` as the representation of the
           one element.
 
-        - ``minus_one`` -- Ignored.  Only for compatibility with
+        - ``minus_one`` -- ignored.  Only for compatibility with
           generic matrices.
 
-        - ``unicode`` -- boolean (default: ``False``).
-          Whether to use Unicode symbols instead of ASCII symbols
-          for brackets and subdivision lines.
+        - ``unicode`` -- boolean (default: ``False``);
+          whether to use Unicode symbols instead of ASCII symbols
+          for brackets and subdivision lines
 
-        - ``shape`` -- one of ``"square"`` or ``"round"`` (default: ``None``).
+        - ``shape`` -- one of ``'square'`` or ``'round'`` (default: ``None``).
           Switches between round and square brackets.
           The default depends on the setting of the ``unicode`` keyword
           argument. For Unicode symbols, the default is round brackets
@@ -443,7 +511,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if self._nrows == 0 or self._ncols == 0:
             return "[]"
 
-        cdef int i,j, last_i
+        cdef Py_ssize_t i,j, last_i
         cdef list s = []
         empty_row = b' '*(self._ncols*2-1)
         cdef char *row_s
@@ -463,21 +531,21 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 div_s[2*i] = c'+'
                 last_i = i
 
-        for i from 0 <= i < self._nrows:
+        for i in range(self._nrows):
             row_s = row = b'[' + empty_row + b']'
-            for j from 0 <= j < self._ncols:
-                row_s[1+2*j] = c'0' + mzd_read_bit(self._entries,i,j)
+            for j in range(self._ncols):
+                row_s[1+2*j] = c'0' + mzd_read_bit(self._entries, i, j)
             s.append(row)
 
         if self._subdivisions is not None:
             for i in reversed(row_div):
                 s.insert(i, row_divider)
 
-        return bytes_to_str(b"\n".join(s))
+        return (b"\n".join(s)).decode()
 
     def row(self, Py_ssize_t i, from_list=False):
         """
-        Return the ``i``'th row of this matrix as a vector.
+        Return the ``i``-th row of this matrix as a vector.
 
         This row is a dense vector if and only if the matrix is a dense
         matrix.
@@ -486,9 +554,10 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         - ``i`` -- integer
 
-        - ``from_list`` -- bool (default: ``False``); if ``True``,
-          returns the ``i``'th element of ``self.rows()`` (see
-          :func:`rows`), which may be faster, but requires building a
+        - ``from_list`` -- boolean (default: ``False``); if ``True``,
+          returns the ``i``-th element of ``self.rows()`` (see
+          :meth:`~sage.matrix.matrix1.Matrix.rows`), which may be faster,
+          but requires building a
           list of all rows the first time it is called after an entry
           of the matrix is changed.
 
@@ -527,7 +596,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def columns(self, copy=True):
         """
-        Return list of the columns of self.
+        Return list of the columns of ``self``.
 
         INPUT:
 
@@ -582,7 +651,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         INPUT:
 
-        - right -- matrix of dimension self.nrows() x self.ncols()
+        - ``right`` -- matrix of dimension self.nrows() x self.ncols()
 
         EXAMPLES::
 
@@ -620,7 +689,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         INPUT:
 
-        - right -- matrix of dimension self.nrows() x self.ncols()
+        - ``right`` -- matrix of dimension self.nrows() x self.ncols()
 
         EXAMPLES::
 
@@ -660,9 +729,23 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: r1 = A*v1
             sage: r0.column(0) == r1
             True
+
+        Check that :issue:`40167` is fixed::
+
+            sage: M = matrix(GF(2), [[1,1],[0,1]])
+            sage: v = vector(GF(2), [0, 1])
+            sage: V = span([v])             # one-dimensional subspace of GF(2)^2
+            sage: image_basis = [M * b for b in V.basis()]
+            sage: image = span(image_basis)
+            sage: image_basis[0] in image.basis()
+            True
         """
         cdef mzd_t *tmp
-        if self._nrows == self._ncols and isinstance(v, Vector_mod2_dense):
+        if (
+            self._nrows == self._ncols and
+            isinstance(v, Vector_mod2_dense) and
+            v.parent().rank() == self._ncols # check if the parent of v is full rank
+            ):
             VS = v.parent()
         else:
             global VectorSpace
@@ -695,11 +778,113 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         ALGORITHM: Uses the 'Method of the Four Russians
         Multiplication', see :func:`_multiply_m4rm`.
         """
+        check_matrix_multiplication_sizes(self, right)
+
         if get_verbose() >= 2:
-            verbose('matrix multiply of %s x %s matrix by %s x %s matrix'%(
+            verbose('matrix multiply of %s x %s matrix by %s x %s matrix' % (
                 self._nrows, self._ncols, right._nrows, right._ncols))
 
-        return self._multiply_strassen(right, 0)
+        cdef Matrix_mod2_dense ans
+        MS = self.matrix_space(self._nrows, right._ncols, sparse=False)
+        ans = MS.element_class(MS, None, False, False)
+        ans._set_to_product_strassen(self, <Matrix0>right, 0)
+        return ans
+
+    cdef void _set_to_product(self, Matrix0 left, Matrix0 right) except *:
+        r"""
+        Set ``self`` to ``left * right`` using M4RI.
+
+        This defers to :meth:`_set_to_product_strassen` with a cutoff of ``0``,
+        which lets M4RI choose the multiplication routine, exactly as ordinary
+        multiplication does.
+
+        INPUT:
+
+        - ``left`` -- a matrix of the same type and base ring as ``self``
+        - ``right`` -- a matrix of the same type and base ring as ``self``
+
+        OUTPUT: none; ``self`` is modified in place
+
+        EXAMPLES::
+
+            sage: A = matrix(GF(2), 2, 3, [1, 0, 1, 0, 1, 1])
+            sage: B = matrix(GF(2), 3, 2, [1, 1, 0, 1, 1, 0])
+            sage: C = matrix(GF(2), 2, 2)
+            sage: C.set_to_product(A, B)
+            sage: C == A * B
+            True
+        """
+        self._set_to_product_strassen(left, right, 0)
+
+    cdef void _set_to_product_strassen(self, Matrix0 left, Matrix0 right, int cutoff) except *:
+        r"""
+        Set ``self`` to ``left * right`` using M4RI.
+
+        ``mzd_mul`` takes the destination as its first argument, so the product
+        is written straight into the destination's M4RI storage.  This is the
+        shared core of :meth:`_multiply_strassen`, :meth:`_matrix_times_matrix_`
+        and :meth:`set_to_product`.
+
+        INPUT:
+
+        - ``left`` -- a matrix of the same type and base ring as ``self``
+        - ``right`` -- a matrix of the same type and base ring as ``self``
+        - ``cutoff`` -- matrix dimension where M4RM should be used instead of
+          Strassen; ``0`` lets M4RI decide
+
+        OUTPUT: none; ``self`` is modified in place
+
+        EXAMPLES::
+
+            sage: A = Matrix(GF(2), 4, 3, [0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1])
+            sage: B = Matrix(GF(2), 3, 4, [0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0])
+            sage: C = matrix(GF(2), 4, 4)
+            sage: C.set_to_product(A, B)
+            sage: C
+            [0 0 0 0]
+            [1 0 0 1]
+            [0 1 0 1]
+            [1 1 0 0]
+
+        TESTS:
+
+        A nonempty destination with zero columns is a valid result::
+
+            sage: A = random_matrix(GF(2), 3, 4)
+            sage: B = random_matrix(GF(2), 4, 0)
+            sage: C = matrix(GF(2), 3, 0)
+            sage: C.set_to_product(A, B)
+            sage: (C.nrows(), C.ncols(), C == A * B, C == A._multiply_strassen(B, 0))
+            (3, 0, True, True)
+
+        A reused destination is cleared when the inner dimension is zero::
+
+            sage: A = matrix(GF(2), 3, 0)
+            sage: B = matrix(GF(2), 0, 4)
+            sage: C = matrix(GF(2), 3, 4, [1] * 12)
+            sage: C.set_to_product(A, B)
+            sage: C.is_zero()
+            True
+        """
+        cdef Matrix_mod2_dense _left = <Matrix_mod2_dense>left
+        cdef Matrix_mod2_dense _right = <Matrix_mod2_dense>right
+
+        # A matrix with no output entries needs no initialization.  In
+        # particular, ``mzd_set_ui`` is not valid for a zero-column matrix.
+        if self._nrows == 0 or self._ncols == 0:
+            return
+
+        # With a zero inner dimension the product is zero, but the destination
+        # may contain entries from a previous product and must be cleared.
+        if _left._ncols == 0:
+            sig_on()
+            mzd_set_ui(self._entries, 0)
+            sig_off()
+            return
+
+        sig_on()
+        self._entries = mzd_mul(self._entries, _left._entries, _right._entries, cutoff)
+        sig_off()
 
     cpdef Matrix_mod2_dense _multiply_m4rm(Matrix_mod2_dense self, Matrix_mod2_dense right, int k):
         """
@@ -713,8 +898,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         INPUT:
 
-        - right -- Matrix
-        - k -- parameter `k` for the Gray Code table size. If `k=0` a suitable
+        - ``right`` -- Matrix
+        - ``k`` -- parameter `k` for the Gray Code table size. If `k=0` a suitable
           value is chosen by the function. (`0<= k <= 16`, default: 0)
 
         EXAMPLES::
@@ -762,17 +947,17 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         - [AKF1970]_
         - [Bar2006]_
         """
-        if self._ncols != right._nrows:
-            raise ArithmeticError("left ncols must match right nrows")
+        check_matrix_multiplication_sizes(self, right)
 
         if get_verbose() >= 2:
-            verbose('m4rm multiply of %s x %s matrix by %s x %s matrix'%(
+            verbose('m4rm multiply of %s x %s matrix by %s x %s matrix' % (
                 self._nrows, self._ncols, right._nrows, right._ncols))
 
         cdef Matrix_mod2_dense ans
 
         ans = self.new_matrix(nrows = self._nrows, ncols = right._ncols)
         if self._nrows == 0 or self._ncols == 0 or right._ncols == 0:
+            # We know right._nrows == self._ncols because check_matrix_multiplication_sizes passed
             return ans
         sig_on()
         ans._entries = mzd_mul_m4rm(ans._entries, self._entries, right._entries, k)
@@ -823,11 +1008,13 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A._multiply_classical(B)
             []
         """
+        # Why don't we check the sizes of the matrices here?
+        # It doesn't segfault when there is a size mismatch, so we leave it as-is.
         cdef Matrix_mod2_dense A
         A = self.new_matrix(nrows = self._nrows, ncols = right._ncols)
-        if self._nrows == 0 or self._ncols == 0 or right._ncols == 0:
+        if self._nrows == 0 or self._ncols == 0 or right._nrows == 0 or right._ncols == 0:
             return A
-        A._entries = mzd_mul_naive(A._entries, self._entries,(<Matrix_mod2_dense>right)._entries)
+        A._entries = mzd_mul_naive(A._entries, self._entries, (<Matrix_mod2_dense>right)._entries)
         return A
 
     cpdef Matrix_mod2_dense _multiply_strassen(Matrix_mod2_dense self, Matrix_mod2_dense right, int cutoff):
@@ -847,7 +1034,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         INPUT:
 
-        - ``right`` -- a matrix of matching dimensions.
+        - ``right`` -- a matrix of matching dimensions
         - ``cutoff`` -- matrix dimension where M4RM should be used
           instead of Strassen (default: let M4RI decide)
 
@@ -894,19 +1081,14 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         ALGORITHM: Uses Strassen-Winograd matrix multiplication with
         M4RM as base case as implemented in the M4RI library.
         """
-        if self._ncols != right._nrows:
-            raise ArithmeticError("left ncols must match right nrows")
+        check_matrix_multiplication_sizes(self, right)
 
         cdef Matrix_mod2_dense ans
-        #ans = self.new_matrix(nrows = self._nrows, ncols = right._ncols)
+        # ans = self.new_matrix(nrows=self._nrows, ncols=right._ncols)
         # The following is a little faster:
-        ans = self.matrix_space(self._nrows, right._ncols, sparse=False).zero_matrix().__copy__()
-        if self._nrows == 0 or self._ncols == 0 or right._ncols == 0:
-            return ans
-
-        sig_on()
-        ans._entries = mzd_mul(ans._entries, self._entries, right._entries, cutoff)
-        sig_off()
+        MS = self.matrix_space(self._nrows, right._ncols, sparse=False)
+        ans = MS.element_class(MS, None, False, False)
+        ans._set_to_product_strassen(self, right, cutoff)
         return ans
 
     def __neg__(self):
@@ -921,10 +1103,10 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def __invert__(self):
         """
-        Inverts self using the 'Method of the Four Russians'
+        Invert ``self`` using the 'Method of the Four Russians'
         inversion.
 
-        If ``self`` is not invertible a ``ZeroDivisionError`` is
+        If ``self`` is not invertible a :exc:`ZeroDivisionError` is
         raised.
 
         EXAMPLES::
@@ -971,7 +1153,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def __copy__(self):
         """
-        Returns a copy of ``self``.
+        Return a copy of ``self``.
 
         EXAMPLES::
 
@@ -991,7 +1173,6 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
              sage: A.echelonize()
              sage: A.__copy__() == A
              True
-
         """
         cdef Matrix_mod2_dense A
         A = Matrix_mod2_dense.__new__(Matrix_mod2_dense, self._parent, 0, 0, 0)
@@ -1006,7 +1187,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def _list(self):
         """
-        Returns list of the elements of ``self`` in row major
+        Return list of the elements of ``self`` in row major
         ordering.
 
         EXAMPLES::
@@ -1024,7 +1205,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A.list()
             []
         """
-        cdef int i,j
+        cdef Py_ssize_t i,j
         l = []
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
@@ -1044,22 +1225,22 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def echelonize(self, algorithm='heuristic', cutoff=0, reduced=True, **kwds):
         """
-        Puts self in (reduced) row echelon form.
+        Puts ``self`` in (reduced) row echelon form.
 
         INPUT:
 
-        - self -- a mutable matrix
-        - algorithm
+        - ``self`` -- a mutable matrix
+        - ``algorithm`` -- string; one of
 
-            - 'heuristic' -- uses M4RI and PLUQ (default)
-            - 'm4ri' -- uses M4RI
-            - 'pluq' -- uses PLUQ factorization
-            - 'classical' -- uses classical Gaussian elimination
+          - ``'heuristic'`` -- uses M4RI and PLUQ (default)
+          - ``'m4ri'`` -- uses M4RI
+          - ``'pluq'`` -- uses PLUQ factorization
+          - ``'classical'`` -- uses classical Gaussian elimination
 
-        - k --  the parameter 'k' of the M4RI algorithm. It MUST be between 1
+        - ``k`` -- the parameter 'k' of the M4RI algorithm. It MUST be between 1
           and 16 (inclusive). If it is not specified it will be calculated as
           3/4 * log_2( min(nrows, ncols) ) as suggested in the M4RI paper.
-        - reduced -- return reduced row echelon form (default: ``True``)
+        - ``reduced`` -- return reduced row echelon form (default: ``True``)
 
         EXAMPLES::
 
@@ -1112,7 +1293,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             self.clear_cache()
 
             sig_on()
-            r =  mzd_echelonize(self._entries, full)
+            r = mzd_echelonize(self._entries, full)
             sig_off()
 
             self.cache('in_echelon_form',True)
@@ -1127,14 +1308,14 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             if 'k' in kwds:
                 k = int(kwds['k'])
 
-                if k<1 or k>16:
+                if k < 1 or k > 16:
                     raise RuntimeError("k must be between 1 and 16")
                 k = round(k)
             else:
                 k = 0
 
             sig_on()
-            r =  mzd_echelonize_m4ri(self._entries, full, k)
+            r = mzd_echelonize_m4ri(self._entries, full, k)
             sig_off()
 
             self.cache('in_echelon_form',True)
@@ -1147,7 +1328,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             self.clear_cache()
 
             sig_on()
-            r =  mzd_echelonize_pluq(self._entries, full)
+            r = mzd_echelonize_pluq(self._entries, full)
             sig_off()
 
             self.cache('in_echelon_form',True)
@@ -1164,11 +1345,11 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             # for debugging purposes only, it is slow
             self._echelon_in_place_classical()
         else:
-            raise ValueError("no algorithm '%s'"%algorithm)
+            raise ValueError("no algorithm '%s'" % algorithm)
 
     def _pivots(self):
         """
-        Returns the pivot columns of ``self`` if ``self`` is in
+        Return the pivot columns of ``self`` if ``self`` is in
         row echelon form.
 
         EXAMPLES::
@@ -1207,14 +1388,12 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         INPUT:
 
-        -  ``density`` -- float; proportion (roughly) to be considered for
-           changes
-        -  ``nonzero`` -- Bool (default: ``False``); whether the new entries
-           are forced to be non-zero
+        - ``density`` -- float; proportion (roughly) to be considered for
+          changes
+        - ``nonzero`` -- boolean (default: ``False``); whether the new entries
+          are forced to be nonzero
 
-        OUTPUT:
-
-        -  None, the matrix is modified in-space
+        OUTPUT: None, the matrix is modified in-space
 
         EXAMPLES::
 
@@ -1266,7 +1445,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         cdef randstate rstate = current_randstate()
 
-        cdef int i, j, k
+        cdef Py_ssize_t i, j
+        cdef int k
         cdef int nc
         cdef unsigned int low, high
         cdef m4ri_word mask = 0
@@ -1275,7 +1455,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef m4ri_word *row
         if not nonzero:
             if density == 1:
-                assert(sizeof(m4ri_word) == 8)
+                assert sizeof(m4ri_word) == 8
                 mask = __M4RI_LEFT_BITMASK(self._entries.ncols % m4ri_radix)
                 for i from 0 <= i < self._nrows:
                     row = mzd_row(self._entries, i)
@@ -1291,7 +1471,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 sig_on()
                 for i from 0 <= i < self._nrows:
                     for j from 0 <= j < num_per_row:
-                        k = rstate.c_random()%nc
+                        k = rstate.c_random() % nc
                         mzd_write_bit(self._entries, i, k, rstate.c_random() % 2)
                 sig_off()
 
@@ -1379,14 +1559,15 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def _magma_init_(self, magma):
         """
-        Returns a string of self in ``Magma`` form. Does not return
-        ``Magma`` object but string.
+        Return a string of ``self`` in ``Magma`` form.
+
+        This does not return a ``Magma`` object but a string.
 
         EXAMPLES::
 
             sage: A = random_matrix(GF(2),3,3)
             sage: A._magma_init_(magma)                             # optional - magma
-            'Matrix(GF(2),3,3,StringToIntegerSequence("0 1 0 0 1 1 0 0 0"))'
+            'Matrix(GF(2),3,3,StringToIntegerSequence("..."))'
             sage: A = random_matrix(GF(2),100,100)
             sage: B = random_matrix(GF(2),100,100)
             sage: magma(A*B) == magma(A) * magma(B)                 # optional - magma
@@ -1405,7 +1586,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [1 0 0]
         """
         s = self.base_ring()._magma_init_(magma)
-        return 'Matrix(%s,%s,%s,StringToIntegerSequence("%s"))'%(
+        return 'Matrix(%s,%s,%s,StringToIntegerSequence("%s"))' % (
             s, self._nrows, self._ncols, self._export_as_string())
 
     def determinant(self):
@@ -1425,7 +1606,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def transpose(self):
         """
-        Returns transpose of self and leaves self untouched.
+        Return transpose of ``self`` and leaves ``self`` untouched.
 
         EXAMPLES::
 
@@ -1463,28 +1644,42 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A[0,0] = 0
             sage: B[0,0]
             1
+
+            sage: m = matrix(GF(2),0,2)
+            sage: m.subdivide([],[1])
+            sage: m.subdivisions()
+            ([], [1])
+            sage: m.transpose().subdivisions()
+            ([1], [])
+
+            sage: m = matrix(GF(2),2,0)
+            sage: m.subdivide([1],[])
+            sage: m.subdivisions()
+            ([1], [])
+            sage: m.transpose().subdivisions()
+            ([], [1])
         """
         cdef Matrix_mod2_dense A = self.new_matrix(ncols=self._nrows,
                                                    nrows=self._ncols)
-        if self._nrows == 0 or self._ncols == 0:
-            return A
+        if self._nrows != 0 and self._ncols != 0:
+            A._entries = mzd_transpose(A._entries, self._entries)
 
-        A._entries = mzd_transpose(A._entries, self._entries)
         if self._subdivisions is not None:
-            A.subdivide(*self.subdivisions())
+            row_divs, col_divs = self.subdivisions()
+            A.subdivide(col_divs, row_divs)
         return A
 
-    cpdef _richcmp_(self, right, int op):
+    cpdef _richcmp_(self, other, int op):
         """
-        Compare ``self`` with ``right``.
+        Compare ``self`` with ``other``.
 
         While equality and
         inequality are clearly defined, ``<`` and ``>`` are not.  For
-        those first the matrix dimensions of ``self`` and ``right``
+        those first the matrix dimensions of ``self`` and ``other``
         are compared. If these match then ``<`` means that there is a
         position smallest (i,j) in ``self`` where ``self[i,j]`` is
-        zero but ``right[i,j]`` is one. This (i,j) is smaller than the
-        (i,j) if ``self`` and ``right`` are exchanged for the
+        zero but ``other[i,j]`` is one. This (i,j) is smaller than the
+        (i,j) if ``self`` and ``other`` are exchanged for the
         comparison.
 
         EXAMPLES::
@@ -1505,7 +1700,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if self._nrows == 0 or self._ncols == 0:
             return rich_to_bool(op, 0)
         return rich_to_bool(op, mzd_cmp(self._entries,
-                                        (<Matrix_mod2_dense>right)._entries))
+                                        (<Matrix_mod2_dense>other)._entries))
 
     def augment(self, right, subdivide=False):
         r"""
@@ -1700,10 +1895,10 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         INPUT:
 
-        - row -- index of start row
-        - col -- index of start column
-        - nrows -- number of rows of submatrix
-        - ncols -- number of columns of submatrix
+        - ``row`` -- index of start row
+        - ``col`` -- index of start column
+        - ``nrows`` -- number of rows of submatrix
+        - ``ncols`` -- number of columns of submatrix
 
         EXAMPLES::
 
@@ -1722,7 +1917,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
              sage: A[1:200,1:200] == A.submatrix(1,1,199,199)
              True
 
-        TESTS for handling of default arguments (:issue:`18761`)::
+        TESTS:
+
+        Check for handling of default arguments (:issue:`18761`)::
 
              sage: A.submatrix(17,15) == A.submatrix(17,15,183,185)
              True
@@ -1747,16 +1944,16 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         highc = col + ncols
 
         if row < 0:
-            raise TypeError("Expected row >= 0, but got %d instead."%row)
+            raise TypeError("Expected row >= 0, but got %d instead." % row)
 
         if col < 0:
-            raise TypeError("Expected col >= 0, but got %d instead."%col)
+            raise TypeError("Expected col >= 0, but got %d instead." % col)
 
         if highc > self._entries.ncols:
-            raise TypeError("Expected highc <= self.ncols(), but got %d > %d instead."%(highc, self._entries.ncols))
+            raise TypeError("Expected highc <= self.ncols(), but got %d > %d instead." % (highc, self._entries.ncols))
 
         if highr > self._entries.nrows:
-            raise TypeError("Expected highr <= self.nrows(), but got %d > %d instead."%(highr, self._entries.nrows))
+            raise TypeError("Expected highr <= self.nrows(), but got %d > %d instead." % (highr, self._entries.nrows))
 
         A = self.new_matrix(nrows = nrows, ncols = ncols)
         if ncols == 0 or nrows == 0:
@@ -1785,8 +1982,15 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A.set_immutable()
             sage: loads(dumps(A)).is_immutable()
             True
+
+        Check that :issue:`39367` is achieved::
+
+            sage: l = len(dumps(random_matrix(GF(2), 2000, 2000))); l  # random   # previously ~ 785000
+            610207
+            sage: assert l < 650000
         """
-        cdef int i,j, r,c, size
+        cdef Py_ssize_t i,j, r,c
+        cdef int size
 
         r, c = self.nrows(), self.ncols()
         if r == 0 or c == 0:
@@ -1803,11 +2007,17 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 if mzd_read_bit(self._entries, i, j):
                     gdImageSetPixel(im, j, i, black )
 
-        cdef signed char *buf = <signed char*>gdImagePngPtr(im, &size)
+        cdef char *buf
+        try:
+            buf = <char*>gdImagePngPtr(im, &size)
+        finally:
+            gdImageDestroy(im)
 
-        data = [buf[i] for i in range(size)]
-        gdFree(buf)
-        gdImageDestroy(im)
+        cdef bytes data
+        try:
+            data = buf[:size]
+        finally:  # recommended by https://cython.readthedocs.io/en/latest/src/tutorial/strings.html
+            gdFree(buf)
         return unpickle_matrix_mod2_dense_v2, (r,c, data, size, self._is_immutable)
 
     cpdef _export_as_string(self):
@@ -1853,7 +2063,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         INPUT:
 
-        - approx -- return floating point approximation (default: ``False``)
+        - ``approx`` -- return floating point approximation (default: ``False``)
 
         EXAMPLES::
 
@@ -1917,14 +2127,109 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         elif algorithm == 'm4ri':
             r = mzd_echelonize_m4ri(A, 0, 0)
         else:
-            raise ValueError("Algorithm '%s' unknown."%algorithm)
+            raise ValueError("Algorithm '%s' unknown." % algorithm)
         mzd_free(A)
         self.cache('rank', r)
         return r
 
+    def _solve_right_general(self, B, check=True):
+        """
+        Solve the matrix equation AX = B for X using the M4RI library.
+
+        INPUT:
+
+        - ``B`` -- a matrix
+        - ``check`` -- boolean (default: ``True``); whether to check if the
+          matrix equation has a solution
+
+        EXAMPLES::
+
+            sage: A = matrix(GF(2), [[1, 0], [0, 1], [1, 1]])
+            sage: A.solve_right(vector([1, 1, 0]))
+            (1, 1)
+            sage: A.solve_right(vector([1, 1, 1]))
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix equation has no solutions
+
+        TESTS::
+
+            sage: n = 128
+            sage: m = 128
+            sage: A = random_matrix(GF(2), n, m)
+            sage: B = A * random_vector(GF(2), m)
+            sage: A * A.solve_right(B) == B
+            True
+            sage: m = 64
+            sage: A = random_matrix(GF(2), n, m)
+            sage: B = A * random_vector(GF(2), m)
+            sage: A * A.solve_right(B) == B
+            True
+            sage: m = 256
+            sage: A = random_matrix(GF(2), n, m)
+            sage: B = A * random_vector(GF(2), m)
+            sage: A * A.solve_right(B) == B
+            True
+            sage: matrix(GF(2), 2, 0).solve_right(matrix(GF(2), 2, 2)) == matrix(GF(2), 0, 2)
+            True
+            sage: matrix(GF(2), 2, 0).solve_right(matrix(GF(2), 2, 2) + 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix equation has no solutions
+            sage: matrix(GF(2), 2, 0).solve_right(matrix(GF(2), 2, 2) + 1, check=False) == matrix(GF(2), 0, 2)
+            True
+            sage: matrix(GF(2), 2, 2).solve_right(matrix(GF(2), 2, 0)) == matrix(GF(2), 2, 0)
+            True
+
+        Check that it can be interrupted::
+
+            sage: set_random_seed(12345)
+            sage: n, m = 20000, 19968
+            sage: A = random_matrix(GF(2), n, m)
+            sage: x = random_vector(GF(2), m)
+            sage: B = A*x
+            sage: from sage.doctest.util import ensure_interruptible_after
+            sage: with ensure_interruptible_after(0.5): sol = A.solve_right(B)
+        """
+        cdef mzd_t *B_entries = (<Matrix_mod2_dense>B)._entries
+
+        cdef Matrix_mod2_dense X  # the solution
+        X = self.new_matrix(nrows=self._entries.ncols, ncols=B_entries.ncols)
+        if self._entries.ncols == 0 or B_entries.ncols == 0:
+            # special case: empty matrix
+            if check and B != 0:
+                raise ValueError("matrix equation has no solutions")
+            return X
+        cdef rci_t rows = self._entries.nrows
+        if self._entries.nrows < self._entries.ncols:
+            rows = self._entries.ncols  # mzd_solve_left requires ncols <= nrows
+
+        cdef mzd_t *lhs = mzd_init(rows, self._entries.ncols)
+        mzd_copy(lhs, self._entries)
+        cdef mzd_t *rhs = mzd_init(rows, B_entries.ncols)
+        mzd_copy(rhs, B_entries)
+
+        cdef int ret
+        try:
+            sig_on()
+            # although it is called mzd_solve_left, it does the same thing as solve_right
+            ret = mzd_solve_left(lhs, rhs, 0, check)
+            sig_off()
+
+            if ret == 0:
+                # solution is placed in rhs
+                rhs.nrows = self._entries.ncols
+                mzd_copy(X._entries, rhs)
+                return X
+            else:
+                raise ValueError("matrix equation has no solutions")
+        finally:
+            mzd_free(lhs)
+            mzd_free(rhs)
+
     def _right_kernel_matrix(self, **kwds):
         r"""
-        Returns a pair that includes a matrix of basis vectors
+        Return a pair that includes a matrix of basis vectors
         for the right kernel of ``self``.
 
         INPUT:
@@ -2010,6 +2315,269 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         verbose("done computing right kernel matrix over integers mod 2 for %sx%s matrix" % (self.nrows(), self.ncols()),level=1, t=tm)
         return 'computed-pluq', M
 
+    def doubly_lexical_ordering(self, inplace=False):
+        r"""
+        Return a doubly lexical ordering of the matrix.
+
+        A doubly lexical ordering of a matrix is an ordering of the rows
+        and of the columns of the matrix so that both the rows and the
+        columns, as vectors, are lexically increasing. See [Lub1987]_.
+        A lexical ordering of vectors is the standard dictionary ordering,
+        except that vectors will be read from highest to lowest coordinate.
+        Thus row vectors will be compared from right to left, and column
+        vectors from bottom to top.
+
+        INPUT:
+
+        - ``inplace`` -- boolean (default: ``False``); using ``inplace=True``
+          will permute the rows and columns of the current matrix
+          according to a doubly lexical ordering; this will modify the matrix
+
+        OUTPUT:
+
+        A pair ``(row_ordering, col_ordering)`` of
+        :class:`~sage.groups.perm_gps.permgroup_element.PermutationGroupElement`
+        that represents a doubly lexical ordering of the rows or columns.
+
+        .. SEEALSO::
+
+            :meth:`~sage.matrix.matrix2.Matrix.permutation_normal_form`;
+            a similar matrix normal form
+
+        ALGORITHM:
+
+        The algorithm is adapted from section 3 of [HAM1985]_. The time
+        complexity of this algorithm is `O(n \cdot m^2)` for a `n \times m`
+        matrix.
+
+        EXAMPLES::
+
+            sage: A = Matrix(GF(2), [[0, 1],
+            ....:                    [1, 0]])
+            sage: r, c = A.doubly_lexical_ordering()
+            sage: r
+            (1,2)
+            sage: c
+            ()
+            sage: A.permute_rows_and_columns(r, c); A
+            [1 0]
+            [0 1]
+
+        ::
+
+            sage: A = Matrix(GF(2), [[0, 1],
+            ....:                    [1, 0]])
+            sage: r, c = A.doubly_lexical_ordering(inplace=True); A
+            [1 0]
+            [0 1]
+
+        TESTS:
+
+        This algorithm works correctly for the matrix in
+        Example 3.7 in [HAM1985]_::
+
+            sage: A = Matrix(GF(2), [[1, 1, 0, 0, 0, 0, 0],
+            ....:                    [1, 1, 0, 0, 0, 0, 0],
+            ....:                    [1, 1, 0, 1, 0, 0, 0],
+            ....:                    [0, 0, 1, 1, 0, 0, 0],
+            ....:                    [0, 1, 1, 1, 1, 0, 0],
+            ....:                    [0, 0, 0, 0, 0, 1, 1],
+            ....:                    [0, 0, 0, 0, 0, 1, 1],
+            ....:                    [0, 0, 0, 0, 1, 1, 1],
+            ....:                    [0, 0, 0, 1, 1, 1, 0]])
+            sage: r, c = A.doubly_lexical_ordering()
+            sage: B = A.with_permuted_rows_and_columns(r, c)
+            sage: for i in range(B.ncols()):
+            ....:     for j in range(i):
+            ....:         for k in reversed(range(B.nrows())):
+            ....:             assert B[k][j] <= B[k][i]
+            ....:             if B[k][j] < B[k][i]:
+            ....:                 break
+            sage: for i in range(B.nrows()):
+            ....:     for j in range(i):
+            ....:         for k in reversed(range(B.ncols())):
+            ....:             assert B[j][k] <= B[i][k]
+            ....:             if B[j][k] < B[i][k]:
+            ....:                 break
+            sage: r, c = A.doubly_lexical_ordering(inplace=True)
+            sage: A == B
+            True
+
+        An immutable matrix calling with ``inplace=True`` will raise an error::
+
+            sage: A = Matrix(GF(2), [[0, 1], [1, 0]], immutable=True)
+            sage: r, c = A.doubly_lexical_ordering(inplace=True)
+            Traceback (most recent call last):
+            ...
+            TypeError: this matrix is immutable;
+             use inplace=False or apply to a mutable copy.
+
+        The algorithm works collectly for a matrix with nrows=0 or ncols=0::
+
+            sage: A = Matrix(GF(2), 0, 2, [])
+            sage: A.doubly_lexical_ordering()
+            ((), ())
+            sage: B = Matrix(GF(2), 2, 0, [])
+            sage: B.doubly_lexical_ordering()
+            ((), ())
+        """
+        if inplace and self.is_immutable():
+            raise TypeError("this matrix is immutable;"
+                            " use inplace=False or apply to a mutable copy.")
+
+        from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+        from sage.groups.perm_gps.permgroup_element import make_permgroup_element_v2
+        symmetric_group_nrows = SymmetricGroup(self._nrows)
+        symmetric_group_ncols = SymmetricGroup(self._ncols)
+
+        if self._nrows == 0 or self._ncols == 0:
+            return symmetric_group_nrows.one(), symmetric_group_ncols.one()
+
+        cdef list partition_rows = [False for _ in range(self._nrows - 1)]
+        cdef int partition_num = 1
+        cdef list row_swapped = list(range(1, self._nrows + 1))
+        cdef list col_swapped = list(range(1, self._ncols + 1))
+
+        cdef Matrix_mod2_dense A = self if inplace else self.__copy__()
+
+        cdef int i, col, row, partition_i, partition_start, partition_end
+        cdef int largest_col, row_start, row_end
+        for i in reversed(range(1, A._ncols + 1)):
+            # count 1 for each partition and column
+            count1 = [[0]*partition_num for _ in range(i)]
+            for col in range(i):
+                parition_i = 0
+                for row in reversed(range(1, A._nrows)):
+                    count1[col][parition_i] += mzd_read_bit(A._entries, row, col)
+                    if partition_rows[row - 1]:
+                        parition_i += 1
+                count1[col][parition_i] += mzd_read_bit(A._entries, 0, col)  # special case of row == 0
+
+            # calculate largest_col = col s.t. count1[col] is lexicographically largest (0 <= col < i)
+            _, largest_col = max((c, i) for i, c in enumerate(count1))
+
+            # We refine each partition of rows according to the value of A[:][largest_col].
+            # and also move down rows that satisfy A[row][largest_col] = 1 in each partition.
+            partition_start = 0
+            for _ in range(partition_num):
+                partition_end = partition_start
+                while partition_end < A._nrows - 1 and not partition_rows[partition_end]:
+                    partition_end += 1
+                row_start = partition_start
+                row_end = partition_end
+                while row_start < row_end:
+                    while row_start < row_end and not mzd_read_bit(A._entries, row_start, largest_col):
+                        row_start += 1
+                    while row_start < row_end and mzd_read_bit(A._entries, row_end, largest_col):
+                        row_end -= 1
+                    if row_start < row_end:  # swap row
+                        A.swap_rows_c(row_start, row_end)
+                        row_swapped[row_start], row_swapped[row_end] = row_swapped[row_end], row_swapped[row_start]
+                partition_start = partition_end + 1  # for next partition
+
+            for row in range(A._nrows - 1):
+                if mzd_read_bit(A._entries, row, largest_col) != mzd_read_bit(A._entries, row + 1, largest_col):
+                    if not partition_rows[row]:
+                        partition_rows[row] = True
+                        partition_num += 1
+
+            # swap column
+            A.swap_columns_c(largest_col, i - 1)
+            col_swapped[largest_col], col_swapped[i - 1] = col_swapped[i - 1], col_swapped[largest_col]
+
+        row_ordering = make_permgroup_element_v2(symmetric_group_nrows, row_swapped, symmetric_group_nrows.domain())
+        col_ordering = make_permgroup_element_v2(symmetric_group_ncols, col_swapped, symmetric_group_ncols.domain())
+
+        return row_ordering, col_ordering
+
+    def is_Gamma_free(self, certificate=False):
+        r"""
+        Return True if the matrix is `\Gamma`-free.
+
+        A matrix is `\Gamma`-free if it does not contain a 2x2 submatrix
+        of the form:
+
+        .. MATH::
+
+            \begin{pmatrix}
+                1 & 1 \\
+                1 & 0
+            \end{pmatrix}
+
+        INPUT:
+
+        - ``certificate`` -- boolean (default: ``False``); whether to return a
+          certificate for no-answers (see OUTPUT section)
+
+        OUTPUT:
+
+        When ``certificate`` is set to ``False`` (default) this method only
+        returns ``True`` or ``False`` answers. When ``certificate`` is set to
+        ``True``, the method either returns ``(True, None)`` or ``(False,
+        (r1, c1, r2, c2))`` where ``r1``, ``r2``-th rows and ``c1``,
+        ``c2``-th columns of the matrix constitute the `\Gamma`-submatrix.
+
+        ALGORITHM:
+
+        For each 1 entry, the algorithm finds the next 1 in the same row and
+        the next 1 in the same column, and check the 2x2 submatrix that contains
+        these entries forms `\Gamma` submatrix. The time complexity of
+        this algorithm is `O(n \cdot m)` for a `n \times m` matrix.
+
+        EXAMPLES::
+
+            sage: A = Matrix(GF(2), [[1, 1],
+            ....:                    [0, 0]])
+            sage: A.is_Gamma_free()
+            True
+            sage: B = Matrix(GF(2), [[1, 1],
+            ....:                    [1, 0]])
+            sage: B.is_Gamma_free(certificate=True)
+            (False, (0, 0, 1, 1))
+
+        TESTS:
+
+        The algorithm works collectly for larger matrices::
+
+            sage: A = Matrix(GF(2), [[1, 0, 1],
+            ....:                    [0, 0, 0],
+            ....:                    [1, 0, 0]])
+            sage: A.is_Gamma_free(certificate=True)
+            (False, (0, 0, 2, 2))
+            sage: B = Matrix(GF(2), [[1, 0, 1],
+            ....:                    [0, 0, 0],
+            ....:                    [1, 0, 1]])
+            sage: B.is_Gamma_free(certificate=True)
+            (True, None)
+        """
+        cdef int i, j, i_bottom, j_right
+
+        for i in range(self._nrows):
+            j = 0
+            while j < self._ncols:
+                if mzd_read_bit(self._entries, i, j):  # if A[i][j] == 1
+                    # find the next 1 in the row
+                    j_right = j + 1
+                    while j_right < self._ncols and not mzd_read_bit(self._entries, i, j_right):
+                        j_right += 1
+                    if j_right < self._ncols:
+                        # find the next 1 in the column
+                        i_bottom = i + 1
+                        while i_bottom < self._nrows and not mzd_read_bit(self._entries, i_bottom, j):
+                            i_bottom += 1
+                        if i_bottom < self._nrows and not mzd_read_bit(self._entries, i_bottom, j_right):
+                            # A[i_bottom][j_right] == 0
+                            if certificate:
+                                return False, (i, j, i_bottom, j_right)
+                            return False
+                    j = j_right
+                else:
+                    j += 1
+
+        if certificate:
+            return True, None
+        return True
+
 # Used for hashing
 cdef int i, k
 cdef unsigned long parity_table[256]
@@ -2051,9 +2619,9 @@ def unpickle_matrix_mod2_dense_v2(r, c, data, size, immutable=False):
 
     - ``r`` -- number of rows of matrix
     - ``c`` -- number of columns of matrix
-    - ``s`` -- a string
+    - ``s`` -- string
     - ``size`` -- length of the string ``s``
-    - ``immutable`` -- (default: ``False``) whether the
+    - ``immutable`` -- boolean (default: ``False``); whether the
       matrix is immutable or not
 
     EXAMPLES::
@@ -2084,26 +2652,54 @@ def unpickle_matrix_mod2_dense_v2(r, c, data, size, immutable=False):
         sage: loads(s)
         [1 0]
         [0 1]
+
+    Check that old pickles before :issue:`39367` still work::
+
+        sage: loads(bytes.fromhex(  # hexstring produced with dumps(matrix.zero(GF(2),10,10)).hex()
+        ....:     '789c6b604a2e4e4c4fd5cb4d2c29caac8052f1b9f92946f129a979c5a95ca5'
+        ....:     '790599c9d939a9f11852f165465c850c1ade5cde5cb1858c1a5e9dfffffff7'
+        ....:     '0ef0f6f376f7e6050a4a01310318f27a7b7a7b78bb780741f95c709ad19b19'
+        ....:     'c2f6da0ed4ecf5076442acd73f100551c20634d0c73bc4db15aaec3f481982'
+        ....:     '580a226e8288f920e22e4223a77701d0ce48ef62308fcfeb084c0aca64f49a'
+        ....:     '0aa2b4bdf9bca5a15af880ce74f17604dac6e135132499ecf50344d57b3580'
+        ....:     '75789b7b330195b103fd21e85deeb51064e362908c2f441d03147a025debe7'
+        ....:     'ede2b50e24e8e49de0d50464a47ae775961432051532eb0100093b9ba3'))
+        [0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0]
     """
     from sage.matrix.constructor import Matrix
     from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 
-    cdef int i, j
+    cdef Py_ssize_t i, j
     cdef Matrix_mod2_dense A
 
     A = <Matrix_mod2_dense>Matrix(GF(2),r,c)
     if r == 0 or c == 0:
         return A
 
-    cdef signed char *buf = <signed char*>check_malloc(size)
-    for i from 0 <= i < size:
-        buf[i] = data[i]
+    cdef signed char *buf
+    cdef gdImagePtr im
+    if isinstance(data, bytes):
+        sig_on()
+        im = gdImageCreateFromPngPtr(size, <char *><bytes>data)
+        sig_off()
+    else:
+        buf = <signed char*>check_malloc(size)
+        for i from 0 <= i < size:
+            buf[i] = data[i]
 
-    sig_on()
-    cdef gdImagePtr im = gdImageCreateFromPngPtr(size, buf)
-    sig_off()
-
-    sig_free(buf)
+        sig_on()
+        im = gdImageCreateFromPngPtr(size, buf)
+        sig_off()
+        sig_free(buf)
 
     if gdImageSX(im) != c or gdImageSY(im) != r:
         raise TypeError("Pickled data dimension doesn't match.")
@@ -2127,13 +2723,13 @@ register_unpickle_override('sage.matrix.matrix_mod2_dense',
 
 def from_png(filename):
     """
-    Returns a dense matrix over GF(2) from a 1-bit PNG image read from
+    Return a dense matrix over GF(2) from a 1-bit PNG image read from
     ``filename``. No attempt is made to verify that the filename string
     actually points to a PNG image.
 
     INPUT:
 
-    - filename -- a string
+    - ``filename`` -- string
 
     EXAMPLES::
 
@@ -2148,14 +2744,14 @@ def from_png(filename):
     from sage.matrix.constructor import Matrix
     from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 
-    cdef int i,j,r,c
+    cdef Py_ssize_t i,j,r,c
     cdef Matrix_mod2_dense A
 
     fn = open(filename,"r") # check filename
     fn.close()
 
     if type(filename) is not bytes:
-        filename = str_to_bytes(filename, FS_ENCODING, 'surrogateescape')
+        filename = filename.encode(FS_ENCODING, 'surrogateescape')
 
     cdef FILE *f = fopen(filename, "rb")
     sig_on()
@@ -2176,12 +2772,12 @@ def from_png(filename):
 
 def to_png(Matrix_mod2_dense A, filename):
     """
-    Saves the matrix ``A`` to filename as a 1-bit PNG image.
+    Save the matrix ``A`` to filename as a 1-bit PNG image.
 
     INPUT:
 
     - ``A`` -- a matrix over GF(2)
-    - ``filename`` -- a string for a file in a writable position
+    - ``filename`` -- string for a file in a writable position
 
     EXAMPLES::
 
@@ -2193,16 +2789,16 @@ def to_png(Matrix_mod2_dense A, filename):
         sage: A == B
         True
     """
-    cdef int i,j, r,c
+    cdef Py_ssize_t i,j, r,c
     r, c = A.nrows(), A.ncols()
     if r == 0 or c == 0:
-        raise TypeError("Cannot write image with dimensions %d x %d"%(c,r))
+        raise TypeError(f"cannot write image with dimensions {c} x {r}")
 
     fn = open(filename, "w") # check filename
     fn.close()
 
     if type(filename) is not bytes:
-        filename = str_to_bytes(filename, FS_ENCODING, 'surrogateescape')
+        filename = filename.encode(FS_ENCODING, 'surrogateescape')
 
     cdef gdImagePtr im = gdImageCreate(c, r)
     cdef FILE * out = fopen(filename, "wb")
@@ -2219,21 +2815,21 @@ def to_png(Matrix_mod2_dense A, filename):
     fclose(out)
 
 
-def pluq(Matrix_mod2_dense A, algorithm="standard", int param=0):
+def pluq(Matrix_mod2_dense A, algorithm='standard', int param=0):
     """
     Return PLUQ factorization of A.
 
     INPUT:
 
-    - A -- matrix
-    - algorithm
+    - ``A`` -- matrix
+    - ``algorithm`` -- string; one of
 
-      * 'standard' asymptotically fast (default)
-      * 'mmpf' M4RI inspired
-      * 'naive' naive cubic
+      * ``'standard'`` asymptotically fast (default)
+      * ``'mmpf'`` M4RI inspired
+      * ``'naive'`` naive cubic
 
-    - param -- either k for 'mmpf' is chosen or matrix multiplication cutoff
-      for 'standard' (default: 0)
+    - ``param`` -- either k for 'mmpf' is chosen or matrix multiplication cutoff
+      for ``'standard'`` (default: 0)
 
     EXAMPLES::
 
@@ -2283,20 +2879,20 @@ def pluq(Matrix_mod2_dense A, algorithm="standard", int param=0):
     return B, P, Q
 
 
-def ple(Matrix_mod2_dense A, algorithm="standard", int param=0):
+def ple(Matrix_mod2_dense A, algorithm='standard', int param=0):
     """
     Return PLE factorization of A.
 
     INPUT:
 
-    - A -- matrix
-    - algorithm
+    - ``A`` -- matrix
+    - ``algorithm`` -- string; one of
 
-      - 'standard' asymptotically fast (default)
-      - 'russian' M4RI inspired
-      - 'naive' naive cubic
+      - ``'standard'`` asymptotically fast (default)
+      - ``'russian'`` M4RI inspired
+      - ``'naive'`` naive cubic
 
-    - param -- either k for 'mmpf' is chosen or matrix multiplication
+    - ``param`` -- either k for 'mmpf' is chosen or matrix multiplication
       cutoff for 'standard' (default: 0)
 
     EXAMPLES::
@@ -2344,10 +2940,10 @@ def ple(Matrix_mod2_dense A, algorithm="standard", int param=0):
         _mzd_ple_naive(B._entries, p, q)
         sig_off()
     else:
-        raise ValueError("Algorithm '%s' unknown."%algorithm)
+        raise ValueError("Algorithm '%s' unknown." % algorithm)
 
     P = [p.values[i] for i in range(A.nrows())]
     Q = [q.values[i] for i in range(A.ncols())]
     mzp_free(p)
     mzp_free(q)
-    return B,P,Q
+    return B, P, Q

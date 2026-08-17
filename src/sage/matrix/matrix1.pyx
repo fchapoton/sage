@@ -9,15 +9,15 @@ TESTS::
     sage: TestSuite(A).run()
 """
 
-#*****************************************************************************
+# ***************************************************************************
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ***************************************************************************
 
 from cpython.sequence cimport PySequence_Fast
 
@@ -32,7 +32,7 @@ cdef class Matrix(Matrix0):
 
     def _pari_init_(self):
         """
-        Return a string defining a GP representation of self.
+        Return a string defining a GP representation of ``self``.
 
         EXAMPLES::
 
@@ -55,13 +55,13 @@ cdef class Matrix(Matrix0):
         for i from 0 <= i < nr:
             tmp = []
             for j from 0 <= j < nc:
-                tmp.append(w[i*nc + j]._pari_init_())
-            v.append( ','.join(tmp))
-        return 'Mat([%s])'%(';'.join(v))
+                tmp.append(w[i * nc + j]._pari_init_())
+            v.append(','.join(tmp))
+        return 'Mat([%s])' % (';'.join(v))
 
     def __pari__(self):
         """
-        Return the Pari matrix corresponding to self.
+        Return the Pari matrix corresponding to ``self``.
 
         EXAMPLES::
 
@@ -84,19 +84,17 @@ cdef class Matrix(Matrix0):
             [1.0 2.0]
             [3.0 1.0]
             sage: b = pari(a); b                                                        # needs sage.libs.pari
-            [1.000000000, 2.000000000; 3.000000000, 1.000000000] # 32-bit
-            [1.00000000000000, 2.00000000000000; 3.00000000000000, 1.00000000000000] # 64-bit
+            [1.000000000..., 2.000000000...; 3.000000000..., 1.000000000...]
         """
-        from sage.libs.pari.all import pari
+        from sage.libs.pari import pari
         return pari.matrix(self._nrows, self._ncols, self._list())
 
-    def _gap_init_(self):
+    def _gap_init_(self) -> str:
         """
-        Returns a string defining a gap representation of self.
+        Return a string defining a GAP representation of ``self``.
 
         EXAMPLES::
 
-            sage: # needs sage.libs.gap
             sage: A = MatrixSpace(QQ,3,3)([0,1,2,3,4,5,6,7,8])
             sage: g = gap(A)  # indirect doctest
             sage: g
@@ -111,7 +109,6 @@ cdef class Matrix(Matrix0):
         Particularly difficult is the case of matrices over cyclotomic
         fields and general number fields. See :issue:`5618` and :issue:`8909`::
 
-            sage: # needs sage.libs.gap sage.rings.number_field
             sage: K.<zeta> = CyclotomicField(8)
             sage: A = MatrixSpace(K, 2, 2)([0, 1+zeta, 2*zeta, 3])
             sage: g = gap(A); g
@@ -121,7 +118,6 @@ cdef class Matrix(Matrix0):
             sage: g.IsMatrix()
             true
 
-            sage: # needs sage.libs.gap sage.rings.number_field
             sage: x = polygen(ZZ, 'x')
             sage: L.<tau> = NumberField(x^3 - 2)
             sage: A = MatrixSpace(L, 2, 2)([0, 1+tau, 2*tau, 3])
@@ -132,14 +128,14 @@ cdef class Matrix(Matrix0):
         """
         cdef Py_ssize_t i, j
         v = []
-        for i from 0 <= i < self._nrows:
-            tmp = []
-            for j from 0 <= j < self._ncols:
-                tmp.append(self.get_unsafe(i,j)._gap_init_())
-            v.append( '[%s]'%(','.join(tmp)) )
+        for i in range(self._nrows):
+            tmp = [self.get_unsafe(i, j)._gap_init_()
+                   for j in range(self._ncols)]
+            v.append('[%s]' % (','.join(tmp)))
         # It is needed to multiply with 'One(...)', because
         # otherwise the result would not be a gap matrix
-        return '[%s]*One(%s)'%(','.join(v),sage.interfaces.gap.gap(self.base_ring()).name())
+        return '[%s]*One(%s)' % (','.join(v),
+                                 sage.interfaces.gap.gap(self.base_ring()).name())
 
     def _libgap_(self):
         """
@@ -147,7 +143,7 @@ cdef class Matrix(Matrix0):
 
         INPUT:
 
-        - ``M`` -- a matrix.
+        - ``M`` -- a matrix
 
         OUTPUT:
 
@@ -216,21 +212,21 @@ cdef class Matrix(Matrix0):
         EXAMPLES::
 
             sage: M = matrix(ZZ, 2, range(4))
-            sage: giac(M)                                                               # needs sage.libs.giac
+            sage: giac(M)                                                               # needs giac
             [[0,1],[2,3]]
 
             sage: M = matrix(QQ, 3, [1,2,3, 4/3,5/3,6/4, 7,8,9])
-            sage: giac(M)                                                               # needs sage.libs.giac
+            sage: giac(M)                                                               # needs giac
             [[1,2,3],[4/3,5/3,3/2],[7,8,9]]
 
             sage: P.<x> = ZZ[]
             sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5])
-            sage: giac(M)                                                               # needs sage.libs.giac
+            sage: giac(M)                                                               # needs giac
             [[-9*sageVARx^2-2*sageVARx+2,sageVARx-1],[sageVARx^2+8*sageVARx,-3*sageVARx^2+5]]
 
             sage: y = var('y')                                                          # needs sage.symbolic
             sage: M = matrix(SR, 2, [y+sin(y), y - 4, 1/y, dilog(y)])                   # needs sage.symbolic
-            sage: giac(M).det().sage()                                                  # needs sage.libs.giac sage.symbolic
+            sage: giac(M).det().sage()                                                  # needs giac sage.symbolic
             (y^2*dilog(y) + y*dilog(y)*sin(y) - y + 4)/y
         """
         s = ','.join('[' + ','.join(cf._giac_init_() for cf in row) + ']'
@@ -261,9 +257,9 @@ cdef class Matrix(Matrix0):
         for i from 0 <= i < self._nrows:
             tmp = []
             for j from 0 <= j < self._ncols:
-                tmp.append(self.get_unsafe(i,j)._maxima_init_())
-            v.append( '[%s]'%(','.join(tmp)) )
-        return 'matrix(%s)'%(','.join(v))
+                tmp.append(self.get_unsafe(i, j)._maxima_init_())
+            v.append('[%s]' % (','.join(tmp)))
+        return 'matrix(%s)' % (','.join(v))
 
     def _mathematica_init_(self):
         """
@@ -405,7 +401,7 @@ cdef class Matrix(Matrix0):
 
     def _polymake_(self, polymake=None):
         """
-        Tries to coerce this matrix to a polymake matrix.
+        Try to coerce this matrix to a polymake matrix.
 
         EXAMPLES::
 
@@ -420,11 +416,11 @@ cdef class Matrix(Matrix0):
             0+1r5 3
         """
         P = polymake(self.parent())
-        return polymake.new_object(P, [ list(r) for r in self.rows(copy=False) ])
+        return polymake.new_object(P, [list(r) for r in self.rows(copy=False)])
 
     def _singular_(self, singular=None):
         """
-        Tries to coerce this matrix to a singular matrix.
+        Try to coerce this matrix to a singular matrix.
         """
         if singular is None:
             from sage.interfaces.singular import singular as singular_default
@@ -434,7 +430,8 @@ cdef class Matrix(Matrix0):
         except (NotImplementedError, AttributeError):
             raise TypeError("Cannot coerce to Singular")
 
-        return singular.matrix(self.nrows(),self.ncols(),singular(self.list()))
+        return singular.matrix(self.nrows(), self.ncols(),
+                               singular(self.list()))
 
     def _macaulay2_(self, macaulay2=None):
         """
@@ -504,13 +501,13 @@ cdef class Matrix(Matrix0):
         for i from 0 <= i < nr:
             tmp = []
             for j from 0 <= j < nc:
-                tmp.append(w[i*nc + j]._pari_init_())
-            v.append( ','.join(tmp))
-        return '[%s]'%(';'.join(v))
+                tmp.append(w[i * nc + j]._pari_init_())
+            v.append(','.join(tmp))
+        return '[%s]' % (';'.join(v))
 
     def _scilab_(self, scilab=None):
         """
-        Creates a ScilabElement object based on self and returns it.
+        Create a ScilabElement object based on ``self`` and returns it.
 
         EXAMPLES::
 
@@ -605,7 +602,6 @@ cdef class Matrix(Matrix0):
             []
             sage: sZeroRow = ZeroRow._sympy_(); sZeroRow                                # needs sympy
             Matrix(0, 2, [])
-
         """
         from sage.interfaces.sympy import sympy_init
         sympy_init()
@@ -658,7 +654,8 @@ cdef class Matrix(Matrix0):
             entries.sort()
             # We hand-format the keys to get rid of the space that would
             # normally follow the comma
-            entries = [(sib.name('(%d,%d)'%k), sib(v, 2)) for k,v in entries]
+            entries = [(sib.name('(%d,%d)' % k), sib(v, 2))
+                       for k, v in entries]
             return sib.name('matrix')(self.base_ring(),
                                       sib.int(self.nrows()),
                                       sib.int(self.ncols()),
@@ -671,15 +668,19 @@ cdef class Matrix(Matrix0):
             entries = [[sib(v, 2) for v in row] for row in self.rows()]
             return sib.name('matrix')(self.base_ring(), entries)
 
-    def numpy(self, dtype=None):
+    def numpy(self, dtype=None, copy=True):
         """
         Return the Numpy matrix associated to this matrix.
 
         INPUT:
 
-        - ``dtype`` -- The desired data-type for the array. If not given,
+        - ``dtype`` -- the desired data-type for the array. If not given,
           then the type will be determined as the minimum type required
           to hold the objects in the sequence.
+
+        - ``copy`` -- if `self` is already an `ndarray`, then this flag
+          determines whether the data is copied (the default), or whether
+          a view is constructed.
 
         EXAMPLES::
 
@@ -705,15 +706,18 @@ cdef class Matrix(Matrix0):
         Type ``numpy.typecodes`` for a list of the possible
         typecodes::
 
-            sage: import numpy                                                          # needs numpy
-            sage: sorted(numpy.typecodes.items())                                       # needs numpy
+            sage: import numpy                            # needs numpy
+            sage: numpy.typecodes.items()                 # needs numpy # random
             [('All', '?bhilqpBHILQPefdgFDGSUVOMm'), ('AllFloat', 'efdgFDG'),
-             ('AllInteger', 'bBhHiIlLqQpP'), ('Character', 'c'), ('Complex', 'FDG'),
-             ('Datetime', 'Mm'), ('Float', 'efdg'), ('Integer', 'bhilqp'),
-             ('UnsignedInteger', 'BHILQP')]
+            ...
+
+        For instance, you can see possibilities for real floating point numbers::
+
+            sage: numpy.typecodes['Float']                # needs numpy
+            'efdg'
 
         Alternatively, numpy automatically calls this function (via
-        the magic :meth:`__array__` method) to convert Sage matrices
+        the magic ``__array__`` method) to convert Sage matrices
         to numpy arrays::
 
             sage: # needs numpy
@@ -722,20 +726,48 @@ cdef class Matrix(Matrix0):
             array([[ 0,  1,  2,  3],
                    [ 4,  5,  6,  7],
                    [ 8,  9, 10, 11]])
-            sage: b.dtype
-            dtype('int32')  # 32-bit
-            dtype('int64')  # 64-bit
+            sage: d32 = numpy.dtype(numpy.int32)
+            sage: d64 = numpy.dtype(numpy.int64)
+            sage: b.dtype in [d32, d64]  # depends on machine bitness
+            True
             sage: b.shape
             (3, 4)
         """
         import numpy
-        A = numpy.matrix(self.list(), dtype=dtype)
-        return numpy.resize(A,(self.nrows(), self.ncols()))
+        A = numpy.matrix(self.list(), dtype=dtype, copy=copy)
+        return numpy.resize(A, (self.nrows(), self.ncols()))
+
+    def _mpmath_(self, prec=None, rounding=None):
+        """
+        Return a ``mpmath`` matrix.
+
+        INPUT: See :meth:`sage.structure.element.Element._mpmath_`.
+
+        EXAMPLES::
+
+            sage: # needs mpmath
+            sage: m = matrix(SR, 2, 2, [1, 2, 3, pi])
+            sage: from mpmath import mp
+            sage: mp.dps = 30
+            sage: mp.matrix(m)  # not tested (doesn't work yet)
+            sage: m._mpmath_(mp.prec)
+            matrix(
+            [['1.0', '2.0'],
+             ['3.0', '3.14159265358979323846264338328']])
+        """
+        if prec is None:
+            R = self.base_ring()
+            try:
+                prec = R.precision()
+            except AttributeError:
+                prec = 53
+        from mpmath import mp
+        return mp.matrix([[item._mpmath_(prec, rounding) for item in row] for row in self])
 
     # Define the magic "__array__" function so that numpy.array(m) can convert
     # a matrix m to a numpy array.
     # See http://docs.scipy.org/doc/numpy/user/c-info.how-to-extend.html#converting-an-arbitrary-sequence-object
-    __array__=numpy
+    __array__ = numpy
 
     ###################################################
     # Construction functions
@@ -760,7 +792,7 @@ cdef class Matrix(Matrix0):
 
     def lift(self):
         """
-        Return lift of self to the covering ring of the base ring R,
+        Return lift of ``self`` to the covering ring of the base ring R,
         which is by definition the ring returned by calling
         cover_ring() on R, or just R itself if the cover_ring method
         is not defined.
@@ -800,14 +832,14 @@ cdef class Matrix(Matrix0):
 
     def lift_centered(self):
         """
-        Apply the lift_centered method to every entry of self.
+        Apply the lift_centered method to every entry of ``self``.
 
         OUTPUT:
 
-        If self is a matrix over the Integers mod `n`, this method returns the
-        unique matrix `m` such that `m` is congruent to self mod `n` and for
+        If ``self`` is a matrix over the Integers mod `n`, this method returns the
+        unique matrix `m` such that `m` is congruent to ``self`` mod `n` and for
         every entry `m[i,j]` we have `-n/2 < m[i,j] \\leq n/2`. If the
-        coefficient ring does not have a cover_ring method, return self.
+        coefficient ring does not have a cover_ring method, return ``self``.
 
         EXAMPLES::
 
@@ -894,22 +926,6 @@ cdef class Matrix(Matrix0):
         self.cache('row_ambient_module', x)
         return x
 
-    def _row_ambient_module(self, base_ring=None):
-        r"""
-        TESTS::
-
-            sage: M = matrix(Zmod(5), 2, 3)
-            sage: M._row_ambient_module()
-            doctest:warning
-            ...
-            DeprecationWarning: the method _row_ambient_module is deprecated use row_ambient_module (without underscore) instead
-            See https://github.com/sagemath/sage/issues/32984 for details.
-            Vector space of dimension 3 over Ring of integers modulo 5
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(32984, 'the method _row_ambient_module is deprecated use row_ambient_module (without underscore) instead')
-        return self.row_ambient_module(base_ring)
-
     cpdef column_ambient_module(self, base_ring=None, sparse=None):
         r"""
         Return the free module that contains the columns of the matrix.
@@ -951,30 +967,14 @@ cdef class Matrix(Matrix0):
         self.cache('column_ambient_module', x)
         return x
 
-    def _column_ambient_module(self):
-        r"""
-        TESTS::
-
-            sage: M = matrix(Zmod(5), 2, 3)
-            sage: M._column_ambient_module()
-            doctest:warning
-            ...
-            DeprecationWarning: the method _column_ambient_module is deprecated use column_ambient_module (without underscore) instead
-            See https://github.com/sagemath/sage/issues/32984 for details.
-            Vector space of dimension 2 over Ring of integers modulo 5
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(32984, 'the method _column_ambient_module is deprecated use column_ambient_module (without underscore) instead')
-        return self.column_ambient_module()
-
     def columns(self, copy=True):
         r"""
-        Return a list of the columns of self.
+        Return a list of the columns of ``self``.
 
         INPUT:
 
-        - ``copy`` -- (default: ``True``) if True, return a copy of the list
-          of columns which is safe to change.
+        - ``copy`` -- boolean (default: ``True``); if ``True``, return a copy of the list
+          of columns which is safe to change
 
         If ``self`` is a sparse matrix, columns are returned as sparse vectors,
         otherwise returned vectors are dense.
@@ -1006,31 +1006,33 @@ cdef class Matrix(Matrix0):
             sage: A.columns('junk')
             Traceback (most recent call last):
             ...
-            ValueError: 'copy' must be True or False, not junk
+            ValueError: 'copy' must be ``True`` or False, not junk
         """
         if copy not in [True, False]:
-            msg = "'copy' must be True or False, not {0}"
+            msg = "'copy' must be ``True`` or False, not {0}"
             raise ValueError(msg.format(copy))
         x = self.fetch('columns')
         if x is not None:
-            if copy: return list(x)
+            if copy:
+                return list(x)
             return x
         if self.is_sparse():
             columns = self.sparse_columns(copy=copy)
         else:
             columns = self.dense_columns(copy=copy)
         self.cache('columns', columns)
-        if copy: return list(columns)
+        if copy:
+            return list(columns)
         return columns
 
     def rows(self, copy=True):
         r"""
-        Return a list of the rows of self.
+        Return a list of the rows of ``self``.
 
         INPUT:
 
-        - ``copy`` -- (default: ``True``) if True, return a copy of the list
-          of rows which is safe to change.
+        - ``copy`` -- boolean (default: ``True``); if ``True``, return a copy of the list
+          of rows which is safe to change
 
         If ``self`` is a sparse matrix, rows are returned as sparse vectors,
         otherwise returned vectors are dense.
@@ -1062,30 +1064,32 @@ cdef class Matrix(Matrix0):
             sage: A.rows('junk')
             Traceback (most recent call last):
             ...
-            ValueError: 'copy' must be True or False, not junk
+            ValueError: 'copy' must be ``True`` or False, not junk
         """
         if copy not in [True, False]:
-            msg = "'copy' must be True or False, not {0}"
+            msg = "'copy' must be ``True`` or False, not {0}"
             raise ValueError(msg.format(copy))
         x = self.fetch('rows')
         if x is not None:
-            if copy: return list(x)
+            if copy:
+                return list(x)
             return x
         if self.is_sparse():
             rows = self.sparse_rows(copy=copy)
         else:
             rows = self.dense_rows(copy=copy)
         self.cache('rows', rows)
-        if copy: return list(rows)
+        if copy:
+            return list(rows)
         return rows
 
     def dense_columns(self, copy=True):
         """
-        Return list of the dense columns of self.
+        Return list of the dense columns of ``self``.
 
         INPUT:
 
-        - ``copy`` -- (default: ``True``) if True, return a copy so you can
+        - ``copy`` -- boolean (default: ``True``); if ``True``, return a copy so you can
           modify it safely
 
         EXAMPLES:
@@ -1125,7 +1129,8 @@ cdef class Matrix(Matrix0):
         """
         x = self.fetch('dense_columns')
         if x is not None:
-            if copy: return list(x)
+            if copy:
+                return list(x)
             return x
         cdef Py_ssize_t i
         A = self if self.is_dense() else self.dense_matrix()
@@ -1139,16 +1144,15 @@ cdef class Matrix(Matrix0):
         self.cache('dense_columns', C)
         if copy:
             return list(C)
-        else:
-            return C
+        return C
 
     def dense_rows(self, copy=True):
         """
-        Return list of the dense rows of self.
+        Return list of the dense rows of ``self``.
 
         INPUT:
 
-        - ``copy`` -- (default: ``True``) if True, return a copy so you can
+        - ``copy`` -- boolean (default: ``True``); if ``True``, return a copy so you can
           modify it safely (note that the individual vectors in the copy
           should not be modified since they are mutable!)
 
@@ -1179,7 +1183,8 @@ cdef class Matrix(Matrix0):
         """
         x = self.fetch('dense_rows')
         if x is not None:
-            if copy: return list(x)
+            if copy:
+                return list(x)
             return x
 
         cdef Py_ssize_t i
@@ -1194,8 +1199,7 @@ cdef class Matrix(Matrix0):
         self.cache('dense_rows', R)
         if copy:
             return list(R)
-        else:
-            return R
+        return R
 
     def sparse_columns(self, copy=True):
         r"""
@@ -1203,8 +1207,8 @@ cdef class Matrix(Matrix0):
 
         INPUT:
 
-        - ``copy`` -- (default: ``True``) if True, return a copy so you can
-           modify it safely
+        - ``copy`` -- boolean (default: ``True``); if ``True``, return a copy so you can
+          modify it safely
 
         EXAMPLES::
 
@@ -1235,7 +1239,8 @@ cdef class Matrix(Matrix0):
         """
         x = self.fetch('sparse_columns')
         if x is not None:
-            if copy: return list(x)
+            if copy:
+                return list(x)
             return x
 
         cdef Py_ssize_t i, j
@@ -1270,8 +1275,7 @@ cdef class Matrix(Matrix0):
         self.cache('sparse_columns', C)
         if copy:
             return list(C)
-        else:
-            return C
+        return C
 
     def sparse_rows(self, copy=True):
         r"""
@@ -1279,8 +1283,8 @@ cdef class Matrix(Matrix0):
 
         INPUT:
 
-        - ``copy`` -- (default: ``True``) if True, return a copy so you can
-           modify it safely
+        - ``copy`` -- boolean (default: ``True``); if ``True``, return a copy so you can
+          modify it safely
 
         EXAMPLES::
 
@@ -1317,7 +1321,8 @@ cdef class Matrix(Matrix0):
         """
         x = self.fetch('sparse_rows')
         if x is not None:
-            if copy: return list(x)
+            if copy:
+                return list(x)
             return x
 
         cdef Py_ssize_t i, j
@@ -1352,12 +1357,11 @@ cdef class Matrix(Matrix0):
         self.cache('sparse_rows', R)
         if copy:
             return list(R)
-        else:
-            return R
+        return R
 
     def column(self, Py_ssize_t i, from_list=False):
         """
-        Return the ``i``'th column of this matrix as a vector.
+        Return the ``i``-th column of this matrix as a vector.
 
         This column is a dense vector if and only if the matrix is a dense
         matrix.
@@ -1366,12 +1370,11 @@ cdef class Matrix(Matrix0):
 
         - ``i`` -- integer
 
-        - ``from_list`` -- bool (default: ``False``); if true, returns the
-          ``i``'th element of ``self.columns()`` (see :func:`columns()`),
+        - ``from_list`` -- boolean (default: ``False``); if ``True``, returns the
+          ``i``-th element of ``self.columns()`` (see :func:`columns()`),
           which may be faster, but requires building a list of all
           columns the first time it is called after an entry of the
           matrix is changed.
-
 
         EXAMPLES::
 
@@ -1417,7 +1420,7 @@ cdef class Matrix(Matrix0):
 
     def row(self, Py_ssize_t i, from_list=False):
         """
-        Return the ``i``'th row of this matrix as a vector.
+        Return the ``i``-th row of this matrix as a vector.
 
         This row is a dense vector if and only if the matrix is a dense
         matrix.
@@ -1426,8 +1429,8 @@ cdef class Matrix(Matrix0):
 
         - ``i`` -- integer
 
-        - ``from_list`` -- bool (default: ``False``); if true, returns the
-          ``i``'th element of ``self.rows()`` (see :func:`rows`), which
+        - ``from_list`` -- boolean (default: ``False``); if ``True``, returns the
+          ``i``-th element of ``self.rows()`` (see :func:`rows`), which
           may be faster, but requires building a list of all rows the
           first time it is called after an entry of the matrix is
           changed.
@@ -1469,7 +1472,7 @@ cdef class Matrix(Matrix0):
             return self.rows(copy=False)[i]
         cdef Py_ssize_t j
         V = self.row_ambient_module()
-        tmp = [self.get_unsafe(i,j) for j in range(self._ncols)]
+        tmp = [self.get_unsafe(i, j) for j in range(self._ncols)]
         return V(tmp, coerce=False, copy=False, check=False)
 
     ###########################################################################
@@ -1487,10 +1490,10 @@ cdef class Matrix(Matrix0):
         INPUT:
 
         - ``bottom`` -- a matrix, vector or free module element, whose
-          dimensions are compatible with ``self``.
+          dimensions are compatible with ``self``
 
-        - ``subdivide`` -- (default: ``False``); request the resulting
-          matrix to have a new subdivision, separating ``self`` from ``bottom``.
+        - ``subdivide`` -- (default: ``False``) request the resulting
+          matrix to have a new subdivision, separating ``self`` from ``bottom``
 
         OUTPUT:
 
@@ -1515,9 +1518,9 @@ cdef class Matrix(Matrix0):
             :meth:`~sage.matrix.matrix2.Matrix.subdivisions`
             and
             :meth:`~sage.matrix.matrix2.Matrix.subdivide`.
-            You might also find :func:`~sage.matrix.constructor.block_matrix`
+            You might also find :func:`~sage.matrix.special.block_matrix`
             or
-            :func:`~sage.matrix.constructor.block_diagonal_matrix`
+            :func:`~sage.matrix.special.block_diagonal_matrix`
             useful and simpler in some instances.
 
         EXAMPLES:
@@ -1544,6 +1547,25 @@ cdef class Matrix(Matrix0):
             [  4   6]
             [  8  10]
             [100 200]
+
+        Coercion works as expected when stacking. ::
+
+            sage: A = matrix(QQ, 2, 2)
+            sage: v = vector([-1, 1])
+            sage: A.stack(v)
+            [ 0  0]
+            [ 0  0]
+            [-1  1]
+
+            sage: B = matrix(Zmod(15), 2, 2, 1, implementation='flint')
+            sage: C = matrix(Zmod(15), 2, 2, 2, implementation='linbox')
+            sage: D1 = B.stack(C); D1
+            [1 0]
+            [0 1]
+            [2 0]
+            [0 2]
+            sage: type(D1)
+            <class 'sage.matrix.matrix_modn_dense_flint.Matrix_modn_dense_flint'>
 
         Errors are raised if the sizes are incompatible. ::
 
@@ -1718,12 +1740,12 @@ cdef class Matrix(Matrix0):
                 bottom = bottom.row()
             else:
                 raise TypeError('a matrix must be stacked with '
-                        'another matrix or a vector')
+                                'another matrix or a vector')
             other = <Matrix?>bottom
 
         if self._ncols != other._ncols:
             raise TypeError("number of columns must be the same, not %s and %s" %
-                    (self.ncols(), bottom.ncols()) )
+                            (self.ncols(), bottom.ncols()))
 
         top_ring = self._base_ring
         bottom_ring = other._base_ring
@@ -1740,6 +1762,11 @@ cdef class Matrix(Matrix0):
                 other = other.sparse_matrix()
             elif other.is_sparse_c() and not self.is_sparse_c():
                 self = self.sparse_matrix()
+
+            # If self and other can both be dense/sparse and
+            # have different types even over the same parent
+            # (for example matrices over the integers mod N) then self must
+            # be able to handle a different type in _stack_impl
 
         Z = self._stack_impl(other)
         if subdivide:
@@ -1762,24 +1789,24 @@ cdef class Matrix(Matrix0):
         cdef Py_ssize_t nr = self._nrows
         for r in range(self._nrows):
             for c in range(self._ncols):
-                Z.set_unsafe(r, c, self.get_unsafe(r,c))
+                Z.set_unsafe(r, c, self.get_unsafe(r, c))
         for r in range(other._nrows):
             for c in range(other._ncols):
-                Z.set_unsafe(r+nr, c, other.get_unsafe(r,c))
+                Z.set_unsafe(r + nr, c, other.get_unsafe(r, c))
 
         return Z
 
     def augment(self, right, subdivide=False):
         r"""
-        Returns a new matrix formed by appending the matrix (or vector)
+        Return a new matrix formed by appending the matrix (or vector)
         ``right`` on the right side of ``self``.
 
         INPUT:
 
         - ``right`` -- a matrix, vector or free module element, whose
-          dimensions are compatible with ``self``.
+          dimensions are compatible with ``self``
 
-        - ``subdivide`` -- (default: ``False``); request the resulting
+        - ``subdivide`` -- (default: ``False``) request the resulting
           matrix to have a new subdivision, separating ``self`` from
           ``right``.
 
@@ -1805,10 +1832,9 @@ cdef class Matrix(Matrix0):
             need, you can manage subdivisions yourself with methods like
             :meth:`~sage.matrix.matrix2.Matrix.get_subdivisions` and
             :meth:`~sage.matrix.matrix2.Matrix.subdivide`.  You might
-            also find :func:`~sage.matrix.constructor.block_matrix` or
-            :func:`~sage.matrix.constructor.block_diagonal_matrix`
+            also find :func:`~sage.matrix.special.block_matrix` or
+            :func:`~sage.matrix.special.block_diagonal_matrix`
             useful and simpler in some instances.
-
 
         EXAMPLES:
 
@@ -1888,16 +1914,15 @@ cdef class Matrix(Matrix0):
             [2 3|3 4 5]
             [4 5|6 7 8]
 
-        The result retains the base ring of ``self`` by coercing the
-        elements of ``right`` into the base ring of ``self``. ::
+        The base ring of the result is the pushout of the base rings of the inputs::
 
             sage: A = matrix(QQ, 2, [1,2])
             sage: B = matrix(RR, 2, [sin(1.1), sin(2.2)])
-            sage: C = A.augment(B); C                                                   # needs sage.symbolic
-            [                  1 183017397/205358938]
-            [                  2 106580492/131825561]
-            sage: C.parent()                                                            # needs sage.symbolic
-            Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+            sage: C = A.augment(B); C
+            [ 1.00000000000000 0.891207360061435]
+            [ 2.00000000000000 0.808496403819590]
+            sage: C.parent()
+            Full MatrixSpace of 2 by 2 dense matrices over Real Field with 53 bits of precision
 
             sage: D = B.augment(A); D
             [0.89120736006...  1.00000000000000]
@@ -1906,13 +1931,11 @@ cdef class Matrix(Matrix0):
             Full MatrixSpace of 2 by 2 dense matrices
              over Real Field with 53 bits of precision
 
-        Sometimes it is not possible to coerce into the base ring of
-        ``self``.  A solution is to change the base ring of ``self`` to
-        a more expansive ring.  Here we mix the rationals with a ring of
-        polynomials with rational coefficients.  ::
+        The base ring of the result is the pushout of the base rings of
+        the inputs::
 
-            sage: R.<y> = PolynomialRing(QQ)
-            sage: A = matrix(QQ, 1, [1,2])
+            sage: R.<y> = PolynomialRing(ZZ)
+            sage: A = matrix(QQ, 1, [1, 2])
             sage: B = matrix(R, 1, [y, y^2])
 
             sage: C = B.augment(A); C
@@ -1921,17 +1944,24 @@ cdef class Matrix(Matrix0):
             Full MatrixSpace of 1 by 4 dense matrices over
              Univariate Polynomial Ring in y over Rational Field
 
-            sage: D = A.augment(B)
-            Traceback (most recent call last):
-            ...
-            TypeError: y is not a constant polynomial
+            sage: D = A.augment(B); D
+            [  1   2   y y^2]
+            sage: D.parent()
+            Full MatrixSpace of 1 by 4 dense matrices over Univariate Polynomial Ring in y over Rational Field
 
             sage: E = A.change_ring(R)
             sage: F = E.augment(B); F
             [  1   2   y y^2]
             sage: F.parent()
-            Full MatrixSpace of 1 by 4 dense matrices over
-             Univariate Polynomial Ring in y over Rational Field
+            Full MatrixSpace of 1 by 4 dense matrices over Univariate Polynomial Ring in y over Integer Ring
+
+        Vector entries are coerced through the common base ring before
+        matching matrix implementations::
+
+            sage: A = matrix(QQ, 2, 2, [1, 2, 3, 4])
+            sage: A.augment(vector(ZZ, [5, 6]))
+            [1 2 5]
+            [3 4 6]
 
         AUTHORS:
 
@@ -1945,7 +1975,7 @@ cdef class Matrix(Matrix0):
                 right = right.column()
             else:
                 raise TypeError("a matrix must be augmented with another matrix, "
-                    "or a vector")
+                                "or a vector")
 
         cdef Matrix other
         other = right
@@ -1953,21 +1983,37 @@ cdef class Matrix(Matrix0):
         if self._nrows != other._nrows:
             raise TypeError('number of rows must be the same, '
                 '{0} != {1}'.format(self._nrows, other._nrows))
-        if not (self._base_ring is other.base_ring()):
-            other = other.change_ring(self._base_ring)
+        left_ring = self._base_ring
+        right_ring = other._base_ring
+        if left_ring is not right_ring:
+            R = coercion_model.common_parent(left_ring, right_ring)
+            if left_ring is not R:
+                self = self.change_ring(R)
+            if right_ring is not R:
+                other = other.change_ring(R)
+
+        if type(self) is not type(other):
+            # If one of the matrices is sparse, return a sparse matrix
+            if self.is_sparse_c() and not other.is_sparse_c():
+                other = other.sparse_matrix()
+            elif other.is_sparse_c() and not self.is_sparse_c():
+                self = self.sparse_matrix()
+            if type(self) is not type(other):
+                # If still not the same type, try using _change_implementation
+                other = other._change_implementation(self.parent().Element)
 
         cdef Matrix Z
-        Z = self.new_matrix(ncols = self._ncols + other._ncols)
+        Z = self.new_matrix(ncols=self._ncols + other._ncols)
 
         cdef Py_ssize_t r, c
         for r from 0 <= r < self._nrows:
             for c from 0 <= c < self._ncols:
-                Z.set_unsafe(r,c, self.get_unsafe(r,c))
+                Z.set_unsafe(r, c, self.get_unsafe(r, c))
         nc = self.ncols()
 
         for r from 0 <= r < other._nrows:
             for c from 0 <= c < other._ncols:
-                Z.set_unsafe(r, c+nc, other.get_unsafe(r,c))
+                Z.set_unsafe(r, c + nc, other.get_unsafe(r, c))
 
         if subdivide:
             Z._subdivide_on_augment(self, other)
@@ -1976,7 +2022,7 @@ cdef class Matrix(Matrix0):
 
     def matrix_from_columns(self, columns):
         """
-        Return the matrix constructed from self using columns with indices
+        Return the matrix constructed from ``self`` using columns with indices
         in the columns list.
 
         EXAMPLES::
@@ -2001,7 +2047,7 @@ cdef class Matrix(Matrix0):
             if col < 0 or col >= self._ncols:
                 raise IndexError("column index out of range")
             for i in range(self._nrows):
-                A.set_unsafe(i, j, self.get_unsafe(i, col))
+                A.copy_from_unsafe(i, j, self, i, col)
         return A
 
     def delete_columns(self, dcols, check=True):
@@ -2010,8 +2056,9 @@ cdef class Matrix(Matrix0):
 
         INPUT:
 
-        * ``dcols`` -- list of indices of columns to be deleted from self.
-        * ``check`` -- checks whether any index in ``dcols`` is out of range. Defaults to ``True``.
+        - ``dcols`` -- list of indices of columns to be deleted from ``self``
+        - ``check`` -- boolean (default: ``True``); check whether any index in
+          ``dcols`` is out of range
 
         .. SEEALSO::
 
@@ -2074,7 +2121,7 @@ cdef class Matrix(Matrix0):
 
     def matrix_from_rows(self, rows):
         """
-        Return the matrix constructed from self using rows with indices in
+        Return the matrix constructed from ``self`` using rows with indices in
         the rows list.
 
         EXAMPLES::
@@ -2098,7 +2145,7 @@ cdef class Matrix(Matrix0):
             if row < 0 or row >= self._nrows:
                 raise IndexError("row index out of range")
             for j in range(self._ncols):
-                A.set_unsafe(i, j, self.get_unsafe(row, j))
+                A.copy_from_unsafe(i, j, self, row, j)
         return A
 
     def delete_rows(self, drows, check=True):
@@ -2107,8 +2154,9 @@ cdef class Matrix(Matrix0):
 
         INPUT:
 
-        * ``drows`` -- list of indices of rows to be deleted from ``self``.
-        * ``check`` -- (boolean, default: ``True``); whether to check if any index in ``drows`` is out of range.
+        - ``drows`` -- list of indices of rows to be deleted from ``self``
+        - ``check`` -- boolean (default: ``True``); whether to check if any
+          index in ``drows`` is out of range
 
         .. SEEALSO::
 
@@ -2132,7 +2180,7 @@ cdef class Matrix(Matrix0):
             [ 3  4  5]
             [ 9 10 11]
 
-        The default is to check whether the any index in ``drows`` is out of range. ::
+        The default is to check whether any index in ``drows`` is out of range. ::
 
             sage: A.delete_rows([-1,2,4])
             Traceback (most recent call last):
@@ -2224,19 +2272,19 @@ cdef class Matrix(Matrix0):
             if row < 0 or row >= self._nrows:
                 raise IndexError("row index out of range")
             for j, col in enumerate(columns):
-                A.set_unsafe(i, j, self.get_unsafe(row, col))
+                A.copy_from_unsafe(i, j, self, row, col)
         return A
 
     def submatrix(self, Py_ssize_t row=0, Py_ssize_t col=0,
-                        Py_ssize_t nrows=-1, Py_ssize_t ncols=-1):
+                  Py_ssize_t nrows=-1, Py_ssize_t ncols=-1):
         """
-        Return the matrix constructed from self using the specified
+        Return the matrix constructed from ``self`` using the specified
         range of rows and columns.
 
         INPUT:
 
-        - ``row``, ``col`` -- index of the starting row and column.
-          Indices start at zero.
+        - ``row``, ``col`` -- index of the starting row and column (indices
+          start at zero)
 
         - ``nrows``, ``ncols`` -- (optional) number of rows and columns to
           take. If not provided, take all rows below and all columns to
@@ -2283,17 +2331,18 @@ cdef class Matrix(Matrix0):
             nrows = self._nrows - row
         if ncols == -1:
             ncols = self._ncols - col
-        return self.matrix_from_rows_and_columns(range(row, row+nrows), range(col, col+ncols))
+        return self.matrix_from_rows_and_columns(range(row, row + nrows),
+                                                 range(col, col + ncols))
 
     def set_row(self, row, v):
         r"""
-        Sets the entries of row ``row`` to the entries of ``v``.
+        Set the entries of row ``row`` to the entries of ``v``.
 
         INPUT:
 
-        - ``row`` -- index of row to be set.
+        - ``row`` -- index of row to be set
 
-        - ``v`` -- a list or vector of the new entries.
+        - ``v`` -- list or vector of the new entries
 
         OUTPUT:
 
@@ -2349,7 +2398,7 @@ cdef class Matrix(Matrix0):
             raise ValueError(msg.format(self._ncols, len(v)))
         if (row < 0) or (row >= self._nrows):
             msg = "row number must be between 0 and {0} (inclusive), not {1}"
-            raise ValueError(msg.format(self._nrows-1, row))
+            raise ValueError(msg.format(self._nrows - 1, row))
 
         try:
             for j in range(self._ncols):
@@ -2360,13 +2409,13 @@ cdef class Matrix(Matrix0):
 
     def set_column(self, col, v):
         r"""
-        Sets the entries of column ``col`` to the entries of ``v``.
+        Set the entries of column ``col`` to the entries of ``v``.
 
         INPUT:
 
-        - ``col`` -- index of column to be set.
+        - ``col`` -- index of column to be set
 
-        - ``v`` -- a list or vector of the new entries.
+        - ``v`` -- list or vector of the new entries
 
         OUTPUT:
 
@@ -2423,7 +2472,7 @@ cdef class Matrix(Matrix0):
             raise ValueError(msg.format(self._nrows, len(v)))
         if (col < 0) or (col >= self._ncols):
             msg = "column number must be between 0 and {0} (inclusive), not {1}"
-            raise ValueError(msg.format(self._ncols-1, col))
+            raise ValueError(msg.format(self._ncols - 1, col))
 
         try:
             for i in range(self._nrows):
@@ -2492,7 +2541,6 @@ cdef class Matrix(Matrix0):
 
         ::
 
-            sage: # needs sage.rings.finite_rings
             sage: K.<a> = GF(2^4)
             sage: l = [a^2 + 1, a^3 + 1, 0, 0, a, a^3 + a + 1, a + 1,
             ....:      a + 1, a^2, a^3 + a + 1, a^3 + a, a^3 + a]
@@ -2507,7 +2555,6 @@ cdef class Matrix(Matrix0):
 
         ::
 
-            sage: # needs sage.rings.finite_rings
             sage: K.<a> = GF(25)
             sage: M = Matrix(K, 2, 3, [0, 2, 3, 5, a, a^2])
             sage: M
@@ -2520,7 +2567,7 @@ cdef class Matrix(Matrix0):
         .. NOTE::
 
             This method can be optimized by improving
-            :meth:`get_is_zero_unsafe` for derived matrix classes.
+            ``get_is_zero_unsafe`` for derived matrix classes.
         """
         if ring is None:
             from sage.rings.integer_ring import ZZ
@@ -2607,7 +2654,7 @@ cdef class Matrix(Matrix0):
             return self
         cdef Matrix A
         A = self.new_matrix(self._nrows, self._ncols, self,
-                coerce=False, sparse=False)
+                            coerce=False, sparse=False)
         if self._subdivisions is not None:
             A.subdivide(self.subdivisions())
         return A
@@ -2651,22 +2698,22 @@ cdef class Matrix(Matrix0):
         if self.is_sparse():
             return self
         A = self.new_matrix(self._nrows, self._ncols, self,
-                coerce=False, sparse=True)
+                            coerce=False, sparse=True)
         if self._subdivisions is not None:
             A.subdivide(self.subdivisions())
         return A
 
     def matrix_space(self, nrows=None, ncols=None, sparse=None):
         """
-        Return the ambient matrix space of self.
+        Return the ambient matrix space of ``self``.
 
         INPUT:
 
         - ``nrows``, ``ncols`` -- (optional) number of rows and columns in
-          returned matrix space.
+          returned matrix space
 
         - ``sparse`` -- whether the returned matrix space uses sparse or
-          dense matrices.
+          dense matrices
 
         EXAMPLES::
 
@@ -2715,7 +2762,7 @@ cdef class Matrix(Matrix0):
         """
         Create a matrix in the parent of this matrix with the given number
         of rows, columns, etc. The default parameters are the same as for
-        self.
+        ``self``.
 
         INPUT:
 
@@ -2723,9 +2770,9 @@ cdef class Matrix(Matrix0):
 
         - ``nrows``, ``ncols`` -- number of rows and columns in returned
           matrix. If not specified, defaults to ``None`` and will give a
-          matrix of the same size as self.
+          matrix of the same size as ``self``.
         - ``sparse`` -- whether returned matrix is sparse or not. Defaults
-          to same value as self.
+          to same value as self
 
         The remaining three variables (``coerce``, ``entries``, and
         ``copy``) are used by
@@ -2735,7 +2782,7 @@ cdef class Matrix(Matrix0):
         .. warning::
 
            This function called with no arguments returns the zero
-           matrix of the same dimension and sparseness of self.
+           matrix of the same dimension and sparseness of ``self``.
 
         EXAMPLES::
 
@@ -2784,7 +2831,7 @@ cdef class Matrix(Matrix0):
 
     def block_sum(self, Matrix other):
         """
-        Return the block matrix that has self and other on the diagonal::
+        Return the block matrix that has ``self`` and ``other`` on the diagonal::
 
             [ self     0 ]
             [    0 other ]

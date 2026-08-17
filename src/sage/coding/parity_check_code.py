@@ -40,9 +40,9 @@ class ParityCheckCode(AbstractLinearCode):
 
     INPUT:
 
-    - ``base_field`` -- the base field over which ``self`` is defined.
+    - ``base_field`` -- the base field over which ``self`` is defined
 
-    - ``dimension`` -- the dimension of ``self``.
+    - ``dimension`` -- the dimension of ``self``
 
     EXAMPLES::
 
@@ -61,9 +61,9 @@ class ParityCheckCode(AbstractLinearCode):
         INPUT:
 
         - ``base_field`` -- the base field over which ``self`` is defined
-                            or GF(2) if no base_field.
+          or GF(2) if no base_field
 
-        - ``dimension`` -- the dimension of ``self`` or 7 if no dimension.
+        - ``dimension`` -- the dimension of ``self`` or 7 if no dimension
 
         EXAMPLES::
 
@@ -148,7 +148,7 @@ class ParityCheckCodeGeneratorMatrixEncoder(LinearCodeGeneratorMatrixEncoder):
 
     INPUT:
 
-    - ``code`` -- the associated code of this encoder.
+    - ``code`` -- the associated code of this encoder
 
     EXAMPLES::
 
@@ -212,7 +212,7 @@ class ParityCheckCodeStraightforwardEncoder(Encoder):
 
     INPUT:
 
-    - ``code`` -- the associated code of this encoder.
+    - ``code`` -- the associated code of this encoder
 
     EXAMPLES::
 
@@ -286,16 +286,15 @@ class ParityCheckCodeStraightforwardEncoder(Encoder):
 
     def encode(self, message):
         r"""
-        Transform the vector ``message`` into a codeword of :meth:`code`.
+        Transform the vector ``message`` into a codeword of
+        :meth:`~sage.coding.encoder.Encoder.code`.
 
         INPUT:
 
-        - ``message`` -- A ``self.code().dimension()``-vector from the message
-          space of ``self``.
+        - ``message`` -- a ``self.code().dimension()``-vector from the message
+          space of ``self``
 
-        OUTPUT:
-
-        - A codeword in associated code of ``self``.
+        OUTPUT: a codeword in associated code of ``self``
 
         EXAMPLES::
 
@@ -318,13 +317,11 @@ class ParityCheckCodeStraightforwardEncoder(Encoder):
 
         INPUT:
 
-        - ``word`` -- A ``self.code().length()``-vector from the ambiant space
-          of ``self``.
+        - ``word`` -- a ``self.code().length()``-vector from the ambiant space
+          of ``self``
 
-        OUTPUT:
-
-        - A vector corresponding to the ``self.code().dimension()``-first
-          symbols in ``word``.
+        OUTPUT: a vector corresponding to the ``self.code().dimension()``-first
+        symbols in ``word``
 
         EXAMPLES::
 

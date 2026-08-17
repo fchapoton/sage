@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-objects
 r"""
 Set factories
 =============
@@ -198,7 +197,7 @@ Now all subsets are the parent of the elements that they create::
     True
 
 3 - Finally, a common use case is to construct simple python object which are
-not Sage :class:`sage.structure.Element`. As an example, we show how to build
+not Sage :class:`~sage.structure.element.Element`. As an example, we show how to build
 a parent ``TupleS`` which construct pairs as tuple. The corresponding policy
 is called :class:`BareFunctionPolicy`. It takes two parameters:
 
@@ -306,12 +305,12 @@ AUTHORS:
 
 - Florent Hivert (2011-2012): initial revision
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2012 Florent Hivert <florent.hivert at lri.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 
 from sage.structure.sage_object import SageObject
@@ -523,7 +522,8 @@ class SetFactoryPolicy(UniqueRepresentation, SageObject):
 
         Should return the attributes that are prerequisite for element
         construction. This is coordinated with
-        :meth:`ParentWithSetFactory._element_constructor_`. Currently two standard
+        ``ParentWithSetFactory._element_constructor_``.
+        Currently two standard
         attributes are provided in
         :meth:`facade_element_constructor_attributes` and
         :meth:`self_element_constructor_attributes`. You should return the
@@ -625,7 +625,7 @@ class TopMostParentPolicy(SetFactoryPolicy):
     INPUT:
 
     - ``factory`` -- an instance of :class:`SetFactory`
-    - ``top_constraints`` -- the empty set of constraints.
+    - ``top_constraints`` -- the empty set of constraints
     - ``Element`` -- a subclass of :class:`~.element.Element`
 
     Given a factory ``F`` and a class ``E``, returns a policy for
@@ -678,9 +678,8 @@ class TopMostParentPolicy(SetFactoryPolicy):
         factory = self._factory
         if constraints == self._top_constraints:
             return self.self_element_constructor_attributes(self._Element)
-        else:
-            return self.facade_element_constructor_attributes(
-                factory(*self._top_constraints, policy=self))
+        return self.facade_element_constructor_attributes(
+            factory(*self._top_constraints, policy=self))
 
     def _repr_(self):
         r"""
@@ -846,7 +845,8 @@ class BareFunctionPolicy(SetFactoryPolicy):
             sage: pol.element_constructor_attributes(())
             {'_element_constructor_': <... 'tuple'>, '_parent_for': None}
         """
-        return {'_element_constructor_' : self._constructor, '_parent_for' : None}
+        return {'_element_constructor_': self._constructor,
+                '_parent_for': None}
 
     def _repr_(self):
         r"""
@@ -871,9 +871,9 @@ class ParentWithSetFactory(Parent):
 
     INPUT:
 
-    - ``constraints`` -- a set of constraints
+    - ``constraints`` -- set of constraints
     - ``policy`` -- the policy for element construction
-    - ``category`` -- the category of the parent (default to ``None``)
+    - ``category`` -- the category of the parent (default: ``None``)
 
     Depending on the constraints and the policy, initialize the parent
     in a proper category to set up element construction.
@@ -1018,8 +1018,7 @@ class ParentWithSetFactory(Parent):
 
     def _test_subset(self, **options):
         r"""
-        Tests that subsets with no extra parameters returns
-        ``self``.
+        Test that subsets with no extra parameters returns ``self``.
 
         Currently, only the test that one gets the same parent when no
         more constraints are given, is performed.
@@ -1045,16 +1044,16 @@ class ParentWithSetFactory(Parent):
 
         INPUT:
 
-        - ``x`` -- an instance of ``self.element_class``.
+        - ``x`` -- an instance of ``self.element_class``
 
         - ``check`` -- the level of checking to be performed (usually a
-          boolean).
+          boolean)
 
         This method may assume that ``x`` was properly constructed by
         ``self`` or a possible super-set of ``self`` for which
         ``self`` is a facade. It should return nothing if ``x``
         verifies the constraints and raise a
-        :exc:`~exceptions.ValueError` explaining which constraints
+        :exc:`ValueError` explaining which constraints
         ``x`` fails otherwise.
 
         The method should accept an extra parameter check specifying
@@ -1108,7 +1107,7 @@ class ParentWithSetFactory(Parent):
             False
         """
         if (isinstance(x, self.element_class) and
-            x.parent() == self._parent_for):  # TODO: is_parent_of ???
+                x.parent() == self._parent_for):  # TODO: is_parent_of ???
             try:
                 self.check_element(x, True)
             except ValueError:
@@ -1141,13 +1140,12 @@ class ParentWithSetFactory(Parent):
         # Ensure idempotence of element construction
         if (len(args) == 1 and
             isinstance(args[0], self.element_class) and
-            args[0].parent() == self._parent_for):
+                args[0].parent() == self._parent_for):
             check = keywords.get("check", True)
             if check:
                 self.check_element(args[0], check)
             return args[0]
-        else:
-            return Parent.__call__(self, *args, **keywords)
+        return Parent.__call__(self, *args, **keywords)
 
     # QUESTION: Should we call:
     #     self._parent_for._element_constructor_

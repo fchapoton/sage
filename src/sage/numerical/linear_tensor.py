@@ -85,14 +85,14 @@ become symbolic inequalities. See
     construction.
 """
 
-#*****************************************************************************
+# ***************************************************************************
 #       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ***************************************************************************
 
 
 from copy import copy
@@ -102,52 +102,12 @@ from sage.misc.cachefunc import cached_function
 from sage.numerical.linear_functions import LinearFunction, LinearFunctionsParent_class
 from sage.numerical.linear_tensor_element import LinearTensor
 
-
-#*****************************************************************************
-#
-# Utility functions to test that something is a linear function / constraint
-#
-#*****************************************************************************
-
-def is_LinearTensor(x):
-    """
-    Test whether ``x`` is a tensor product of linear functions with a
-    free module.
-
-    INPUT:
-
-    - ``x`` -- anything.
-
-    OUTPUT:
-
-    Boolean.
-
-    EXAMPLES::
-
-        sage: p = MixedIntegerLinearProgram()
-        sage: x = p.new_variable(nonnegative=False)
-        sage: from sage.numerical.linear_tensor import is_LinearTensor
-        sage: is_LinearTensor(x[0] - 2*x[2])
-        doctest:warning...
-        DeprecationWarning: The function is_LinearTensor is deprecated;
-        use 'isinstance(..., LinearTensor)' instead.
-        See https://github.com/sagemath/sage/issues/38184 for details.
-        False
-        sage: is_LinearTensor('a string')
-        False
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(38184,
-                "The function is_LinearTensor is deprecated; "
-                "use 'isinstance(..., LinearTensor)' instead.")
-    return isinstance(x, LinearTensor)
-
-
-#*****************************************************************************
+# ***************************************************************************
 #
 # Factory functions for the parents to ensure uniqueness
 #
-#*****************************************************************************
+# ***************************************************************************
+
 
 @cached_function
 def LinearTensorParent(free_module_parent, linear_functions_parent):
@@ -159,11 +119,10 @@ def LinearTensorParent(free_module_parent, linear_functions_parent):
 
     INPUT:
 
-    - ``free_module_parent`` -- module. A free module, like vector or
-      matrix space.
+    - ``free_module_parent`` -- a free module, like vector or matrix space
 
-    - ``linear_functions_parent`` -- linear functions. The linear
-      functions parent.
+    - ``linear_functions_parent`` -- linear functions; the linear functions
+      parent
 
     OUTPUT:
 
@@ -204,9 +163,7 @@ class LinearTensorParent_class(Parent):
         You should use :func:`LinearTensorParent` to construct
         instances of this class.
 
-    INPUT/OUTPUT:
-
-    See :func:`LinearTensorParent`
+    INPUT/OUTPUT: see :func:`LinearTensorParent`
 
     EXAMPLES::
 
@@ -218,11 +175,9 @@ class LinearTensorParent_class(Parent):
 
     def __init__(self, free_module, linear_functions):
         """
-        The Python constructor
+        The Python constructor.
 
-        INPUT/OUTPUT:
-
-        See :func:`LinearTensorParent`
+        INPUT/OUTPUT: see :func:`LinearTensorParent`
 
         TESTS::
 
@@ -263,10 +218,8 @@ class LinearTensorParent_class(Parent):
         """
         Return whether the free module is a vector space.
 
-        OUTPUT:
-
-        Boolean. Whether the :meth:`free_module` factor in the tensor
-        product is a vector space.
+        OUTPUT: boolean; whether the :meth:`free_module` factor in the tensor
+        product is a vector space
 
         EXAMPLES::
 
@@ -284,10 +237,8 @@ class LinearTensorParent_class(Parent):
         """
         Return whether the free module is a matrix space.
 
-        OUTPUT:
-
-        Boolean. Whether the :meth:`free_module` factor in the tensor
-        product is a matrix space.
+        OUTPUT: boolean; whether the :meth:`free_module` factor in the tensor
+        product is a matrix space
 
         EXAMPLES::
 
@@ -325,11 +276,9 @@ class LinearTensorParent_class(Parent):
 
     def _repr_(self):
         """
-        Return a string representation
+        Return a string representation.
 
-        OUTPUT:
-
-        String.
+        OUTPUT: string
 
         EXAMPLES::
 
@@ -342,9 +291,7 @@ class LinearTensorParent_class(Parent):
         """
         Convert ``m`` to a constant free module element.
 
-        OUTPUT:
-
-        A :meth:`free_module` element.
+        OUTPUT: a :meth:`free_module` element
 
         EXAMPLES::
 
@@ -365,12 +312,11 @@ class LinearTensorParent_class(Parent):
                 m_matrix[i, i] = m
             m_matrix.set_immutable()
             return m_matrix
-        elif self.is_vector_space():
+        if self.is_vector_space():
             # Turn constants into vectors with all entries equal
             m_vector = M([m] * M.degree())
             return m_vector
-        else:
-            return M(m)
+        return M(m)
 
     def _element_constructor_(self, x):
         """
@@ -441,11 +387,9 @@ class LinearTensorParent_class(Parent):
 
         INPUT:
 
-        - ``R`` -- a ring.
+        - ``R`` -- a ring
 
-        OUTPUT:
-
-        Boolean. Whether there is a coercion map.
+        OUTPUT: boolean; whether there is a coercion map
 
         EXAMPLES::
 
@@ -464,17 +408,13 @@ class LinearTensorParent_class(Parent):
         """
         if self.free_module().has_coerce_map_from(R):
             return True
-        if self.linear_functions().has_coerce_map_from(R):
-            return True
-        return False
+        return self.linear_functions().has_coerce_map_from(R)
 
     def _an_element_(self):
         """
-        Returns an element
+        Return an element.
 
-        OUTPUT:
-
-        A linear function tensored with a free module.
+        OUTPUT: a linear function tensored with a free module
 
         EXAMPLES::
 

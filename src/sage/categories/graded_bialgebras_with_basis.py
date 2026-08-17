@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-categories
 r"""
 Graded bialgebras with basis
 """
@@ -13,7 +12,7 @@ Graded bialgebras with basis
 
 def GradedBialgebrasWithBasis(base_ring):
     """
-    The category of graded bialgebras with a distinguished basis
+    The category of graded bialgebras with a distinguished basis.
 
     EXAMPLES::
 

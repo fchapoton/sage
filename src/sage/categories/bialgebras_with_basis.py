@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-categories
 r"""
 Bialgebras with basis
 """
@@ -12,7 +11,6 @@ Bialgebras with basis
 
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.tensor import tensor
-from sage.misc.superseded import deprecated_function_alias
 
 
 class BialgebrasWithBasis(CategoryWithAxiom_over_base_ring):
@@ -71,7 +69,7 @@ class BialgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             .. SEEALSO::
 
-                :meth:`sage.categories.bialgebras.ElementMethods.convolution_product`
+                :meth:`sage.categories.bialgebras_with_basis.BialgebrasWithBasis.ElementMethods.convolution_product`
 
             AUTHORS:
 
@@ -156,11 +154,9 @@ class BialgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             INPUT:
 
-            - ``n`` -- a nonnegative integer
+            - ``n`` -- nonnegative integer
 
-            OUTPUT:
-
-            - the image of ``self`` under the convolution power `\mathrm{Id}^{*n}`
+            OUTPUT: the image of ``self`` under the convolution power `\mathrm{Id}^{*n}`
 
             .. NOTE::
 
@@ -169,7 +165,7 @@ class BialgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             .. SEEALSO::
 
-                :meth:`sage.categories.bialgebras.ElementMethods.convolution_product`
+                :meth:`sage.categories.bialgebras_with_basis.BialgebrasWithBasis.ParentMethods.convolution_product`
 
             .. TODO::
 
@@ -216,9 +212,6 @@ class BialgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 T = lambda x: x
             return self.convolution_product([T] * n)
 
-        adams_operator = deprecated_function_alias(36396,
-                                                   convolution_power_of_id)
-
         def convolution_product(self, *maps):
             r"""
             Return the image of ``self`` under the convolution product (map) of
@@ -249,9 +242,7 @@ class BialgebrasWithBasis(CategoryWithAxiom_over_base_ring):
               \ldots, f_n` on ``self.parent()``; or a single ``list`` or
               ``tuple`` of such maps
 
-            OUTPUT:
-
-            - the convolution product of ``maps`` applied to ``self``
+            OUTPUT: the convolution product of ``maps`` applied to ``self``
 
             AUTHORS:
 
@@ -406,7 +397,7 @@ class BialgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             for mor in T[:-1]:
                 # ALGORITHM:
-                # `split_convolve` moves terms of the form x # y to x*Ti(y1) # y2 in Sweedler notation.
+                # ``split_convolve`` moves terms of the form x # y to x*Ti(y1) # y2 in Sweedler notation.
                 def split_convolve(x_y):
                     x, y = x_y
                     return (((xy1, y2), c * d)

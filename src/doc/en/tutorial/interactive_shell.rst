@@ -169,9 +169,9 @@ file).
 
 .. skip
 
-.. CODE-BLOCK:: shell-session
+.. code-block:: console
 
-    was@form:~$ sage
+    $ sage
     ┌────────────────────────────────────────────────────────────────────┐
     │ SageMath version 9.7, Release Date: 2022-01-10                     │
     │ Using Python 3.10.4. Type "help()" for help.                       │
@@ -363,9 +363,9 @@ this may indicate a performance issue worth looking into.
     sage: time g = maple('1938^99484')
     CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
     Wall time: 0.11
-    sage: gap(0)
+    sage: libgap(0)
     0
-    sage: time g = gap.eval('1938^99484;;')
+    sage: time g = libgap.eval('1938^99484;')
     CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
     Wall time: 1.02
 
@@ -379,7 +379,7 @@ Other IPython tricks
 
 As noted above, Sage uses IPython as its front end, and so you can use
 any of IPython's commands and features.  You can read the `full
-IPython documentation <http://ipython.scipy.org/moin/Documentation>`_.
+IPython documentation <https://ipython.readthedocs.io/en/stable/>`_.
 Meanwhile, here are some fun tricks -- these are called "Magic
 commands" in IPython:
 
@@ -793,7 +793,7 @@ allowed.
 
 ::
 
-    sage: a = gap(2)
+    sage: a = libgap(2)
     sage: a.save('a')
     sage: load('a')
     Traceback (most recent call last):

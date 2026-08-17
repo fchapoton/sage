@@ -34,15 +34,15 @@ complementary representations of the same data:
       points are equal if and only if the vector is the same.
 
     * **rays** `r_1,\dots,r_m` are a finite number of directions
-      (directions of infinity). Each ray is specified by a non-zero
+      (directions of infinity). Each ray is specified by a nonzero
       vector, and two rays are equal if and only if the vectors are
       the same up to rescaling with a positive constant.
 
     * **lines** `\ell_1,\dots,\ell_n` are a finite number of
       unoriented directions. In other words, a line is equivalent to
       the set `\{r, -r\}` for a ray `r`. Each line is specified by a
-      non-zero vector, and two lines are equivalent if and only if the
-      vectors are the same up to rescaling with a non-zero (possibly
+      nonzero vector, and two lines are equivalent if and only if the
+      vectors are the same up to rescaling with a nonzero (possibly
       negative) constant.
 
 When specifying a polyhedron, you can input a non-minimal set of
@@ -322,25 +322,26 @@ def Polyhedron(vertices=None, rays=None, lines=None,
       taken to be the single vertex.
 
       Instead of vertices, the first argument can also be an object
-      that can be converted to a :func:`Polyhedron` via an :meth:`as_polyhedron`
-      or :meth:`polyhedron` method. In this case, the following 5 arguments
+      that can be converted to a :func:`Polyhedron` via an
+      :meth:`~sage.geometry.polyhedron.face.PolyhedronFace.as_polyhedron`
+      or ``polyhedron`` method. In this case, the following 5 arguments
       cannot be provided.
 
-    - ``rays`` -- list of rays. Each ray can be specified as any
-      iterable container of ``base_ring`` elements.
+    - ``rays`` -- list of rays; each ray can be specified as any
+      iterable container of ``base_ring`` elements
 
-    - ``lines`` -- list of lines. Each line can be specified as any
-      iterable container of ``base_ring`` elements.
+    - ``lines`` -- list of lines; each line can be specified as any
+      iterable container of ``base_ring`` elements
 
-    - ``ieqs`` -- list of inequalities. Each line can be specified as any
+    - ``ieqs`` -- list of inequalities; each line can be specified as any
       iterable container of ``base_ring`` elements. An entry equal to
       ``[-1,7,3,4]`` represents the inequality `7x_1+3x_2+4x_3\geq 1`.
 
-    - ``eqns`` -- list of equalities. Each line can be specified as
+    - ``eqns`` -- list of equalities; each line can be specified as
       any iterable container of ``base_ring`` elements. An entry equal to
       ``[-1,7,3,4]`` represents the equality `7x_1+3x_2+4x_3= 1`.
 
-    - ``ambient_dim`` -- integer. The ambient space dimension. Usually
+    - ``ambient_dim`` -- integer; the ambient space dimension. Usually
       can be figured out automatically from the H/Vrepresentation
       dimensions.
 
@@ -385,9 +386,7 @@ def Polyhedron(vertices=None, rays=None, lines=None,
     - ``mutable`` -- boolean (default: ``False``); whether the polyhedron
       is mutable
 
-    OUTPUT:
-
-    The polyhedron defined by the input data.
+    OUTPUT: the polyhedron defined by the input data
 
     EXAMPLES:
 
@@ -450,7 +449,6 @@ def Polyhedron(vertices=None, rays=None, lines=None,
     by the cyclic shifts of `(0, \pm 1, \pm (1+\sqrt(5))/2)`, cf.
     :wikipedia:`Regular_icosahedron`. It needs a number field::
 
-        sage: # needs sage.rings.number_field
         sage: R0.<r0> = QQ[]
         sage: R1.<r1> = NumberField(r0^2-5, embedding=AA(5)**(1/2))
         sage: gold = (1+r1)/2
@@ -465,7 +463,6 @@ def Polyhedron(vertices=None, rays=None, lines=None,
     When the input contains elements of a Number Field, they require an
     embedding::
 
-        sage: # needs sage.rings.number_field
         sage: x = polygen(ZZ, 'x')
         sage: K = NumberField(x^2 - 2,'s')
         sage: s = K.0
@@ -508,7 +505,6 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         sage: Polyhedron(p)
         A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
 
-        sage: # needs sage.combinat
         sage: H.<x,y> = HyperplaneArrangements(QQ)
         sage: h = x + y - 1; h
         Hyperplane x + y - 1
@@ -599,11 +595,11 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         sage: Polyhedron(ambient_dim=2, ieqs=[], eqns=[], base_ring=QQ, backend='field')
         A 2-dimensional polyhedron in QQ^2 defined as the convex hull
          of 1 vertex and 2 lines
-        sage: Polyhedron(ambient_dim=0, ieqs=[], eqns=[[1]], base_ring=QQ, backend="cdd")
+        sage: Polyhedron(ambient_dim=0, ieqs=[], eqns=[[1]], base_ring=QQ, backend='cdd')
         The empty polyhedron in QQ^0
-        sage: Polyhedron(ambient_dim=0, ieqs=[], eqns=[[1]], base_ring=QQ, backend="ppl")
+        sage: Polyhedron(ambient_dim=0, ieqs=[], eqns=[[1]], base_ring=QQ, backend='ppl')
         The empty polyhedron in QQ^0
-        sage: Polyhedron(ambient_dim=0, ieqs=[], eqns=[[1]], base_ring=QQ, backend="field")
+        sage: Polyhedron(ambient_dim=0, ieqs=[], eqns=[[1]], base_ring=QQ, backend='field')
         The empty polyhedron in QQ^0
 
         sage: Polyhedron(ambient_dim=2, vertices=[], rays=[], lines=[], base_ring=QQ)

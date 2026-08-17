@@ -19,7 +19,7 @@ EXAMPLES::
 
 ::
 
-    sage: def f(x,y):
+    sage: def f(x, y):
     ....:     return math.sin(y^2 + x^2)/math.sqrt(x^2 + y^2 + 0.0001)
     sage: P = plot3d(f, (-3, 3),(-3, 3), adaptive=True,
     ....:            color=rainbow(60, 'rgbtuple'), max_bend=.1, max_depth=15)
@@ -27,13 +27,13 @@ EXAMPLES::
 
 .. PLOT::
 
-    def f(x,y): return math.sin(y**2 + x**2)/math.sqrt(x**2 + y**2 + 0.0001)
+    def f(x, y): return math.sin(y**2 + x**2)/math.sqrt(x**2 + y**2 + 0.0001)
     P = plot3d(f, (-3, 3), (-3, 3), adaptive=True, color=rainbow(60, 'rgbtuple'), max_bend=.1, max_depth=15)
     sphinx_plot(P)
 
 ::
 
-    sage: def f(x,y):
+    sage: def f(x, y):
     ....:     return math.exp(x/5)*math.sin(y)
     ....:
     sage: P = plot3d(f, (-5, 5), (-5, 5), adaptive=True, color=['red', 'yellow'])
@@ -43,7 +43,7 @@ EXAMPLES::
 
 .. PLOT::
 
-    def f(x,y): return math.exp(x/5)*math.sin(y)
+    def f(x, y): return math.exp(x/5)*math.sin(y)
     P = plot3d(f, (-5, 5), (-5, 5), adaptive=True, color=['red', 'yellow'])
     from sage.plot.plot3d.plot3d import axes
     S = P + axes(6, color='black')
@@ -82,7 +82,7 @@ We plot "cape man"::
     sage: S += sphere((.45, .1, .15), size=.1, color='white')
     sage: S += sphere((.51, .1,.17), size=.05, color='black')
     sage: S += sphere((.5, 0, -.2), size=.1, color='yellow')
-    sage: def f(x,y): return math.exp(x/5)*math.cos(y)
+    sage: def f(x, y): return math.exp(x/5)*math.cos(y)
     sage: P = plot3d(f, (-5, 5), (-5, 5), adaptive=True,
     ....:            color=['red','yellow'], max_depth=10)
     sage: cape_man = P.scale(.2) + S.translate(1, 0, 0)
@@ -96,7 +96,7 @@ We plot "cape man"::
     S += sphere((.45, -.1, .15), size=.1, color='white') + sphere((.51,-.1,.17), size=.05, color='black')
     S += sphere((.45, .1, .15), size=.1, color='white') + sphere((.51, .1,.17), size=.05, color='black')
     S += sphere((.5, 0, -.2), size=.1, color='yellow')
-    def f(x,y): return math.exp(x/5)*math.cos(y)
+    def f(x, y): return math.exp(x/5)*math.cos(y)
     P = plot3d(f, (-5, 5), (-5, 5), adaptive=True, color=['red','yellow'], max_depth=10)
     cape_man = P.scale(.2) + S.translate(1, 0, 0)
     cape_man.aspect_ratio([1, 1, 1])
@@ -155,11 +155,11 @@ from sage.plot.plot3d.index_face_set import IndexFaceSet
 from sage.plot.plot3d.shapes import arrow3d
 from sage.plot.plot3d.texture import Texture
 from sage.plot.plot3d.tri_plot import TrianglePlot
-
+from . import parametric_plot3d
 lazy_import("sage.functions.trig", ["cos", "sin"])
 
 
-class _Coordinates:
+class Coordinates:
     """
     This abstract class encapsulates a new coordinate system for plotting.
     Sub-classes must implement the :meth:`transform` method which, given
@@ -169,11 +169,10 @@ class _Coordinates:
 
     INPUT:
 
-     - ``dep_var`` -- the dependent variable (the function value will be
+    - ``dep_var`` -- the dependent variable (the function value will be
 
-     - ``indep_vars`` -- a list of independent variables (the parameters will be
-       substituted for these)
-
+    - ``indep_vars`` -- list of independent variables (the parameters will be
+      substituted for these)
     """
     def __init__(self, dep_var, indep_vars):
         """
@@ -181,8 +180,8 @@ class _Coordinates:
 
         TESTS:
 
-        Because the base :class:`_Coordinates` class automatically checks the
-        initializing variables with the transform method, :class:`_Coordinates`
+        Because the base ``Coordinates`` class automatically checks the
+        initializing variables with the transform method, ``Coordinates``
         cannot be instantiated by itself.  We test a subclass::
 
             sage: from sage.plot.plot3d.plot3d import _ArbitraryCoordinates as arb
@@ -191,8 +190,12 @@ class _Coordinates:
             Arbitrary Coordinates coordinate transform (z in terms of x, y)
         """
         all_vars = sage_getargspec(self.transform).args[1:]
-        if set(all_vars) != set(indep_vars + [dep_var]):
-            raise ValueError('variables were specified incorrectly for this coordinate system; incorrect variables were %s' % list(set(all_vars).symmetric_difference(set(indep_vars+[dep_var]))))
+        A = set(all_vars)
+        B = set(indep_vars + [dep_var])
+        if A != B:
+            raise ValueError('variables were specified incorrectly for this '
+                             'coordinate system; incorrect variables '
+                             'were %s' % list(A.symmetric_difference(B)))
         self.dep_var = dep_var
         self.indep_vars = indep_vars
 
@@ -234,11 +237,11 @@ class _Coordinates:
 
         INPUT:
 
-         - ``func`` -- function in this coordinate space; corresponds
-           to the independent variable
+        - ``func`` -- function in this coordinate space; corresponds
+          to the independent variable
 
-         - ``params`` -- the parameters of ``func``; corresponds to
-           the dependent variables
+        - ``params`` -- the parameters of ``func``; corresponds to
+          the dependent variables
 
         EXAMPLES::
 
@@ -273,7 +276,7 @@ class _Coordinates:
             FullArgSpec(args=['a', 'b'], varargs=None, varkw=None, defaults=None,
                         kwonlyargs=[], kwonlydefaults=None, annotations={})
 
-            sage: def g(a,b): return 2*a+b
+            sage: def g(a, b): return 2*a+b
             sage: t1,t2,t3=T.to_cartesian(g)
             sage: sage_getargspec(t1)
             FullArgSpec(args=['a', 'b'], varargs=None, varkw=None, defaults=None,
@@ -299,10 +302,10 @@ class _Coordinates:
             sage: [h(u=1,v=2) for h in T.to_cartesian(operator.mul)]
             [3.0, -1.0, 2.0]
 
-        The output of the function ``func`` is coerced to a float when
-        it is evaluated if the function is something like a lambda or
-        python callable. This takes care of situations like f returning a
-        singleton numpy array, for example.
+        The output of a Python callable ``func`` is coerced to a float when
+        it is evaluated. Thus it must return a scalar or another object
+        accepted by ``float()``. For example, extract the scalar value
+        returned by a SciPy interpolant explicitly (:issue:`42539`)::
 
             sage: from numpy import array
             sage: v_phi=array([ 0.,  1.57079637,  3.14159274, 4.71238911,  6.28318548])
@@ -313,51 +316,52 @@ class _Coordinates:
             ....: [ 0.16763356,  0.19993708,  0.31403568,  0.47359696, 0.55282422],
             ....: [ 0.16763356,  0.25683223,  0.16649297,  0.10594339, 0.55282422]])
             sage: import scipy.interpolate
-            sage: f=scipy.interpolate.RectBivariateSpline(v_phi,v_theta,m_r).ev
+            sage: spline = scipy.interpolate.RectBivariateSpline(v_phi, v_theta, m_r)
+            sage: f = lambda x, y: spline.ev(x, y).item()
             sage: spherical_plot3d(f,(0,2*pi),(0,pi))
             Graphics3d Object
-
         """
         from sage.structure.element import Expression
         from sage.rings.real_mpfr import RealNumber
         from sage.rings.integer import Integer
-        if params is not None and (isinstance(func, Expression) or isinstance(func, RealNumber) or isinstance(func, Integer)):
+        if params is not None and isinstance(func, (Expression,
+                                                    RealNumber,
+                                                    Integer)):
             return self.transform(**{
                 self.dep_var: func,
                 self.indep_vars[0]: params[0],
                 self.indep_vars[1]: params[1]
             })
-        else:
-            # func might be a lambda or a Python callable; this makes it slightly
-            # more complex.
-            import sage.symbolic.ring
-            dep_var_dummy = sage.symbolic.ring.var(self.dep_var)
-            indep_var_dummies = sage.symbolic.ring.var(','.join(self.indep_vars))
-            transformation = self.transform(**{
-                self.dep_var: dep_var_dummy,
-                self.indep_vars[0]: indep_var_dummies[0],
-                self.indep_vars[1]: indep_var_dummies[1]
-            })
-            if params is None:
-                if callable(func):
-                    params = _find_arguments_for_callable(func)
-                    if not params:
-                        params = ['u', 'v']
-                else:
-                    raise ValueError("function is not callable")
+        # func might be a lambda or a Python callable; this makes it slightly
+        # more complex.
+        import sage.symbolic.ring
+        dep_var_dummy = sage.symbolic.ring.var(self.dep_var)
+        indep_var_dummies = sage.symbolic.ring.var(','.join(self.indep_vars))
+        transformation = self.transform(**{
+            self.dep_var: dep_var_dummy,
+            self.indep_vars[0]: indep_var_dummies[0],
+            self.indep_vars[1]: indep_var_dummies[1]
+        })
+        if params is None:
+            if callable(func):
+                params = _find_arguments_for_callable(func)
+                if not params:
+                    params = ['u', 'v']
+            else:
+                raise ValueError("function is not callable")
 
-            def subs_func(t):
-                # We use eval so that the lambda function has the same
-                # variable names as the original function
-                ll = f"""lambda {params[0]},{params[1]}: t.subs({{
+        def subs_func(t):
+            # We use eval so that the lambda function has the same
+            # variable names as the original function
+            ll = f"""lambda {params[0]},{params[1]}: t.subs({{
                     dep_var_dummy: float(func({params[0]}, {params[1]})),
                     indep_var_dummies[0]: float({params[0]}),
                     indep_var_dummies[1]: float({params[1]})
                 }})"""
-                return eval(ll, {'t': t, 'func': func,
-                                 'dep_var_dummy': dep_var_dummy,
-                                 'indep_var_dummies': indep_var_dummies})
-            return [subs_func(m) for m in transformation]
+            return eval(ll, {'t': t, 'func': func,
+                             'dep_var_dummy': dep_var_dummy,
+                             'indep_var_dummies': indep_var_dummies})
+        return [subs_func(m) for m in transformation]
 
     def __repr__(self):
         """
@@ -389,12 +393,12 @@ def _find_arguments_for_callable(func):
         sage: from sage.plot.plot3d.plot3d import _find_arguments_for_callable
         sage: _find_arguments_for_callable(lambda x,y: x+y)
         ['x', 'y']
-        sage: def f(a,b,c): return a+b+c
+        sage: def f(a, b, c): return a+b+c
         sage: _find_arguments_for_callable(f)
         ['a', 'b', 'c']
         sage: _find_arguments_for_callable(lambda x,y,z=2: x+y+z)
         ['x', 'y']
-        sage: def f(a,b,c,d=2,e=1): return a+b+c+d+e
+        sage: def f(a, b, c, d=2, e=1): return a+b+c+d+e
         sage: _find_arguments_for_callable(f)
         ['a', 'b', 'c']
         sage: g(w,r,t)=w+r+t
@@ -423,7 +427,10 @@ def _find_arguments_for_callable(func):
     return params
 
 
-class _ArbitraryCoordinates(_Coordinates):
+_Coordinates = Coordinates
+
+
+class _ArbitraryCoordinates(Coordinates):
     """
     An arbitrary coordinate system.
     """
@@ -435,13 +442,13 @@ class _ArbitraryCoordinates(_Coordinates):
 
         INPUT:
 
-         - ``custom_trans`` -- A 3-tuple of transformation
-           functions.
+        - ``custom_trans`` -- a 3-tuple of transformation
+          functions
 
-         - ``dep_var`` -- The dependent (function) variable.
+        - ``dep_var`` -- the dependent (function) variable
 
-         - ``indep_vars`` -- a list of the two other independent
-           variables.
+        - ``indep_vars`` -- list of the two other independent
+          variables
 
         EXAMPLES::
 
@@ -472,7 +479,7 @@ class _ArbitraryCoordinates(_Coordinates):
         return tuple(t.subs(**kwds) for t in self.custom_trans)
 
 
-class Spherical(_Coordinates):
+class Spherical(Coordinates):
     """
     A spherical coordinate system for use with ``plot3d(transformation=...)``
     where the position of a point is specified by three numbers:
@@ -544,7 +551,7 @@ class Spherical(_Coordinates):
                 radius * cos(inclination))
 
 
-class SphericalElevation(_Coordinates):
+class SphericalElevation(Coordinates):
     """
     A spherical coordinate system for use with ``plot3d(transformation=...)``
     where the position of a point is specified by three numbers:
@@ -663,7 +670,7 @@ class SphericalElevation(_Coordinates):
                 radius * sin(elevation))
 
 
-class Cylindrical(_Coordinates):
+class Cylindrical(Coordinates):
     """
     A cylindrical coordinate system for use with ``plot3d(transformation=...)``
     where the position of a point is specified by three numbers:
@@ -753,9 +760,7 @@ class TrivialTriangleFactory:
 
         - ``color`` -- ignored
 
-        OUTPUT:
-
-        - the list ``[a,b,c]``
+        OUTPUT: the list ``[a,b,c]``
 
         TESTS::
 
@@ -782,9 +787,7 @@ class TrivialTriangleFactory:
 
         - ``color`` -- ignored
 
-        OUTPUT:
-
-        - the list ``[a,b,c]``
+        OUTPUT: the list ``[a,b,c]``
 
         TESTS::
 
@@ -794,10 +797,7 @@ class TrivialTriangleFactory:
             sage: sm_tri
             [[0, 0, 0], [0, 0, 1], [1, 1, 0]]
         """
-        return [a,b,c]
-
-
-from . import parametric_plot3d
+        return [a, b, c]
 
 
 def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
@@ -806,30 +806,30 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
 
     INPUT:
 
-    -  ``f`` -- a symbolic expression or function of 2
-       variables
+    - ``f`` -- a symbolic expression or function of 2
+      variables
 
-    -  ``urange`` -- a 2-tuple (u_min, u_max) or a 3-tuple
-       (u, u_min, u_max)
+    - ``urange`` -- a 2-tuple (u_min, u_max) or a 3-tuple
+      (u, u_min, u_max)
 
-    -  ``vrange`` -- a 2-tuple (v_min, v_max) or a 3-tuple
-       (v, v_min, v_max)
+    - ``vrange`` -- a 2-tuple (v_min, v_max) or a 3-tuple
+      (v, v_min, v_max)
 
-    -  ``adaptive`` -- (default: ``False``) whether to use
-       adaptive refinement to draw the plot (slower, but may look better).
-       This option does NOT work in conjunction with a transformation
-       (see below).
+    - ``adaptive`` -- boolean (default: ``False``); whether to use
+      adaptive refinement to draw the plot (slower, but may look better).
+      This option does NOT work in conjunction with a transformation
+      (see below).
 
-    -  ``mesh`` -- bool (default: ``False``) whether to display
-       mesh grid lines
+    - ``mesh`` -- boolean (default: ``False``); whether to display
+      mesh grid lines
 
-    -  ``dots`` -- bool (default: ``False``) whether to display
-       dots at mesh grid points
+    - ``dots`` -- boolean (default: ``False``); whether to display
+      dots at mesh grid points
 
-    -  ``plot_points`` -- (default: "automatic") initial number of sample
-       points in each direction; an integer or a pair of integers
+    - ``plot_points`` -- (default: ``'automatic'``) initial number of sample
+      points in each direction; an integer or a pair of integers
 
-    - ``transformation`` -- (default: None) a transformation to
+    - ``transformation`` -- (default: ``None``) a transformation to
       apply. May be a 3 or 4-tuple (x_func, y_func, z_func,
       independent_vars) where the first 3 items indicate a
       transformation to Cartesian coordinates (from your coordinate
@@ -956,7 +956,7 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
 
     We draw two parametric surfaces and a transparent plane::
 
-        sage: L = plot3d(lambda x,y: 0, (-5,5), (-5,5), color="lightblue", opacity=0.8)
+        sage: L = plot3d(lambda x,y: 0, (-5,5), (-5,5), color='lightblue', opacity=0.8)
         sage: P = plot3d(lambda x,y: 4 - x^3 - y^2, (-2,2), (-2,2), color='green')
         sage: Q = plot3d(lambda x,y: x^3 + y^2 - 4, (-2,2), (-2,2), color='orange')
         sage: L + P + Q
@@ -964,7 +964,7 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
 
     .. PLOT::
 
-        L = plot3d(lambda x,y: 0, (-5,5), (-5,5), color="lightblue", opacity=0.8)
+        L = plot3d(lambda x,y: 0, (-5,5), (-5,5), color='lightblue', opacity=0.8)
         P = plot3d(lambda x,y: 4 - x**3 - y**2, (-2,2), (-2,2), color='green')
         Q = plot3d(lambda x,y: x**3 + y**2 - 4, (-2,2), (-2,2), color='orange')
         sphinx_plot(L + P + Q)
@@ -1087,7 +1087,7 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
             params = f.variables()
 
         from sage.modules.vector_callable_symbolic_dense import Vector_callable_symbolic_dense
-        if isinstance(transformation, (tuple, list,Vector_callable_symbolic_dense)):
+        if isinstance(transformation, (tuple, list, Vector_callable_symbolic_dense)):
             if len(transformation) == 3:
                 if params is None:
                     raise ValueError("must specify independent variable names in the ranges when using generic transformation")
@@ -1099,7 +1099,7 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
                 raise ValueError("unknown transformation type")
             # find out which variable is the function variable by
             # eliminating the parameter variables.
-            all_vars = set(sum([list(s.variables()) for s in transformation],[]))
+            all_vars = set(sum([list(s.variables()) for s in transformation], []))
             dep_var = all_vars - set(indep_vars)
             if len(dep_var) == 1:
                 dep_var = dep_var.pop()
@@ -1107,11 +1107,10 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
             else:
                 raise ValueError("unable to determine the function variable in the transform")
 
-        if isinstance(transformation, _Coordinates):
+        if isinstance(transformation, Coordinates):
             R = transformation.to_cartesian(f, params)
             return parametric_plot3d.parametric_plot3d(R, urange, vrange, **kwds)
-        else:
-            raise ValueError('unknown transformation type')
+        raise ValueError('unknown transformation type')
     elif adaptive:
         P = plot3d_adaptive(f, urange, vrange, **kwds)
     else:
@@ -1125,7 +1124,7 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
     return P
 
 
-def plot3d_adaptive(f, x_range, y_range, color="automatic",
+def plot3d_adaptive(f, x_range, y_range, color='automatic',
                     grad_f=None,
                     max_bend=.5, max_depth=5, initial_depth=4, num_colors=128, **kwds):
     r"""
@@ -1136,21 +1135,20 @@ def plot3d_adaptive(f, x_range, y_range, color="automatic",
 
     INPUT:
 
-
     - ``f`` -- a symbolic function or a Python function of 3 variables
 
     - ``x_range`` -- x range of values: 2-tuple (xmin,
-       xmax) or 3-tuple (x,xmin,xmax)
+      xmax) or 3-tuple (x,xmin,xmax)
 
     - ``y_range`` -- y range of values: 2-tuple (ymin, ymax) or 3-tuple
-       (y,ymin,ymax)
+      (y,ymin,ymax)
 
     - ``grad_f`` -- gradient of f as a Python function
 
     - ``color`` -- "automatic"; a rainbow of num_colors colors
 
     - ``num_colors`` -- (default: 128) number of colors to use with default
-       color
+      color
 
     - ``max_bend`` -- (default: 0.5)
 
@@ -1174,17 +1172,15 @@ def plot3d_adaptive(f, x_range, y_range, color="automatic",
         from sage.plot.plot3d.plot3d import plot3d_adaptive
         x, y = var('x,y')
         sphinx_plot(plot3d_adaptive(sin(x*y), (x,-pi,pi), (y,-pi,pi), initial_depth=5))
-
     """
-    if initial_depth >= max_depth:
-        max_depth = initial_depth
+    max_depth = max(max_depth, initial_depth)
 
     from sage.plot.misc import setup_for_eval_on_grid
-    g, ranges = setup_for_eval_on_grid(f, [x_range,y_range], plot_points=2)
-    xmin,xmax = ranges[0][:2]
-    ymin,ymax = ranges[1][:2]
+    g, ranges = setup_for_eval_on_grid(f, [x_range, y_range], plot_points=2)
+    xmin, xmax = ranges[0][:2]
+    ymin, ymax = ranges[1][:2]
 
-    opacity = float(kwds.get('opacity',1))
+    opacity = float(kwds.get('opacity', 1))
 
     if color == "automatic":
         texture = rainbow(num_colors, 'rgbtuple')
@@ -1204,9 +1200,9 @@ def plot3d_adaptive(f, x_range, y_range, color="automatic",
     if isinstance(texture, (list, tuple)):
         if len(texture) == 2:
             # do a grid coloring
-            xticks = (xmax - xmin)/2**initial_depth
-            yticks = (ymax - ymin)/2**initial_depth
-            parts = P.partition(lambda x,y,z: (int((x-xmin)/xticks) + int((y-ymin)/yticks)) % 2)
+            xticks = (xmax - xmin) / 2**initial_depth
+            yticks = (ymax - ymin) / 2**initial_depth
+            parts = P.partition(lambda x, y, z: (int((x - xmin) / xticks) + int((y - ymin) / yticks)) % 2)
         else:
             # do a topo coloring
             bounds = P.bounding_box()
@@ -1215,8 +1211,8 @@ def plot3d_adaptive(f, x_range, y_range, color="automatic",
             if max_z == min_z:
                 span = 0
             else:
-                span = (len(texture)-1) / (max_z - min_z)    # max to avoid dividing by 0
-            parts = P.partition(lambda x, y, z: int((z-min_z)*span))
+                span = (len(texture) - 1) / (max_z - min_z)  # max to avoid dividing by 0
+            parts = P.partition(lambda x, y, z: int((z - min_z) * span))
         all = []
         for k, G in parts.items():
             G.set_texture(texture[k], opacity=opacity)
@@ -1326,7 +1322,6 @@ def spherical_plot3d(f, urange, vrange, **kwds):
 
         x, y = var('x,y')
         sphinx_plot(spherical_plot3d(1 + 2*cos(2*y), (x, 0, 3*pi/2), (y, 0, pi)))
-
     """
     return plot3d(f, urange, vrange, transformation=Spherical('radius', ['azimuth', 'inclination']), **kwds)
 
@@ -1408,7 +1403,7 @@ def cylindrical_plot3d(f, urange, vrange, **kwds):
 
 def axes(scale=1, radius=None, **kwds):
     """
-    Creates basic axes in three dimensions.  Each axis is a three
+    Create basic axes in three dimensions.  Each axis is a three
     dimensional arrow object.
 
     INPUT:

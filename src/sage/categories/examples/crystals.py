@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-categories
 # sage.doctest: needs sage.combinat sage.graphs
 r"""
 Example of a crystal
@@ -25,7 +24,7 @@ class HighestWeightCrystalOfTypeA(UniqueRepresentation, Parent):
 
     The purpose of this class is to provide a minimal template for
     implementing crystals. See
-    :class:`~sage.combinat.crystals.letters.CrystalOfLetters` for a
+    :func:`~sage.combinat.crystals.letters.CrystalOfLetters` for a
     full featured and optimized implementation.
 
     EXAMPLES::
@@ -54,7 +53,8 @@ class HighestWeightCrystalOfTypeA(UniqueRepresentation, Parent):
 
     Only the following basic operations are implemented:
 
-    - :meth:`~sage.categories.crystals.Crystals.cartan_type` or an attribute _cartan_type
+    - :meth:`~sage.categories.crystals.Crystals.ParentMethods.cartan_type`
+      or an attribute ``_cartan_type``
     - an attribute module_generators
     - :meth:`.Element.e`
     - :meth:`.Element.f`
@@ -94,6 +94,8 @@ class HighestWeightCrystalOfTypeA(UniqueRepresentation, Parent):
         running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
+        running ._test_random() . . . pass
+        running ._test_rank() . . . pass
         running ._test_some_elements() . . . pass
         running ._test_stembridge_local_axioms() . . . pass
     """
@@ -127,7 +129,7 @@ class HighestWeightCrystalOfTypeA(UniqueRepresentation, Parent):
 
         def e(self, i):
             r"""
-            Returns the action of `e_i` on ``self``.
+            Return the action of `e_i` on ``self``.
 
             EXAMPLES::
 
@@ -138,12 +140,11 @@ class HighestWeightCrystalOfTypeA(UniqueRepresentation, Parent):
             assert i in self.index_set()
             if self.value == i+1:
                 return self.parent()(self.value-1)
-            else:
-                return None
+            return None
 
         def f(self, i):
             r"""
-            Returns the action of `f_i` on ``self``.
+            Return the action of `f_i` on ``self``.
 
             EXAMPLES::
 
@@ -154,8 +155,7 @@ class HighestWeightCrystalOfTypeA(UniqueRepresentation, Parent):
             assert i in self.index_set()
             if self.value == i:
                 return self.parent()(self.value+1)
-            else:
-                return None
+            return None
 
 
 class NaiveCrystal(UniqueRepresentation, Parent):
@@ -168,8 +168,11 @@ class NaiveCrystal(UniqueRepresentation, Parent):
     automatically builds a crystal from an edge-colored digraph, if someone
     feels adventurous.
 
-    Currently, only the methods :meth:`highest_weight_vector`, :meth:`e`, and :meth:`f` are
-    guaranteed to work.
+    Currently, only the methods
+    :meth:`~sage.categories.highest_weight_crystals.HighestWeightCrystals.ParentMethods.highest_weight_vector`,
+    :meth:`~sage.categories.examples.crystals.NaiveCrystal.Element.e`, and
+    :meth:`~sage.categories.examples.crystals.NaiveCrystal.Element.f` are guaranteed
+    to work.
 
     EXAMPLES::
 
@@ -189,7 +192,8 @@ class NaiveCrystal(UniqueRepresentation, Parent):
         self.n = 2
         self._cartan_type = CartanType(['A', 2])
         self.G = DiGraph(5)
-        self.G.add_edges([ [0,1,1], [1,2,1], [2,3,1], [3,5,1],  [0,4,2], [4,5,2] ])
+        self.G.add_edges([[0, 1, 1], [1, 2, 1], [2, 3, 1],
+                          [3, 5, 1], [0, 4, 2], [4, 5, 2]])
         self.module_generators = [self(0)]
 
     def __repr__(self):
@@ -204,7 +208,7 @@ class NaiveCrystal(UniqueRepresentation, Parent):
     class Element(ElementWrapper):
         def e(self, i):
             r"""
-            Returns the action of `e_i` on ``self``.
+            Return the action of `e_i` on ``self``.
 
             EXAMPLES::
 
@@ -220,7 +224,7 @@ class NaiveCrystal(UniqueRepresentation, Parent):
 
         def f(self, i):
             r"""
-            Returns the action of `f_i` on ``self``.
+            Return the action of `f_i` on ``self``.
 
             EXAMPLES::
 

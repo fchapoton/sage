@@ -94,11 +94,15 @@ TESTS::
 
 import os
 
-from .expect import (Expect, ExpectElement, ExpectFunction,
-                    FunctionElement)
+from sage.env import DOT_SAGE
+from sage.interfaces.expect import (
+    Expect,
+    ExpectElement,
+    ExpectFunction,
+    FunctionElement,
+)
 from sage.interfaces.interface import AsciiArtString
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.env import DOT_SAGE
 from sage.misc.instancedoc import instancedoc
 
 COMMANDS_CACHE = '%s/mupad_commandlist_cache.sobj' % DOT_SAGE
@@ -151,7 +155,6 @@ class Mupad(ExtraTabCompletion, Expect):
 
             sage: Mupad().__reduce__()
             (<function reduce_load_mupad at 0x...>, ())
-
         """
         return reduce_load_mupad, tuple([])
 
@@ -190,7 +193,6 @@ class Mupad(ExtraTabCompletion, Expect):
             <BLANKLINE>
             In order to use the MuPAD interface you need to have MuPAD installed
             ...
-
         """
         return """
 In order to use the MuPAD interface you need to have MuPAD installed
@@ -229,7 +231,6 @@ command-line version of MuPAD.
              | *--|-*                   All rights reserved.
              |/   |/
              *----*      Licensed to:   ...
-
         """
         mupad_console()
 
@@ -239,7 +240,6 @@ command-line version of MuPAD.
 
             sage: mupad.eval('2+2')   # optional - mupad
                                                    4
-
         """
         s = Expect.eval(self, code, **kwds)
         return AsciiArtString(s)
@@ -255,7 +255,6 @@ command-line version of MuPAD.
             Traceback (most recent call last):
             ...
             RuntimeError: Unknown slot "x::asdf" [slot]
-
         """
         if self._expect is None:
             self._start()
@@ -295,8 +294,7 @@ command-line version of MuPAD.
         """
         if t is None:
             return float(str(self('time()')))/1000
-        else:
-            return float(str(self('time() - %s' % float(t))))/1000
+        return float(str(self('time() - %s' % float(t))))/1000
 
     def set(self, var, value):
         """
@@ -323,7 +321,6 @@ command-line version of MuPAD.
             sage: mupad.set('a', 4) # optional - mupad
             sage: mupad.get('a').strip() # optional - mupad
             '4'
-
         """
         s = self.eval('%s' % var)
         i = s.find('=')
@@ -470,7 +467,6 @@ class MupadFunction(ExtraTabCompletion, ExpectFunction):
              'addRow',
              ...
              'wiedemann']
-
         """
         res = self._parent.completions(self._name+"::", strip=True)
         return res if res != [] else self._parent._tab_completion()
@@ -485,7 +481,6 @@ class MupadFunctionElement(ExtraTabCompletion, FunctionElement):
             sage: x = mupad('x')  # optional - mupad
             sage: x.diff.__doc__  # optional - mupad
             No help on diff available
-
         """
         return self._obj.parent().help(self._name)
 
@@ -512,8 +507,7 @@ class MupadFunctionElement(ExtraTabCompletion, FunctionElement):
         name = self._name+"::"+attrname
         if P.eval('type(%s)' % name) == "DOM_DOMAIN":
             return MupadElement(P, name)
-        else:
-            return MupadFunctionElement(self._obj, name)
+        return MupadFunctionElement(self._obj, name)
 
     def _tab_completion(self):
         """
@@ -544,8 +538,7 @@ class MupadFunctionElement(ExtraTabCompletion, FunctionElement):
         P = self._obj.parent()
         if P.eval('type(%s)' % (self._obj.name())).strip() == "DOM_DOMAIN":
             return P.function_call(self._name, list(args))
-        else:
-            return P.function_call(self._name, [self._obj] + list(args))
+        return P.function_call(self._name, [self._obj] + list(args))
 
 
 @instancedoc
@@ -566,7 +559,6 @@ class MupadElement(ExtraTabCompletion, ExpectElement):
             sage: x = mupad('x')                    # optional - mupad-Combinat
             sage: x.diff(x)                         # optional - mupad-Combinat
                                        1
-
         """
         if attrname[:1] == "_":
             if attrname not in self.__dict__:
@@ -579,13 +571,11 @@ class MupadElement(ExtraTabCompletion, ExpectElement):
         try:
             if P.eval('type(%s::%s)' % (self.name(), attrname)).strip() == "DOM_DOMAIN":
                 return P.new("%s::%s" % (self.name(), attrname))
-            else:
-                return MupadFunctionElement(self, name)
+            return MupadFunctionElement(self, name)
         except RuntimeError as err:
             if 'Unknown slot' in str(err):
                 return MupadFunctionElement(self, attrname)
-            else:
-                raise err
+            raise err
 
     def _tab_completion(self):
         """
@@ -615,7 +605,7 @@ class MupadElement(ExtraTabCompletion, ExpectElement):
 
     def __len__(self):
         r"""
-        The analogue in MuPAD of Python's len is the method nops
+        The analogue in MuPAD of Python's len is the method nops.
 
         EXAMPLES::
 
@@ -638,7 +628,6 @@ class MupadElement(ExtraTabCompletion, ExpectElement):
 
             sage: [int(x) for x in mupad("{1,2,3,5}") ]  # optional - mupad
             [1, 2, 3, 5]
-
         """
         return mupad.nops(self)
 
@@ -673,7 +662,6 @@ def mupad_console():
          | *--|-*                   All rights reserved.
          |/   |/
          *----*      Licensed to:   ...
-
     """
     from sage.repl.rich_output.display_manager import get_display_manager
     if not get_display_manager().is_in_terminal():

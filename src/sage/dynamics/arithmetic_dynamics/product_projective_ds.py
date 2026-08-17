@@ -42,12 +42,12 @@ class DynamicalSystem_product_projective(DynamicalSystem,
         You should not create objects of this class directly because
         no type or consistency checking is performed. The preferred
         method to construct such dynamical systems is to use
-        :func:`~sage.dynamics.arithmetic_dynamics.generic_ds.DynamicalSystem_projective`
-        function.
+        :class:`~sage.dynamics.arithmetic_dynamics.projective_ds.DynamicalSystem_projective`
+        constructor.
 
     INPUT:
 
-    - ``polys`` -- a list of `n_1 + \cdots + n_r` multi-homogeneous polynomials, all
+    - ``polys`` -- list of `n_1 + \cdots + n_r` multi-homogeneous polynomials, all
       of which should have the same parent
 
     - ``domain`` -- a projective scheme embedded in
@@ -85,10 +85,10 @@ class DynamicalSystem_product_projective(DynamicalSystem,
 
         - ``P`` -- a point in the domain
 
-        - ``check`` -- Boolean; whether or not to perform the input checks
-          on the image point (Default: ``True``)
+        - ``check`` -- boolean (default: ``True``); whether or not to perform
+          the input checks on the image point
 
-        OUTPUT: The image point in the codomain
+        OUTPUT: the image point in the codomain
 
         EXAMPLES::
 
@@ -125,11 +125,11 @@ class DynamicalSystem_product_projective(DynamicalSystem,
 
         - ``P`` -- a point in ``self.domain()``
 
-        - ``n`` -- a positive integer
+        - ``n`` -- positive integer
 
-        - ``normalize`` -- (default: ``False``) boolean
+        - ``normalize`` -- boolean (default: ``False``)
 
-        OUTPUT: A point in ``self.codomain()``
+        OUTPUT: a point in ``self.codomain()``
 
         EXAMPLES::
 
@@ -155,15 +155,14 @@ class DynamicalSystem_product_projective(DynamicalSystem,
             raise TypeError("must be a forward orbit")
         if n == 0:
             return self
-        else:
-            Q = self(P)
+        Q = self(P)
+        if normalize:
+            Q.normalize_coordinates()
+        for i in range(2,n+1):
+            Q = self(Q)
             if normalize:
                 Q.normalize_coordinates()
-            for i in range(2,n+1):
-                Q = self(Q)
-                if normalize:
-                    Q.normalize_coordinates()
-            return Q
+        return Q
 
     def orbit(self, P, N, **kwds):
         r"""
@@ -180,16 +179,15 @@ class DynamicalSystem_product_projective(DynamicalSystem,
 
         - ``P`` -- a point in ``self.domain()``
 
-        - ``N`` -- a non-negative integer or list or tuple of two non-negative integers
+        - ``N`` -- nonnegative integer or list or tuple of two nonnegative integers
 
         kwds:
 
-        - ``check`` -- (default: ``True``) boolean
+        - ``check`` -- boolean (default: ``True``)
 
-        - ``normalize`` -- (default: ``False``) boolean
+        - ``normalize`` -- boolean (default: ``False``)
 
-
-        OUTPUT: a list of points in ``self.codomain()``
+        OUTPUT: list of points in ``self.codomain()``
 
         EXAMPLES::
 
@@ -220,7 +218,7 @@ class DynamicalSystem_product_projective(DynamicalSystem,
         except TypeError:
             raise TypeError("orbit bounds must be integers")
         if N[0] < 0 or N[1] < 0:
-            raise TypeError("orbit bounds must be non-negative")
+            raise TypeError("orbit bounds must be nonnegative")
         if N[0] > N[1]:
             return []
 
@@ -255,9 +253,9 @@ class DynamicalSystem_product_projective(DynamicalSystem,
 
         INPUT:
 
-        - ``n`` -- a positive integer
+        - ``n`` -- positive integer
 
-        OUTPUT: A dynamical system of products of projective spaces
+        OUTPUT: a dynamical system of products of projective spaces
 
         EXAMPLES::
 

@@ -20,4 +20,7 @@ lazy_import('sage.crypto.lfsr', ['lfsr_sequence',
                                  'lfsr_autocorrelation',
                                  'lfsr_connection_polynomial',
                                  ])
+
+lazy_import('sage.crypto.public_key.key_exchange', 'all', 'key_exchange')
+
 del lazy_import

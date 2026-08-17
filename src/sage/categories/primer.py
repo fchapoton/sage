@@ -1,10 +1,5 @@
-# sage_setup: distribution = sagemath-objects
 r"""
 Elements, parents, and categories in Sage: a primer
-
-.. contents::
-   :depth: 2
-   :class: this-will-duplicate-information-and-it-is-still-useful-here
 
 Abstract
 ========
@@ -58,7 +53,7 @@ documentation, and tests, implements:
 - Thousands of different kinds of objects (classes):
 
   Integers, polynomials, matrices, groups, number fields, elliptic
-  curves, permutations, morphisms, languages, ... and a few racoons ...
+  curves, permutations, morphisms, languages, ... and a few raccoons ...
 
 - Tens of thousands methods and functions:
 
@@ -84,7 +79,7 @@ Some challenges
 
       sage: A = random_matrix(ZZ, 6, 3, x=7)                                            # needs sage.modules
       sage: L = LatticePolytope(A.rows())                                               # needs sage.geometry.polyhedron sage.modules
-      sage: L.npoints()                # oops!   # random                               # needs sage.geometry.polyhedron sage.modules
+      sage: L.n_points()                # oops!   # random                               # needs sage.geometry.polyhedron sage.modules
       37
 
 - How to ensure robustness?
@@ -118,7 +113,7 @@ The hierarchy of categories
 What makes binary powering work in the above examples? In both cases,
 we have *a set* endowed with a *multiplicative binary operation* which
 is *associative* and which has a unit element. Such a set is called a
-*monoid*, and binary powering (to a non-negative power) works generally
+*monoid*, and binary powering (to a nonnegative power) works generally
 for any monoid.
 
 Sage knows about monoids::
@@ -193,7 +188,7 @@ Altogether, our group gets algorithms from a bunch of bookshelves::
 Those can be viewed graphically::
 
     sage: g = Groups().category_graph()                                                 # needs sage.graphs
-    sage: g.set_latex_options(format="dot2tex")                                         # needs sage.graphs sage.modules sage.plot
+    sage: g.set_latex_options(format='dot2tex')                                         # needs sage.graphs sage.modules sage.plot
     sage: view(g)                               # not tested                            # needs sage.graphs sage.modules sage.plot
 
 In case ``dot2tex`` is not available, you can use instead::
@@ -203,7 +198,7 @@ In case ``dot2tex`` is not available, you can use instead::
 Here is an overview of all categories in Sage::
 
     sage: g = sage.categories.category.category_graph()                                 # needs sage.graphs sage.groups sage.modules
-    sage: g.set_latex_options(format="dot2tex")                                         # needs sage.graphs sage.modules sage.plot
+    sage: g.set_latex_options(format='dot2tex')                                         # needs sage.graphs sage.modules sage.plot
     sage: view(g)                               # not tested                            # needs sage.graphs sage.modules sage.plot
 
 Wrap-up: generic algorithms in Sage are organized in a hierarchy of
@@ -379,7 +374,7 @@ categories and their super categories::
      Category of objects]
 
     sage: g = EuclideanDomains().category_graph()                                       # needs sage.graphs
-    sage: g.set_latex_options(format="dot2tex")                                         # needs sage.graphs sage.plot
+    sage: g.set_latex_options(format='dot2tex')                                         # needs sage.graphs sage.plot
     sage: view(g)                               # not tested                            # needs sage.graphs sage.plot
 
 A bit of help from computer science
@@ -498,7 +493,7 @@ hierarchy of categories and provide generic algorithms.
 The full hierarchy is best viewed graphically::
 
     sage: g = class_graph(m.__class__)                                                  # needs sage.combinat sage.graphs
-    sage: g.set_latex_options(format="dot2tex")                                         # needs sage.combinat sage.graphs sage.plot
+    sage: g.set_latex_options(format='dot2tex')                                         # needs sage.combinat sage.graphs sage.plot
     sage: view(g)                               # not tested                            # needs sage.combinat sage.graphs sage.plot
 
 Parallel hierarchy of classes for parents
@@ -554,7 +549,7 @@ best viewed graphically::
     sage: # needs sage.combinat sage.graphs sage.modules sage.plot
     sage: g = class_graph(m.__class__)
     sage: g.relabel(lambda x: x.replace("_",r"\_"))
-    sage: g.set_latex_options(format="dot2tex")
+    sage: g.set_latex_options(format='dot2tex')
     sage: view(g)                               # not tested
 
 .. NOTE::
@@ -825,10 +820,10 @@ element of the parent?)::
       running ._test_not_implemented_methods() . . . pass
       running ._test_pickling() . . . pass
       pass
-        running ._test_elements_eq_reflexive() . . . pass
-        running ._test_elements_eq_symmetric() . . . pass
-        running ._test_elements_eq_transitive() . . . pass
-        running ._test_elements_neq() . . . pass
+    running ._test_elements_eq_reflexive() . . . pass
+    running ._test_elements_eq_symmetric() . . . pass
+    running ._test_elements_eq_transitive() . . . pass
+    running ._test_elements_neq() . . . pass
     running ._test_enumerated_set_contains() . . . pass
     running ._test_enumerated_set_iter_cardinality() . . . pass
     running ._test_enumerated_set_iter_list() . . . pass
@@ -836,6 +831,8 @@ element of the parent?)::
     running ._test_new() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_pickling() . . . pass
+    running ._test_random() . . . pass
+    running ._test_rank() . . . pass
     running ._test_some_elements() . . . pass
 
 Tests can be run individually::
@@ -931,6 +928,7 @@ Where do all the operations on ``S`` and its elements come from?
 to use Sage's introspection tools to recover where it's implemented::
 
     sage: x._repr_.__module__
+    'sage.structure.element_wrapper'
     sage: sage.misc.sageinspect.sage_getfile(x._repr_)
     '.../sage/structure/element_wrapper.pyx'
 
@@ -1092,7 +1090,7 @@ from existing ones while carrying over as much as possible of their
 algebraic structure. This includes:
 
 - Cartesian products:
-  See :const:`~sage.categories.cartesian_product.cartesian_product`.
+  See :class:`~sage.categories.cartesian_product.CartesianProductFunctor`.
 
 - Tensor products:
   See :const:`~sage.categories.tensor.tensor`.
@@ -1114,8 +1112,8 @@ algebraic structure. This includes:
 Let for example `A` and `B` be two parents, and let us construct the
 Cartesian product `A \times B \times B`::
 
-    sage: A = AlgebrasWithBasis(QQ).example();     A.rename("A")                        # needs sage.combinat sage.modules
-    sage: B = HopfAlgebrasWithBasis(QQ).example(); B.rename("B")                        # needs sage.groups sage.modules
+    sage: A = AlgebrasWithBasis(QQ).example();     A.rename('A')                        # needs sage.combinat sage.modules
+    sage: B = HopfAlgebrasWithBasis(QQ).example(); B.rename('B')                        # needs sage.groups sage.modules
     sage: C = cartesian_product([A, B, B]); C                                           # needs sage.combinat sage.groups sage.modules
     A (+) B (+) B
 
@@ -1277,7 +1275,7 @@ this axiom is available in the subcategory of groups::
 
 The meaning of each axiom is described in the documentation of the
 corresponding method, which can be obtained as usual by
-instrospection::
+introspection::
 
     sage: C = Groups()
     sage: C.Finite?              # not tested
@@ -1368,7 +1366,7 @@ prefer right away the more flexible notation::
     How far should this be pushed? :class:`Fields` should definitely
     stay, but should :class:`FiniteGroups` or :class:`DivisionRings`
     be removed from the global namespace? Do we want to further
-    completely deprecate the notation ``FiniteGroups()` in favor of
+    completely deprecate the notation ``FiniteGroups()`` in favor of
     ``Groups().Finite()``?
 
 .. _category-primer-axioms-explosion:
@@ -1405,7 +1403,7 @@ for a category with two operations `+` and `*`::
 or for more advanced categories::
 
     sage: g = HopfAlgebras(QQ).WithBasis().Graded().Connected().category_graph()        # needs sage.graphs
-    sage: g.set_latex_options(format="dot2tex")                                         # needs sage.graphs sage.plot
+    sage: g.set_latex_options(format='dot2tex')                                         # needs sage.graphs sage.plot
     sage: view(g)                               # not tested                            # needs sage.graphs sage.plot
 
 Difference between axioms and regressive covariant functorial constructions
@@ -1564,8 +1562,8 @@ category. This determines the position of `C` in the category graph.
 A category *may* provide methods that can be used by all its objects,
 respectively by all elements of its objects.
 
-Each category *should* come with a good example, in
-:mod:`sage.categories.examples`.
+Each category *should* come with a good example in the
+``sage.categories.examples`` package.
 
 Inserting the new category into the category graph
 --------------------------------------------------

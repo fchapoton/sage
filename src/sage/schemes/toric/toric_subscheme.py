@@ -20,9 +20,11 @@ AUTHORS:
 # https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.calculus.functions import jacobian
+from sage.misc.lazy_import import lazy_import
 from sage.rings.integer_ring import ZZ
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
+
+lazy_import("sage.calculus.functions", "jacobian")
 
 
 class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
@@ -33,18 +35,17 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
 
         You should not create objects of this class directly. The
         preferred method to construct such subschemes is to use
-        :meth:`~ToricVariety_field.subscheme` method of :class:`toric
+        :meth:`~sage.schemes.toric.variety.ToricVariety_field.subscheme` method of :class:`toric
         varieties <sage.schemes.toric.variety.ToricVariety_field>`.
 
     INPUT:
 
-    - ``toric_variety`` -- ambient :class:`toric variety
-      <ToricVariety_field>`.
+    - ``toric_variety`` -- ambient :class:`toric variety <sage.schemes.toric.variety.ToricVariety_field>`
 
     - ``polynomials`` -- single polynomial, list, or ideal of defining
-      polynomials in the coordinate ring of ``toric_variety``.
+      polynomials in the coordinate ring of ``toric_variety``
 
-    OUTPUT: An :class:`algebraic subscheme of a toric variety
+    OUTPUT: an :class:`algebraic subscheme of a toric variety
     <AlgebraicScheme_subscheme_toric>`.
 
     TESTS::
@@ -104,7 +105,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         - same as for
           :class:`~sage.schemes.toric.morphism.SchemeMorphism_polynomial_toric_variety`.
 
-        OUTPUT: A :class:`~sage.schemes.toric.morphism.SchemeMorphism_polynomial_toric_variety`.
+        OUTPUT: a :class:`~sage.schemes.toric.morphism.SchemeMorphism_polynomial_toric_variety`
 
         TESTS::
 
@@ -144,7 +145,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         - same as for
           :class:`~sage.schemes.toric.homset.SchemeHomset_points_toric_field`.
 
-        OUTPUT: A :class:`~sage.schemes.toric.homset.SchemeHomset_points_subscheme_toric_field`.
+        OUTPUT: a :class:`~sage.schemes.toric.homset.SchemeHomset_points_subscheme_toric_field`
 
         TESTS::
 
@@ -164,7 +165,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         """
         Return the fan of the ambient space.
 
-        OUTPUT: A fan.
+        OUTPUT: a fan
 
         EXAMPLES::
 
@@ -182,8 +183,8 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
 
         INPUT:
 
-        - ``i`` -- integer, index of a generating cone of the fan of the
-          ambient space of ``self``.
+        - ``i`` -- integer; index of a generating cone of the fan of the
+          ambient space of ``self``
 
         OUTPUT:
 
@@ -326,14 +327,14 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             result = R.zero()
             for coefficient, monomial in p:
                 exponent = monomial.exponents()[0]
-                exponent = [ exponent[i] for i in cone.ambient_ray_indices() ]
-                exponent = vector(ZZ,exponent)
+                exponent = [exponent[i] for i in cone.ambient_ray_indices()]
+                exponent = vector(ZZ, exponent)
                 m = n_rho_matrix.solve_right(exponent)
                 assert all(x in ZZ for x in m), \
-                    'The polynomial '+str(p)+' does not define a ZZ-divisor!'
+                    f'The polynomial {p} does not define a ZZ-divisor!'
                 m_coeffs = dualcone.Hilbert_coefficients(m)
                 result += coefficient * prod(R.gen(i)**m_coeffs[i]
-                                             for i in range(0,R.ngens()))
+                                             for i in range(R.ngens()))
             return result
 
         # construct the affine algebraic scheme to use as patch
@@ -351,7 +352,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         if cone.is_smooth():
             x = ambient.coordinate_ring().gens()
             phi = []
-            for i in range(0,fan.nrays()):
+            for i in range(fan.nrays()):
                 if i in cone.ambient_ray_indices():
                     phi.append(pullback_polynomial(x[i]))
                 else:
@@ -369,11 +370,10 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         # it remains to find the preimage of point
         # map m to the monomial x^{D_m}, see reference.
         F = ambient.coordinate_ring().fraction_field()
-        image = []
-        for m in dualcone.Hilbert_basis():
-            x_Dm = prod([ F.gen(i)**(m*n) for i,n in enumerate(fan.rays()) ])
-            image.append(x_Dm)
-        patch._embedding_center = tuple( f(list(point)) for f in image )
+        image = [prod([F.gen(i)**(m * n)
+                       for i, n in enumerate(fan.rays())])
+                 for m in dualcone.Hilbert_basis()]
+        patch._embedding_center = tuple(f(list(point)) for f in image)
         return patch
 
     def _best_affine_patch(self, point):
@@ -382,11 +382,9 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
 
         INPUT:
 
-        - ``point`` -- a point of the algebraic subscheme.
+        - ``point`` -- a point of the algebraic subscheme
 
-        OUTPUT:
-
-        Integer. The index of the patch. See :meth:`affine_patch`.
+        OUTPUT: integer. The index of the patch. See :meth:`affine_patch`
 
         EXAMPLES::
 
@@ -414,14 +412,14 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
 
         INPUT:
 
-        - ``point`` -- a point of the toric algebraic scheme.
+        - ``point`` -- a point of the toric algebraic scheme
 
         OUTPUT:
 
         An affine toric algebraic scheme (polynomial equations in an
         affine toric variety) with fixed
-        :meth:`~AlgebraicScheme.embedding_morphism` and
-        :meth:`~AlgebraicScheme.embedding_center`.
+        :meth:`~sage.schemes.toric.variety.ToricVariety_field.embedding_morphism` and
+        :meth:`~sage.schemes.generic.algebraic_scheme.AlgebraicScheme.embedding_center`.
 
         EXAMPLES::
 
@@ -487,14 +485,14 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         phi_reduced = [S(t) for t in phi]
 
         patch._embedding_center = patch(point_preimage)
-        patch._embedding_morphism = patch.hom(phi_reduced,self)
+        patch._embedding_morphism = patch.hom(phi_reduced, self)
         return patch
 
     def dimension(self):
         """
         Return the dimension of ``self``.
 
-        OUTPUT: An integer. If ``self`` is empty, `-1` is returned.
+        OUTPUT: integer; if ``self`` is empty, `-1` is returned
 
         EXAMPLES::
 
@@ -513,22 +511,22 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         if '_dimension' in self.__dict__:
             return self._dimension
         npatches = self.ambient_space().fan().ngenerating_cones()
-        dims = [ self.affine_patch(i).dimension() for i in range(0,npatches) ]
+        dims = [self.affine_patch(i).dimension() for i in range(npatches)]
         self._dimension = max(dims)
         return self._dimension
 
-    def is_smooth(self, point=None):
+    def is_smooth(self, point=None) -> bool:
         r"""
         Test whether the algebraic subscheme is smooth.
 
         INPUT:
 
-        - ``point`` -- A point or ``None`` (default). The point to
-          test smoothness at.
+        - ``point`` -- a point or ``None`` (default); the point to
+          test smoothness at
 
         OUTPUT:
 
-        Boolean. If no point was specified, returns whether the
+        boolean; if no point was specified, returns whether the
         algebraic subscheme is smooth everywhere. Otherwise,
         smoothness at the specified point is tested.
 
@@ -582,10 +580,11 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         if '_smooth' in self.__dict__:
             return self._smooth
         npatches = self.ambient_space().fan().ngenerating_cones()
-        self._smooth = all(self.affine_patch(i).is_smooth() for i in range(0,npatches))
+        self._smooth = all(self.affine_patch(i).is_smooth()
+                           for i in range(npatches))
         return self._smooth
 
-    def is_nondegenerate(self):
+    def is_nondegenerate(self) -> bool:
         r"""
         Check if ``self`` is nondegenerate.
 
@@ -665,7 +664,6 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             False
             sage: P2.subscheme([x]).is_nondegenerate()
             False
-
         """
         X = self.ambient_space()
         fan = X.fan()
@@ -693,7 +691,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
                                 enumerate(SR.subs(divide).gens())])
             return ideal, Jac_patch + SR_patch
 
-        for dim in range(0, fan.dim() + 1):
+        for dim in range(fan.dim() + 1):
             for cone in fan(dim):
                 ideal1, ideal2 = restrict(cone)
                 if ideal1.is_zero() or ideal2.dimension() != -1:
@@ -701,7 +699,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
 
         return True
 
-    def is_schon(self):
+    def is_schon(self) -> bool:
         r"""
         Check if ``self`` is schon (nondegenerate).
 
@@ -716,7 +714,6 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             True
             sage: X.is_schon()
             False
-
         """
         return self.is_nondegenerate()
 
@@ -729,16 +726,15 @@ class AlgebraicScheme_subscheme_affine_toric(AlgebraicScheme_subscheme_toric):
 
         You should not create objects of this class directly. The preferred
         method to construct such subschemes is to use
-        :meth:`~ToricVariety_field.subscheme` method of
-        :class:`toric varieties <ToricVariety_field>`.
+        :meth:`~sage.schemes.toric.variety.ToricVariety_field.subscheme` method of
+        :class:`toric varieties <sage.schemes.toric.variety.ToricVariety_field>`.
 
     INPUT:
 
-    - ``toric_variety`` -- ambient :class:`affine toric variety
-      <ToricVariety_field>`;
+    - ``toric_variety`` -- ambient :class:`affine toric variety <sage.schemes.toric.variety.ToricVariety_field>`
 
     - ``polynomials`` -- single polynomial, list, or ideal of defining
-      polynomials in the coordinate ring of ``toric_variety``.
+      polynomials in the coordinate ring of ``toric_variety``
 
     OUTPUT:
 
@@ -794,7 +790,7 @@ class AlgebraicScheme_subscheme_affine_toric(AlgebraicScheme_subscheme_toric):
         """
         Return the dimension of ``self``.
 
-        OUTPUT: An integer.
+        OUTPUT: integer
 
         EXAMPLES::
 
@@ -827,18 +823,18 @@ class AlgebraicScheme_subscheme_affine_toric(AlgebraicScheme_subscheme_toric):
             self._dimension = self.affine_algebraic_patch().dimension()
         return self._dimension
 
-    def is_smooth(self, point=None):
+    def is_smooth(self, point=None) -> bool:
         r"""
         Test whether the algebraic subscheme is smooth.
 
         INPUT:
 
-        - ``point`` -- A point or ``None`` (default). The point to
-          test smoothness at.
+        - ``point`` -- a point or ``None`` (default); the point to
+          test smoothness at
 
         OUTPUT:
 
-        Boolean. If no point was specified, returns whether the
+        boolean; if no point was specified, returns whether the
         algebraic subscheme is smooth everywhere. Otherwise,
         smoothness at the specified point is tested.
 
@@ -888,10 +884,9 @@ class AlgebraicScheme_subscheme_affine_toric(AlgebraicScheme_subscheme_toric):
                 point_subs = dict(zip(R.gens(), point))
                 Jac = self.Jacobian().subs(point_subs)
                 return not Jac.is_zero()
-            else:
-                self._embedding_center = self.point(point)
-                affine = self.affine_algebraic_patch()
-                return affine.is_smooth(affine.embedding_center())
+            self._embedding_center = self.point(point)
+            affine = self.affine_algebraic_patch()
+            return affine.is_smooth(affine.embedding_center())
 
         # testing smoothness everywhere tends to be expensive
         if '_smooth' in self.__dict__:

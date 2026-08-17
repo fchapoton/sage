@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-environment
 r"""
 Feature for testing the presence of ``cddlib``
 """
@@ -23,8 +22,11 @@ class CddExecutable(Executable):
     EXAMPLES::
 
         sage: from sage.features.cddlib import CddExecutable
-        sage: CddExecutable().is_present()
+        sage: CddExecutable().is_present()  # needs cddexec_gmp
         FeatureTestResult('cddexec_gmp', True)
+        sage: CddExecutable().is_present()  # needs !cddexec_gmp
+        FeatureTestResult('cddexec_gmp', False)
+
     """
     def __init__(self, name='cddexec_gmp'):
         r"""
@@ -34,5 +36,9 @@ class CddExecutable(Executable):
             sage: isinstance(CddExecutable(), CddExecutable)
             True
         """
-        Executable.__init__(self, name=name, executable=name, spkg="cddlib",
-                            url="https://github.com/cddlib/cddlib", type="standard")
+        Executable.__init__(self, name=name, executable=name, spkg='cddlib',
+                            url='https://github.com/cddlib/cddlib', type='standard')
+
+
+def all_features():
+    return [CddExecutable()]

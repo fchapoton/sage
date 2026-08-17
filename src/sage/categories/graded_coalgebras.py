@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-categories
 r"""
 Graded Coalgebras
 """
@@ -17,7 +16,7 @@ from sage.misc.cachefunc import cached_method
 
 class GradedCoalgebras(GradedModulesCategory):
     """
-    The category of graded coalgebras
+    The category of graded coalgebras.
 
     EXAMPLES::
 

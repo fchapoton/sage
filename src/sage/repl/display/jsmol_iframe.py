@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-repl
 """
 HTML Generator for JSmol
 
@@ -113,7 +112,7 @@ class JSMolHtml(SageObject):
         EXAMPLES::
 
             sage: from sage.repl.display.jsmol_iframe import JSMolHtml
-            sage: JSMolHtml(sphere(), width=500, height=300)                            # needs sage.plot
+            sage: JSMolHtml(sphere(), width=500, height=300)
             JSmol Window 500x300
         """
         from sage.repl.rich_output.output_graphics3d import OutputSceneJmol
@@ -136,9 +135,7 @@ class JSMolHtml(SageObject):
         This method extracts the Jmol script from the Jmol spt file (a
         zip archive) and inlines meshes.
 
-        OUTPUT:
-
-        String.
+        OUTPUT: string
 
         EXAMPLES::
 
@@ -200,11 +197,9 @@ class JSMolHtml(SageObject):
 
     def _repr_(self):
         """
-        Return as string representation
+        Return as string representation.
 
-        OUTPUT:
-
-        String.
+        OUTPUT: string
 
         EXAMPLES::
 
@@ -217,7 +212,7 @@ class JSMolHtml(SageObject):
 
     def inner_html(self):
         """
-        Return a HTML document containing a JSmol applet
+        Return a HTML document containing a JSmol applet.
 
         EXAMPLES::
 
@@ -243,11 +238,9 @@ class JSMolHtml(SageObject):
 
     def iframe(self):
         """
-        Return HTML iframe
+        Return HTML iframe.
 
-        OUTPUT:
-
-        String.
+        OUTPUT: string
 
         EXAMPLES::
 
@@ -266,11 +259,9 @@ class JSMolHtml(SageObject):
 
     def outer_html(self):
         """
-        Return a HTML document containing an iframe with a JSmol applet
+        Return a HTML document containing an iframe with a JSmol applet.
 
-        OUTPUT:
-
-        String
+        OUTPUT: string
 
         EXAMPLES::
 

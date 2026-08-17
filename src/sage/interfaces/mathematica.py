@@ -187,8 +187,7 @@ We find the `x` such that `e^x - 3x = 0`.
 Note that this agrees with what the PARI interpreter gp produces::
 
     sage: gp('solve(x=1,2,exp(x)-3*x)')
-    1.512134551657842473896739678              # 32-bit
-    1.5121345516578424738967396780720387046    # 64-bit
+    1.5121345516578424738967396780720387046
 
 Next we find the minimum of a polynomial using the two different
 ways of accessing Mathematica::
@@ -315,7 +314,7 @@ For more details, see the documentation for ``._sage_()``.
 
 OTHER Examples::
 
-    sage: def math_bessel_K(nu,x):
+    sage: def math_bessel_K(nu, x):
     ....:     return mathematica(nu).BesselK(x).N(20)
     sage: math_bessel_K(2,I)                      # optional - mathematica
     -2.59288617549119697817 + 0.18048997206696202663*I
@@ -454,7 +453,7 @@ def clean_output(s):
 
 def _un_camel(name):
     """
-    Convert `CamelCase` to `camel_case`.
+    Convert ``CamelCase`` to ``camel_case``.
 
     EXAMPLES::
 
@@ -594,8 +593,7 @@ remote connection to a server running Mathematica -- for hints, type
         s = Expect.eval(self, code, **kwds)
         if strip:
             return AsciiArtString(clean_output(s))
-        else:
-            return AsciiArtString(s)
+        return AsciiArtString(s)
 
     def set(self, var, value):
         """
@@ -627,7 +625,7 @@ remote connection to a server running Mathematica -- for hints, type
 
     def _function_call_string(self, function, args, kwds):
         """
-        Returns the string used to make function calls.
+        Return the string used to make function calls.
 
         EXAMPLES::
 
@@ -649,7 +647,7 @@ remote connection to a server running Mathematica -- for hints, type
         return "]"
 
     ###########################################
-    # System -- change directory, etc
+    # System -- change directory, etc.
     ###########################################
     def chdir(self, dir):
         """
@@ -677,7 +675,7 @@ remote connection to a server running Mathematica -- for hints, type
 
     def _exponent_symbol(self):
         """
-        Returns the symbol used to denote the exponent of a number in
+        Return the symbol used to denote the exponent of a number in
         Mathematica.
 
         EXAMPLES::
@@ -925,11 +923,9 @@ class MathematicaElement(ExpectElement):
     @cached_method
     def _is_graphics(self):
         """
-        Test whether the mathematica expression is graphics
+        Test whether the mathematica expression is graphics.
 
-        OUTPUT:
-
-        Boolean.
+        OUTPUT: boolean
 
         EXAMPLES::
 
@@ -942,14 +938,14 @@ class MathematicaElement(ExpectElement):
 
     def save_image(self, filename, ImageSize=600):
         r"""
-        Save a mathematica graphics
+        Save a mathematica graphics.
 
         INPUT:
 
-        - ``filename`` -- string. The filename to save as. The
-          extension determines the image file format.
+        - ``filename`` -- string; the filename to save as. The
+          extension determines the image file format
 
-        - ``ImageSize`` -- integer. The size of the resulting image.
+        - ``ImageSize`` -- integer; the size of the resulting image
 
         EXAMPLES::
 
@@ -967,7 +963,7 @@ class MathematicaElement(ExpectElement):
 
     def _rich_repr_(self, display_manager, **kwds):
         """
-        Rich Output Magic Method
+        Rich Output Magic Method.
 
         See :mod:`sage.repl.rich_output` for details.
 
@@ -1010,12 +1006,13 @@ class MathematicaElement(ExpectElement):
 
         INPUT:
 
-        - ``ImageSize`` -- integer. The size of the resulting image.
+        - ``ImageSize`` -- integer; the size of the resulting image
 
         OUTPUT:
 
-        This method does not return anything. Use :meth:`save` if you
-        want to save the figure as an image.
+        This method does not return anything. Use
+        :meth:`~sage.interfaces.mathematica.MathematicaElement.save_image` if
+        you want to save the figure as an image.
 
         EXAMPLES::
 
@@ -1041,9 +1038,9 @@ class MathematicaElement(ExpectElement):
         P = self.parent()
         if P.eval("%s < %s" % (self.name(), other.name())).strip() == 'True':
             return rich_to_bool(op, -1)
-        elif P.eval("%s > %s" % (self.name(), other.name())).strip() == 'True':
+        if P.eval("%s > %s" % (self.name(), other.name())).strip() == 'True':
             return rich_to_bool(op, 1)
-        elif P.eval("%s == %s" % (self.name(), other.name())).strip() == 'True':
+        if P.eval("%s == %s" % (self.name(), other.name())).strip() == 'True':
             return rich_to_bool(op, 0)
         return NotImplemented
 
@@ -1069,7 +1066,7 @@ class MathematicaElement(ExpectElement):
 
     def n(self, *args, **kwargs):
         r"""
-        Numerical approximation by converting to Sage object first
+        Numerical approximation by converting to Sage object first.
 
         Convert the object into a Sage object and return its numerical
         approximation. See documentation of the function
@@ -1116,9 +1113,8 @@ def mathematica_console(readline=True):
     if not readline:
         os.system('math')
         return
-    else:
-        os.system('math-readline')
-        return
+    os.system('math-readline')
+    return
 
 
 # some tools for online interface
@@ -1130,11 +1126,9 @@ def request_wolfram_alpha(input, verbose=False):
     INPUT:
 
     - ``input`` -- string
-    - ``verbose`` -- bool (default: ``False``)
+    - ``verbose`` -- boolean (default: ``False``)
 
-    OUTPUT:
-
-    json
+    OUTPUT: json
 
     EXAMPLES::
 
@@ -1151,13 +1145,13 @@ def request_wolfram_alpha(input, verbose=False):
          'id',
          'inputstring',
          'numpods',
+         'parseidserver',
          'parsetimedout',
          'parsetiming',
          'pods',
          'recalculate',
          'related',
          'server',
-         'sponsorCategories',
          'success',
          'timedout',
          'timedoutpods',
@@ -1231,16 +1225,14 @@ def request_wolfram_alpha(input, verbose=False):
 
 def parse_moutput_from_json(page_data, verbose=False):
     r"""
-    Return the list of outputs found in the json (with key ``'moutput'``)
+    Return the list of outputs found in the json (with key ``'moutput'``).
 
     INPUT:
 
     - ``page_data`` -- json obtained from Wolfram Alpha
-    - ``verbose`` -- bool (default: ``False``)
+    - ``verbose`` -- boolean (default: ``False``)
 
-    OUTPUT:
-
-    list of unicode strings
+    OUTPUT: list of unicode strings
 
     EXAMPLES::
 
@@ -1296,15 +1288,13 @@ def parse_moutput_from_json(page_data, verbose=False):
 
 def symbolic_expression_from_mathematica_string(mexpr):
     r"""
-    Translate a mathematica string into a symbolic expression
+    Translate a mathematica string into a symbolic expression.
 
     INPUT:
 
     - ``mexpr`` -- string
 
-    OUTPUT:
-
-    symbolic expression
+    OUTPUT: symbolic expression
 
     EXAMPLES::
 

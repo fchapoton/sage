@@ -18,14 +18,14 @@ AUTHORS:
 - Ben Hutz (July 2017): initial version
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017 Ben Hutz <bn4941@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from copy import copy
 
@@ -50,12 +50,12 @@ class DynamicalSystem(SchemeMorphism_polynomial,
 
     INPUT:
 
-    - ``polys_or_rat_fncts`` -- a list of polynomials or rational functions,
+    - ``polys_or_rat_fncts`` -- list of polynomials or rational functions,
       all of which should have the same parent
 
     - ``domain`` -- an affine or projective scheme, or product of
-      projective schemes, on which ``polys`` defines an endomorphism.
-      Subschemes are also ok
+      projective schemes, on which ``polys`` defines an endomorphism
+      (Subschemes are also ok)
 
     - ``names`` -- (default: ``('X', 'Y')``) tuple of strings to be used
       as coordinate names for a projective space that is constructed
@@ -165,7 +165,8 @@ class DynamicalSystem(SchemeMorphism_polynomial,
         if isinstance(morphism_or_polys, SchemeMorphism_polynomial):
             domain = morphism_or_polys.domain()
         if domain is not None:
-            if isinstance(domain, AffineSpace_generic) or isinstance(domain, AlgebraicScheme_subscheme_affine):
+            if isinstance(domain, (AffineSpace_generic,
+                                   AlgebraicScheme_subscheme_affine)):
                 from sage.dynamics.arithmetic_dynamics.affine_ds import DynamicalSystem_affine
                 return DynamicalSystem_affine(morphism_or_polys, domain)
             if isinstance(domain, Berkovich_Cp):
@@ -312,13 +313,14 @@ class DynamicalSystem(SchemeMorphism_polynomial,
         Given a family of maps defined over a polynomial ring. A
         specialization is a particular member of that family. The
         specialization can be specified either by a dictionary or
-        a :class:`SpecializationMorphism`.
+        a :class:`~sage.rings.polynomial.flatten.SpecializationMorphism`.
 
         INPUT:
 
         - ``D`` -- (optional) dictionary
 
-        - ``phi`` -- (optional) SpecializationMorphism
+        - ``phi`` -- (optional)
+          :class:`~sage.rings.polynomial.flatten.SpecializationMorphism`
 
         - ``homset`` -- (optional) homset of specialized map
 
@@ -338,20 +340,20 @@ class DynamicalSystem(SchemeMorphism_polynomial,
 
     def field_of_definition_critical(self, return_embedding=False, simplify_all=False, names='a'):
         r"""
-        Return smallest extension of the base field which contains the critical points
+        Return smallest extension of the base field which contains the critical points.
 
         Ambient space of dynamical system must be either the affine line or projective
         line over a number field or finite field.
 
         INPUT:
 
-        - ``return_embedding`` -- (default: ``False``) boolean; If ``True``, return an
+        - ``return_embedding`` -- boolean (default: ``False``); if ``True``, return an
           embedding of base field of dynamical system into the returned number field or
           finite field. Note that computing this embedding might be expensive.
 
-        - ``simplify_all`` -- (default: ``False``) boolean; If ``True``, simplify
+        - ``simplify_all`` -- boolean (default: ``False``); if ``True``, simplify
           intermediate fields and also the resulting number field. Note that this
-          is not implemented for finite fields and has no effect
+          is not implemented for finite fields and has no effect.
 
         - ``names`` -- (optional) string to be used as generator for returned number field
           or finite field
@@ -411,8 +413,7 @@ class DynamicalSystem(SchemeMorphism_polynomial,
         if isinstance(K, (AlgebraicClosureFiniteField_generic, AlgebraicField_common)):
             if return_embedding:
                 return (K, K.hom(K))
-            else:
-                return K
+            return K
         if space.is_projective():
             ds = ds.dehomogenize(1)
         f,g = ds[0].numerator(), ds[0].denominator()
@@ -424,19 +425,16 @@ class DynamicalSystem(SchemeMorphism_polynomial,
         poly = (g*CR(f).derivative(x) - f*CR(g).derivative(x)).univariate_polynomial()
         if isinstance(ds.base_ring(), FiniteField):
             return poly.splitting_field(names, map=return_embedding)
+        K = poly.splitting_field(names, map=return_embedding, simplify_all=simplify_all)
+        if return_embedding:
+            N = K[0]
         else:
-            K = poly.splitting_field(names, map=return_embedding, simplify_all=simplify_all)
+            N = K
+        if N.absolute_degree() == 1:
             if return_embedding:
-                N = K[0]
-            else:
-                N = K
-            if N.absolute_degree() == 1:
-                if return_embedding:
-                    return (QQ,ds.base_ring().embeddings(QQ)[0])
-                else:
-                    return QQ
-            else:
-                return K
+                return (QQ,ds.base_ring().embeddings(QQ)[0])
+            return QQ
+        return K
 
     def field_of_definition_periodic(self, n, formal=False, return_embedding=False, simplify_all=False, names='a'):
         r"""
@@ -448,21 +446,21 @@ class DynamicalSystem(SchemeMorphism_polynomial,
 
         INPUT:
 
-        - ``n`` -- a positive integer
+        - ``n`` -- positive integer
 
-        - ``formal`` -- (default: ``False``) boolean; ``True`` signals to return number
+        - ``formal`` -- boolean (default: ``False``); ``True`` signals to return number
           field or finite field over which the formal periodic points are defined, where a
           formal periodic point is a root of the ``n``-th dynatomic polynomial.
           ``False`` specifies to find number field or finite field over which all periodic
-          points of the ``n``-th iterate are defined
+          points of the ``n``-th iterate are defined.
 
-        - ``return_embedding`` -- (default: ``False``) boolean; If ``True``, return
+        - ``return_embedding`` -- boolean (default: ``False``); if ``True``, return
           an embedding of base field of dynamical system into the returned number
           field or finite field. Note that computing this embedding might be expensive.
 
-        - ``simplify_all`` -- (default: ``False``) boolean; If ``True``, simplify
+        - ``simplify_all`` -- boolean (default: ``False``); if ``True``, simplify
           intermediate fields and also the resulting number field. Note that this
-          is not implemented for finite fields and has no effect
+          is not implemented for finite fields and has no effect.
 
         - ``names`` -- (optional) string to be used as generator for returned number
           field or finite field
@@ -530,8 +528,7 @@ class DynamicalSystem(SchemeMorphism_polynomial,
         if isinstance(K, (AlgebraicClosureFiniteField_generic, AlgebraicField_common)):
             if return_embedding:
                 return (K, K.hom(K))
-            else:
-                return K
+            return K
         if space.is_projective():
             ds = ds.dehomogenize(1)
         CR = space.coordinate_ring()
@@ -548,19 +545,16 @@ class DynamicalSystem(SchemeMorphism_polynomial,
             poly = (f - g*x).univariate_polynomial()
         if isinstance(ds.base_ring(), FiniteField):
             return poly.splitting_field(names, map=return_embedding)
+        K = poly.splitting_field(names, map=return_embedding, simplify_all=simplify_all)
+        if return_embedding:
+            N = K[0]
         else:
-            K = poly.splitting_field(names, map=return_embedding, simplify_all=simplify_all)
+            N = K
+        if N.absolute_degree() == 1:
             if return_embedding:
-                N = K[0]
-            else:
-                N = K
-            if N.absolute_degree() == 1:
-                if return_embedding:
-                    return (QQ,ds.base_ring().embeddings(QQ)[0])
-                else:
-                    return QQ
-            else:
-                return K
+                return (QQ,ds.base_ring().embeddings(QQ)[0])
+            return QQ
+        return K
 
     def field_of_definition_preimage(self, point, n, return_embedding=False, simplify_all=False, names='a'):
         r"""
@@ -574,15 +568,15 @@ class DynamicalSystem(SchemeMorphism_polynomial,
 
         - ``point`` -- a point in this map's domain
 
-        - ``n`` -- a positive integer
+        - ``n`` -- positive integer
 
-        - ``return_embedding`` -- (default: ``False``) boolean; If ``True``, return
+        - ``return_embedding`` -- boolean (default: ``False``); if ``True``, return
           an embedding of base field of dynamical system into the returned number
           field or finite field. Note that computing this embedding might be expensive.
 
-        - ``simplify_all`` -- (default: ``False``) boolean; If ``True``, simplify
+        - ``simplify_all`` -- boolean (default: ``False``); if ``True``, simplify
           intermediate fields and also the resulting number field. Note that this
-          is not implemented for finite fields and has no effect
+          is not implemented for finite fields and has no effect.
 
         - ``names`` -- (optional) string to be used as generator for returned
           number field or finite field
@@ -646,16 +640,13 @@ class DynamicalSystem(SchemeMorphism_polynomial,
         poly = (f*point[1] - g*CR(point[0])).univariate_polynomial()
         if isinstance(ds.base_ring(), FiniteField):
             return poly.splitting_field(names, map=return_embedding)
+        K = poly.splitting_field(names, map=return_embedding, simplify_all=simplify_all)
+        if return_embedding:
+            N = K[0]
         else:
-            K = poly.splitting_field(names, map=return_embedding, simplify_all=simplify_all)
+            N = K
+        if N.absolute_degree() == 1:
             if return_embedding:
-                N = K[0]
-            else:
-                N = K
-            if N.absolute_degree() == 1:
-                if return_embedding:
-                    return (QQ, ds.base_ring().embeddings(QQ)[0])
-                else:
-                    return QQ
-            else:
-                return K
+                return (QQ, ds.base_ring().embeddings(QQ)[0])
+            return QQ
+        return K

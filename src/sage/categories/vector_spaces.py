@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-categories
 r"""
 Vector Spaces
 """
@@ -27,7 +26,7 @@ _Fields = Fields()
 
 class VectorSpaces(Category_module):
     """
-    The category of (abstract) vector spaces over a given field
+    The category of (abstract) vector spaces over a given field.
 
     ??? with an embedding in an ambient vector space ???
 
@@ -43,8 +42,9 @@ class VectorSpaces(Category_module):
         """
         INPUT:
 
-        - `K` -- a field
-        - ``check`` -- a boolean (default: ``True``) whether to check that `K` is a field.
+        - ``K`` -- a field
+        - ``check`` -- boolean (default: ``True``); whether to check that `K`
+          is a field
 
         EXAMPLES::
 
@@ -92,7 +92,7 @@ class VectorSpaces(Category_module):
 
     def _call_(self, x):
         """
-        Try to coerce ``x`` into an object of this category
+        Try to coerce ``x`` into an object of this category.
 
         EXAMPLES::
 
@@ -106,7 +106,6 @@ class VectorSpaces(Category_module):
             sage: Q3 = FiniteRankFreeModule(QQ, 3)                                      # needs sage.modules
             sage: Modules(QQ)(Q3) is Q3                                                 # needs sage.modules
             True
-
         """
         try:
             V = x.vector_space(self.base_field())
@@ -118,7 +117,7 @@ class VectorSpaces(Category_module):
 
     def base_field(self):
         """
-        Returns the base field over which the vector spaces of this
+        Return the base field over which the vector spaces of this
         category are all defined.
 
         EXAMPLES::
@@ -146,9 +145,10 @@ class VectorSpaces(Category_module):
         structure: a bimodule morphism between two vector spaces is a
         vector space morphism.
 
-        .. SEEALSO:: :meth:`Category.additional_structure`
+        .. SEEALSO:: :meth:`~sage.categories.category.Category.additional_structure`
 
-        .. TODO:: Should this category be a :class:`CategoryWithAxiom`?
+        .. TODO:: Should this category be a
+            :class:`~sage.categories.category_with_axiom.CategoryWithAxiom`?
 
         EXAMPLES::
 
@@ -174,7 +174,6 @@ class VectorSpaces(Category_module):
                 3
                 sage: M.tensor_module(1, 2).dimension()                                 # needs sage.modules
                 27
-
             """
             return self.rank()
 
@@ -185,7 +184,7 @@ class VectorSpaces(Category_module):
 
         _call_ = ModulesWithBasis.__dict__["_call_"]
 
-        def is_abelian(self):
+        def is_abelian(self) -> bool:
             """
             Return whether this category is abelian.
 
@@ -239,7 +238,6 @@ class VectorSpaces(Category_module):
                         [Category of finite dimensional vector spaces with basis over Rational Field]
                         sage: VectorSpaces(QQ).WithBasis().FiniteDimensional().TensorProducts().FiniteDimensional()
                         Category of tensor products of finite dimensional vector spaces with basis over Rational Field
-
                     """
                     return [self.base_category()]
 
@@ -300,7 +298,6 @@ class VectorSpaces(Category_module):
                     [Category of finite dimensional vector spaces over Rational Field]
                     sage: VectorSpaces(QQ).FiniteDimensional().TensorProducts().FiniteDimensional()
                     Category of tensor products of finite dimensional vector spaces over Rational Field
-
                 """
                 return [self.base_category()]
 
@@ -308,7 +305,7 @@ class VectorSpaces(Category_module):
 
         def extra_super_categories(self):
             r"""
-            Returns the dual category
+            Return the dual category.
 
             EXAMPLES:
 

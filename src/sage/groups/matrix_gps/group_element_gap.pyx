@@ -37,10 +37,10 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
 
     - ``parent`` -- the parent
 
-    - ``check`` -- bool (default: ``True``); if ``True``, do some
+    - ``check`` -- boolean (default: ``True``); if ``True``, do some
       type checking
 
-    - ``convert`` -- bool (default: ``True``); if ``True``, convert
+    - ``convert`` -- boolean (default: ``True``); if ``True``, convert
       ``M`` to the right matrix space
     """
     def __init__(self, parent, M, check=True, convert=True):
@@ -93,9 +93,10 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
             sage: MS = MatrixSpace(GF(3), 2)
             sage: G = MatrixGroup([MS([1,1,0,1]), MS([1,0,1,1])])
             sage: g = G.an_element()
-            sage: hash(g)
-            -5306160029685893860  # 64-bit
-            -181258980            # 32-bit
+            sage: hash32 = -181258980
+            sage: hash64 = -5306160029685893860
+            sage: hash(g) in [hash32, hash64]
+            True
         """
         return hash(self.matrix())
 
@@ -152,8 +153,7 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
             try:
                 if self_on_left:
                     return self.matrix() * x
-                else:
-                    return x * self.matrix()
+                return x * self.matrix()
             except TypeError:
                 return None
 
@@ -210,7 +210,7 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
         entries = self.gap().Flat()
         MS = self.parent().matrix_space()
         ring = MS.base_ring()
-        m = MS([x.sage(ring=ring) for x in entries])
+        m = MS([ring(x) for x in entries])
         m.set_immutable()
         return m
 
@@ -310,7 +310,7 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
 
         INPUT:
 
-        - ``gens`` -- a list/tuple/iterable of elements (or objects
+        - ``gens`` -- list/tuple/iterable of elements (or objects
           that can be converted to group elements), or ``None``
           (default); by default, the generators of the parent group
           are used
@@ -318,7 +318,7 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
         OUTPUT:
 
         A factorization object that contains information about the
-        order of factors and the exponents. A :class:`ValueError` is raised
+        order of factors and the exponents. A :exc:`ValueError` is raised
         if the group element cannot be written as a word in ``gens``.
 
         ALGORITHM:

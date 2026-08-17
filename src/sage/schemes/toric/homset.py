@@ -13,10 +13,10 @@ the rational points are implemented by such scheme morphisms. This is
 done by :class:`~sage.schemes.generic.homset.SchemeHomset_points` and
 its subclasses.
 
-.. note::
+.. NOTE::
 
     You should not create the Hom-sets manually. Instead, use the
-    :meth:`~sage.structure.parent.Hom` method that is inherited by all
+    :meth:`~sage.structure.parent.Parent.Hom` method that is inherited by all
     schemes.
 
 AUTHORS:
@@ -176,17 +176,15 @@ class SchemeHomset_toric_variety(SchemeHomset_generic):
 
         INPUT:
 
-        - `x` -- anything that defines a morphism of toric
+        - ``x`` -- anything that defines a morphism of toric
           varieties. A matrix, fan morphism, or a list or tuple of
           homogeneous polynomials that define a morphism.
 
-        - ``check`` -- boolean (default: ``True``) passed onto
+        - ``check`` -- boolean (default: ``True``); passed onto
           functions called by this to be more careful about input
           argument type checking
 
-        OUTPUT:
-
-        The morphism of toric varieties determined by ``x``.
+        OUTPUT: the morphism of toric varieties determined by ``x``
 
         EXAMPLES:
 
@@ -261,9 +259,8 @@ class SchemeHomset_toric_variety(SchemeHomset_generic):
             if x.is_dominant():
                 from sage.schemes.toric.morphism import SchemeMorphism_fan_toric_variety_dominant
                 return SchemeMorphism_fan_toric_variety_dominant(self, x, check=check)
-            else:
-                from sage.schemes.toric.morphism import SchemeMorphism_fan_toric_variety
-                return SchemeMorphism_fan_toric_variety(self, x, check=check)
+            from sage.schemes.toric.morphism import SchemeMorphism_fan_toric_variety
+            return SchemeMorphism_fan_toric_variety(self, x, check=check)
 
         raise TypeError("x must be a fan morphism or a list/tuple of polynomials")
 
@@ -271,9 +268,7 @@ class SchemeHomset_toric_variety(SchemeHomset_generic):
         """
         Construct a sample morphism.
 
-        OUTPUT:
-
-        An element of the homset.
+        OUTPUT: an element of the homset
 
         EXAMPLES::
 
@@ -298,7 +293,7 @@ class SchemeHomset_points_toric_base(SchemeHomset_points):
 
     - same as for :class:`SchemeHomset_points`.
 
-    OUTPUT: A scheme morphism of type :class:`SchemeHomset_points_toric_base`.
+    OUTPUT: a scheme morphism of type :class:`SchemeHomset_points_toric_base`
 
     EXAMPLES::
 
@@ -314,11 +309,11 @@ class SchemeHomset_points_toric_base(SchemeHomset_points):
         Set of rational points of 2-d CPR-Fano toric variety covered by 4 affine patches
     """
 
-    def is_finite(self):
+    def is_finite(self) -> bool:
         """
         Return whether there are finitely many points.
 
-        OUTPUT: A boolean.
+        OUTPUT: boolean
 
         EXAMPLES::
 
@@ -413,11 +408,10 @@ class SchemeHomset_points_toric_base(SchemeHomset_points):
         ring = self.domain().base_ring()
         if ring in FiniteFields():
             return self._finite_field_enumerator()
-        elif ring.is_finite():
+        if ring.is_finite():
             return self._naive_enumerator()
-        else:
-            from sage.schemes.toric.points import InfinitePointEnumerator
-            return InfinitePointEnumerator(self.codomain().fan(), ring)
+        from sage.schemes.toric.points import InfinitePointEnumerator
+        return InfinitePointEnumerator(self.codomain().fan(), ring)
 
 
 class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
@@ -432,7 +426,7 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
 
     - same as for :class:`~sage.schemes.generic.homset.SchemeHomset_points`.
 
-    OUTPUT: A scheme morphism of type :class:`SchemeHomset_points_toric_field`.
+    OUTPUT: a scheme morphism of type :class:`SchemeHomset_points_toric_field`
 
     EXAMPLES::
 
@@ -493,9 +487,7 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
         r"""
         Return the number of points of the toric variety.
 
-        OUTPUT:
-
-        An integer or infinity. The cardinality of the set of points.
+        OUTPUT: integer or infinity; the cardinality of the set of points
 
         EXAMPLES::
 
@@ -551,9 +543,8 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
         if not variety.base_ring().is_finite():
             if variety.dimension_relative() == 0:
                 return ZZ.one()
-            else:
-                from sage.rings.infinity import Infinity
-                return Infinity
+            from sage.rings.infinity import Infinity
+            return Infinity
         if not variety.is_smooth():
             try:
                 return self._enumerator().cardinality()
@@ -568,7 +559,7 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
         """
         Iterate over the points of the variety.
 
-        OUTPUT: Iterator over points.
+        OUTPUT: iterator over points
 
         EXAMPLES::
 
@@ -615,9 +606,7 @@ class SchemeHomset_points_subscheme_toric_field(SchemeHomset_points_toric_base):
         """
         Iterate over the points of the variety.
 
-        OUTPUT:
-
-        Iterator over points.
+        OUTPUT: iterator over points
 
         EXAMPLES::
 
@@ -636,9 +625,7 @@ class SchemeHomset_points_subscheme_toric_field(SchemeHomset_points_toric_base):
         """
         Return the number of points of the toric variety.
 
-        OUTPUT:
-
-        An integer or infinity. The cardinality of the set of points.
+        OUTPUT: integer or infinity; the cardinality of the set of points
 
         EXAMPLES::
 

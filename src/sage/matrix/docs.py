@@ -370,7 +370,7 @@ are named
        * __dealloc__   -- use sig_free (only needed if allocate memory)
        * set_unsafe(self, size_t i, size_t j, x) -- doesn't do bounds or any other checks; assumes x is in self._base_ring
        * get_unsafe(self, size_t i, size_t j) -- doesn't do checks
-       * __richcmp__    -- always the same (I don't know why its needed -- bug in PYREX).
+       * __richcmp__    -- always the same (I don't know why its needed -- bug in PYREX)
 
     Note that the __init__ function must construct the all zero matrix if ``entries == None``.
 
@@ -391,11 +391,11 @@ are named
        * cdef _list -- list of underlying elements (need not be a copy)
        * cdef _dict -- sparse dictionary of underlying elements
        * cdef _add_ -- add two matrices with identical parents
-       * _matrix_times_matrix_c_impl -- multiply two matrices with compatible dimensions and
+       * _matrix_times_matrix_ -- multiply two matrices with compatible dimensions and
                                         identical base rings (both sparse or both dense)
        * cpdef _richcmp_ -- compare two matrices with identical parents
-       * cdef _lmul_c_impl -- multiply this matrix on the right by a scalar, i.e., self * scalar
-       * cdef _rmul_c_impl -- multiply this matrix on the left by a scalar, i.e., scalar * self
+       * cdef _lmul_ -- multiply this matrix on the right by a scalar, i.e., self * scalar
+       * cdef _rmul_ -- multiply this matrix on the left by a scalar, i.e., scalar * self
        * __copy__
        * __neg__
 
@@ -415,7 +415,7 @@ are named
        * Other functions, e.g., transpose, for which knowing the
          specific representation can be helpful.
 
-    .. note::
+    .. NOTE::
 
        - For caching, use self.fetch and self.cache.
 

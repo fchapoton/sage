@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-categories
 r"""
 Algebra ideals
 """
@@ -85,7 +84,6 @@ class AlgebraIdeals(Category_ideal):
             sage: C = AlgebraIdeals(FreeAlgebra(QQ, 2, 'a,b'))                          # needs sage.combinat sage.modules
             sage: C.super_categories()                                                  # needs sage.combinat sage.modules
             []
-
         """
         R = self.algebra()
         try:

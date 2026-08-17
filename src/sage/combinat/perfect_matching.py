@@ -5,8 +5,8 @@ Perfect matchings
 A perfect matching of a set `S` is a partition into 2-element sets. If `S` is
 the set `\{1,...,n\}`, it is equivalent to fixpoint-free involutions. These
 simple combinatorial objects appear in different domains such as combinatorics
-of orthogonal polynomials and of the hyperoctaedral groups (see [MV]_, [McD]_
-and also [CM]_):
+of orthogonal polynomials and of the hyperoctahedral groups (see [MV]_, Chapter VII of [Mac1995]_
+and [CM]_):
 
 AUTHOR:
 
@@ -32,20 +32,6 @@ List the perfect matchings of a given ground set::
 
     sage: PerfectMatchings(4).list()
     [[(1, 2), (3, 4)], [(1, 3), (2, 4)], [(1, 4), (2, 3)]]
-
-REFERENCES:
-
-.. [MV] combinatorics of orthogonal polynomials (A. de Medicis et
-   X.Viennot, Moments des q-polynômes de Laguerre et la bijection de
-   Foata-Zeilberger, Adv. Appl. Math., 15 (1994), 262-304)
-
-.. [McD] combinatorics of hyperoctahedral group, double coset algebra and
-   zonal polynomials (I. G. Macdonald, Symmetric functions and Hall
-   polynomials, Oxford University Press, second edition, 1995, chapter
-   VII).
-
-.. [CM] Benoit Collins, Sho Matsumoto, *On some properties of
-   orthogonal Weingarten functions*, :arxiv:`0903.5143`.
 """
 # ****************************************************************************
 #       Copyright (C) 2010 Valentin Feray <feray@labri.fr>
@@ -132,7 +118,7 @@ class PerfectMatching(SetPartition):
         The function checks that the given list or permutation is
         a valid perfect matching (i.e. a list of pairs with pairwise
         disjoint elements or a fix point free involution) and raises
-        a :class:`ValueError` otherwise::
+        a :exc:`ValueError` otherwise::
 
             sage: PerfectMatching([(1, 2, 3), (4, 5)])
             Traceback (most recent call last):
@@ -258,14 +244,14 @@ class PerfectMatching(SetPartition):
         """
         Return the standardization of ``self``.
 
-        See :meth:`SetPartition.standardization` for details.
+        See :meth:`~sage.combinat.set_partition.SetPartition.standardization`
+        for details.
 
         EXAMPLES::
 
             sage: n = PerfectMatching([('c','b'),('d','f'),('e','a')])
             sage: n.standardization()
             [(1, 5), (2, 3), (4, 6)]
-
         """
         P = PerfectMatchings(2 * len(self))
         return P(SetPartition.standardization(self))
@@ -297,8 +283,9 @@ class PerfectMatching(SetPartition):
 
         INPUT:
 
-        - ``other`` -- a perfect matching of the same set of ``self``.
-          (if the second argument is empty, the method :meth:`an_element` is
+        - ``other`` -- a perfect matching of the same set of ``self``
+          (if the second argument is empty, the method
+          :meth:`~sage.structure.parent.Parent.an_element` is
           called on the parent of the first)
 
         OUTPUT:
@@ -346,8 +333,9 @@ class PerfectMatching(SetPartition):
 
         INPUT:
 
-        - ``other`` -- a perfect matching of the same set of ``self``.
-          (if the second argument is empty, the method :meth:`an_element` is
+        - ``other`` -- a perfect matching of the same set of ``self``
+          (if the second argument is empty, the method
+          :meth:`~sage.structure.parent.Parent.an_element` is
           called on the parent of the first)
 
         OUTPUT:
@@ -395,8 +383,9 @@ class PerfectMatching(SetPartition):
 
         INPUT:
 
-        - ``other`` -- a perfect matching of the same set of ``self``.
-          (if the second argument is empty, the method :meth:`an_element` is
+        - ``other`` -- a perfect matching of the same set of ``self``
+          (if the second argument is empty, the method
+          :meth:`~sage.structure.parent.Parent.an_element` is
           called on the parent of the first)
 
         OUTPUT:
@@ -428,8 +417,9 @@ class PerfectMatching(SetPartition):
 
         INPUT:
 
-        - ``other`` -- a perfect matching of the same set of ``self``.
-          (if the second argument is empty, the method :meth:`an_element` is
+        - ``other`` -- a perfect matching of the same set of ``self``
+          (if the second argument is empty, the method
+          :meth:`~sage.structure.parent.Parent.an_element` is
           called on the parent of the first)
 
         OUTPUT:
@@ -473,9 +463,7 @@ class PerfectMatching(SetPartition):
         r"""
         Return the graph corresponding to the perfect matching.
 
-        OUTPUT:
-
-        The realization of ``self`` as a graph.
+        OUTPUT: the realization of ``self`` as a graph
 
         EXAMPLES::
 
@@ -497,9 +485,7 @@ class PerfectMatching(SetPartition):
         corresponding to the perfect matching if the perfect matching is
         noncrossing, and otherwise gives an error.
 
-        OUTPUT:
-
-        The realization of ``self`` as a noncrossing set partition.
+        OUTPUT: the realization of ``self`` as a noncrossing set partition
 
         EXAMPLES::
 
@@ -724,8 +710,7 @@ class PerfectMatchings(SetPartitions_set):
         n = len(self._set)
         if n % 2:
             return Integer(0)
-        else:
-            return Integer(prod(range(1, n, 2)))
+        return Integer(prod(range(1, n, 2)))
 
     def random_element(self):
         r"""

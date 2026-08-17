@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-categories
 # sage.doctest: needs sage.combinat sage.graphs
 r"""
 Regular Crystals
@@ -82,6 +81,8 @@ class RegularCrystals(Category_singleton):
         running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
+        running ._test_random() . . . pass
+        running ._test_rank() . . . pass
         running ._test_some_elements() . . . pass
         running ._test_stembridge_local_axioms() . . . pass
     """
@@ -98,7 +99,7 @@ class RegularCrystals(Category_singleton):
 
     def example(self, n=3):
         """
-        Returns an example of highest weight crystals, as per
+        Return an example of highest weight crystals, as per
         :meth:`Category.example`.
 
         EXAMPLES::
@@ -117,9 +118,10 @@ class RegularCrystals(Category_singleton):
         structure: it only relates `\varepsilon_a` and `\varphi_a` to
         `e_a` and `f_a` respectively.
 
-        .. SEEALSO:: :meth:`Category.additional_structure`
+        .. SEEALSO:: :meth:`~sage.categories.category.Category.additional_structure`
 
-        .. TODO:: Should this category be a :class:`CategoryWithAxiom`?
+        .. TODO:: Should this category be a
+            :class:`~sage.categories.category_with_axiom.CategoryWithAxiom`?
 
         EXAMPLES::
 
@@ -170,7 +172,7 @@ class RegularCrystals(Category_singleton):
         #   sage: m.demazure_operator([1,4,2])
         def demazure_operator(self, element, reduced_word):
             r"""
-            Returns the application of Demazure operators `D_i` for `i` from
+            Return the application of Demazure operators `D_i` for `i` from
             ``reduced_word`` on ``element``.
 
             INPUT:
@@ -180,9 +182,7 @@ class RegularCrystals(Category_singleton):
             - ``reduced_word`` -- a reduced word of the Weyl group of the
               same type as the underlying crystal
 
-            OUTPUT:
-
-            - an element of the free module indexed by the underlying crystal
+            OUTPUT: an element of the free module indexed by the underlying crystal
 
             EXAMPLES::
 
@@ -229,12 +229,10 @@ class RegularCrystals(Category_singleton):
               underlying crystal
             - ``reduced_word`` -- a reduced word of the Weyl group of the
               same type as the underlying crystal
-            - ``only_support`` -- (default: ``True``) only include arrows
-              corresponding to the support of ``reduced_word``
+            - ``only_support`` -- boolean (default: ``True``); only include
+              arrows corresponding to the support of ``reduced_word``
 
-            OUTPUT:
-
-            - the Demazure subcrystal
+            OUTPUT: the Demazure subcrystal
 
             EXAMPLES::
 
@@ -313,12 +311,10 @@ class RegularCrystals(Category_singleton):
             """
             tester = self._tester(**options)
             goodness = True
-            i = 0
-            for x in self:
+            for i, x in enumerate(self, start=1):
                 goodness = x._test_stembridge_local_axioms(index_set, verbose)
                 if not goodness and not complete:
                     tester.fail()
-                i += 1
                 if i > tester._max_runs:
                     return
             tester.assertTrue(goodness)
@@ -375,7 +371,7 @@ class RegularCrystals(Category_singleton):
               (default: the whole index set of ``self``); this has
               to be a subset of the index set of ``self`` (as a list
               or tuple)
-            - ``directed`` -- (default: ``True``) whether to have the
+            - ``directed`` -- boolean (default: ``True``); whether to have the
               dual equivalence graph be directed, where the head of
               an edge `b - b'` is `b` and the tail is
               `b' = f_{i-1} f_i e_{i-1} e_i b`)
@@ -431,10 +427,7 @@ class RegularCrystals(Category_singleton):
                 index_set = self.index_set()
 
             def wt_zero(x):
-                for i in index_set:
-                    if x.epsilon(i) != x.phi(i):
-                        return False
-                return True
+                return all(x.epsilon(i) == x.phi(i) for i in index_set)
 
             if X is None:
                 X = [x for x in self if wt_zero(x)]
@@ -453,10 +446,10 @@ class RegularCrystals(Category_singleton):
                         if checker(y):
                             edges.append([x, y, i])
             from sage.graphs.digraph import DiGraph
-            G = DiGraph([X, edges], format="vertices_and_edges", immutable=True)
+            G = DiGraph([X, edges], format='vertices_and_edges', immutable=True)
             from sage.graphs.dot2tex_utils import have_dot2tex
             if have_dot2tex():
-                G.set_latex_options(format="dot2tex", edge_labels=True,
+                G.set_latex_options(format='dot2tex', edge_labels=True,
                                     color_by_label=self.cartan_type()._index_set_coloring)
             return G
 
@@ -583,15 +576,14 @@ class RegularCrystals(Category_singleton):
                     element = element.f(i)
                     l.append(element)
                 return C.sum_of_monomials(l)
-            else:
-                l = []
-                element = self
-                for k in range(-r-1):
-                    element = element.e(i)
-                    l.append(element)
-                return - C.sum_of_monomials(l)
+            l = []
+            element = self
+            for k in range(-r-1):
+                element = element.e(i)
+                l.append(element)
+            return - C.sum_of_monomials(l)
 
-        def stembridgeDelta_depth(self,i,j):
+        def stembridgeDelta_depth(self, i, j):
             r"""
             Return the difference in the `j`-depth of ``self`` and `e_i`
             of ``self``, where `i` and `j` are in the index set of the
@@ -614,7 +606,7 @@ class RegularCrystals(Category_singleton):
                 return 0
             return -self.e(i).epsilon(j) + self.epsilon(j)
 
-        def stembridgeDelta_rise(self,i,j):
+        def stembridgeDelta_rise(self, i, j):
             r"""
             Return the difference in the `j`-rise of ``self`` and `e_i` of
             ``self``, where `i` and `j` are in the index set of the
@@ -637,7 +629,7 @@ class RegularCrystals(Category_singleton):
                 return 0
             return self.e(i).phi(j) - self.phi(j)
 
-        def stembridgeDel_depth(self,i,j):
+        def stembridgeDel_depth(self, i, j):
             r"""
             Return the difference in the `j`-depth of ``self`` and `f_i` of
             ``self``, where `i` and `j` are in the index set of the
@@ -660,7 +652,7 @@ class RegularCrystals(Category_singleton):
                 return 0
             return -self.epsilon(j) + self.f(i).epsilon(j)
 
-        def stembridgeDel_rise(self,i,j):
+        def stembridgeDel_rise(self, i, j):
             r"""
             Return the difference in the `j`-rise of ``self`` and `f_i` of
             ``self``, where `i` and `j` are in the index set of the
@@ -683,7 +675,7 @@ class RegularCrystals(Category_singleton):
                 return 0
             return self.phi(j)-self.f(i).phi(j)
 
-        def stembridgeTriple(self,i,j):
+        def stembridgeTriple(self, i, j):
             r"""
             Let `A` be the Cartan matrix of the crystal, `x` a crystal element,
             and let `i` and `j` be in the index set of the crystal.
@@ -809,9 +801,9 @@ class RegularCrystals(Category_singleton):
             of weight `0` with respect to `I`; that is, we need to have
             `\varepsilon_j(b) = \varphi_j(b)` for all `j \in I`.
 
-            See [As2008]_. See also :meth:`dual_equivalence_graph` for
-            a definition of `i`-elementary dual equivalence
-            transformations.
+            See [As2008]_. See also
+            :meth:`~sage.categories.regular_crystals.RegularCrystals.ParentMethods.dual_equivalence_graph`
+            for a definition of `i`-elementary dual equivalence transformations.
 
             INPUT:
 
@@ -843,12 +835,12 @@ class RegularCrystals(Category_singleton):
                 sage: T = crystals.Tableaux(['A',4], shape=[3,2])
                 sage: G = T(2,1,4,3,5).dual_equivalence_class()
                 sage: G.edges(sort=True)
-                [([[1, 3, 5], [2, 4]], [[1, 3, 4], [2, 5]], 4),
-                 ([[1, 3, 5], [2, 4]], [[1, 2, 5], [3, 4]], 2),
-                 ([[1, 3, 5], [2, 4]], [[1, 2, 5], [3, 4]], 3),
+                [([[1, 3, 4], [2, 5]], [[1, 3, 5], [2, 4]], 4),
                  ([[1, 3, 4], [2, 5]], [[1, 2, 4], [3, 5]], 2),
-                 ([[1, 2, 4], [3, 5]], [[1, 2, 3], [4, 5]], 3),
-                 ([[1, 2, 4], [3, 5]], [[1, 2, 3], [4, 5]], 4)]
+                 ([[1, 2, 5], [3, 4]], [[1, 3, 5], [2, 4]], 2),
+                 ([[1, 2, 5], [3, 4]], [[1, 3, 5], [2, 4]], 3),
+                 ([[1, 2, 3], [4, 5]], [[1, 2, 4], [3, 5]], 3),
+                 ([[1, 2, 3], [4, 5]], [[1, 2, 4], [3, 5]], 4)]
             """
             if index_set is None:
                 index_set = self.index_set()
@@ -878,11 +870,11 @@ class RegularCrystals(Category_singleton):
                         if y not in visited:
                             todo.add(y)
             from sage.graphs.graph import Graph
-            G = Graph([visited, edges], format="vertices_and_edges",
+            G = Graph([visited, edges], format='vertices_and_edges',
                       immutable=True, multiedges=True)
             from sage.graphs.dot2tex_utils import have_dot2tex
             if have_dot2tex():
-                G.set_latex_options(format="dot2tex", edge_labels=True,
+                G.set_latex_options(format='dot2tex', edge_labels=True,
                                     color_by_label=self.cartan_type()._index_set_coloring)
             return G
 

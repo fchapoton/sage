@@ -51,15 +51,9 @@ class SandpileExamples:
     """
     def __call__(self):
         r"""
-        If sandpiles() is executed, return a helpful message.
+        If ``sandpiles()`` is executed, return a helpful message.
 
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
+        OUTPUT: none
 
         EXAMPLES::
 
@@ -78,11 +72,9 @@ class SandpileExamples:
 
         INPUT:
 
-        -  ``n`` -- positive integer
+        - ``n`` -- positive integer
 
-        OUTPUT:
-
-        - Sandpile
+        OUTPUT: Sandpile
 
         EXAMPLES::
 
@@ -100,11 +92,9 @@ class SandpileExamples:
 
         INPUT:
 
-        -  ``n`` -- a non-negative integer
+        - ``n`` -- nonnegative integer
 
-        OUTPUT:
-
-        - Sandpile
+        OUTPUT: Sandpile
 
         EXAMPLES::
 
@@ -125,13 +115,7 @@ class SandpileExamples:
         """
         Sandpile on the diamond graph.
 
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        - Sandpile
+        OUTPUT: Sandpile
 
         EXAMPLES::
 
@@ -147,19 +131,17 @@ class SandpileExamples:
 
         INPUT:
 
-        -  ``n`` -- a non-negative integer
+        - ``n`` -- nonnegative integer
 
-        OUTPUT:
-
-        - Sandpile
+        OUTPUT: Sandpile
 
         EXAMPLES::
 
             sage: f = sandpiles.Fan(10)
-            sage: f.group_order() == fibonacci(18)                                      # needs sage.libs.pari
+            sage: f.group_order() == fibonacci(18)
             True
             sage: f = sandpiles.Fan(10,True)  # all nonsink vertices have deg 3
-            sage: f.group_order() == fibonacci(20)                                      # needs sage.libs.pari
+            sage: f.group_order() == fibonacci(20)
             True
         """
         f = graphs.WheelGraph(n)
@@ -169,13 +151,12 @@ class SandpileExamples:
                 f.allow_multiple_edges(True)
                 f.add_edges([(0, 1), (0, n-1)])
             return Sandpile(f, 0)
-        elif n == 1:
+        if n == 1:
             return Sandpile(f, 0)
-        elif n == 2:
+        if n == 2:
             if deg_three_verts:
                 return Sandpile({0: {1: 3}, 1: {0: 3}})
-            else:
-                return Sandpile(f, 0)
+            return Sandpile(f, 0)
 
     def Grid(self, m, n):
         """
@@ -183,11 +164,9 @@ class SandpileExamples:
 
         INPUT:
 
-        -  ``m``, ``n`` -- negative integers
+        - ``m``, ``n`` -- negative integers
 
-        OUTPUT:
-
-        - Sandpile
+        OUTPUT: Sandpile
 
         EXAMPLES::
 
@@ -211,13 +190,7 @@ class SandpileExamples:
         """
         Sandpile on the House graph.
 
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        - Sandpile
+        OUTPUT: Sandpile
 
         EXAMPLES::
 
@@ -233,11 +206,9 @@ class SandpileExamples:
 
         INPUT:
 
-        -  ``n`` -- a non-negative integer
+        - ``n`` -- nonnegative integer
 
-        OUTPUT:
-
-        - Sandpile
+        OUTPUT: Sandpile
 
         EXAMPLES::
 

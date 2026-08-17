@@ -96,8 +96,7 @@ cdef inline bint face_issubset_fused(face_t a, face_t b, algorithm_variant algor
     """
     if algorithm_variant is standard:
         return bitset_issubset(a.atoms, b.atoms)
-    else:
-        return bitset_issuperset(a.coatoms, b.coatoms)
+    return bitset_issuperset(a.coatoms, b.coatoms)
 
 cdef inline bint face_issubset(face_t a, face_t b) noexcept nogil:
     return face_issubset_fused(a, b, <standard> 0)
@@ -182,7 +181,7 @@ cdef inline void face_intersection_fused(face_t dest, face_t A, face_t B, algori
     Set ``dest`` to the intersection of ``A`` and ``B``.
     """
     if algorithm_variant is standard:
-        # Also setting the non zero positions.
+        # Also setting the nonzero positions.
         sparse_bitset_intersection(dest.atoms, A.atoms, B.atoms)
     else:
         bitset_intersection(dest.atoms, A.atoms, B.atoms)

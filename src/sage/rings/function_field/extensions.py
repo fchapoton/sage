@@ -27,7 +27,6 @@ Constant field extension of the rational function field over rational numbers::
 
 Constant field extension of a function field over a finite field::
 
-    sage: # needs sage.rings.finite_rings sage.rings.function_field
     sage: K.<x> = FunctionField(GF(2)); R.<Y> = K[]
     sage: F.<y> = K.extension(Y^3 - x^2*(x^2 + x + 1)^2)
     sage: E = F.extension_constant_field(GF(2^3))
@@ -82,15 +81,13 @@ class ConstantFieldExtension(FunctionFieldExtension):
     - ``F`` -- a function field whose constant field is `k`
 
     - ``k_ext`` -- an extension of `k`
-
     """
-    def __init__(self, F, k_ext):
+    def __init__(self, F, k_ext) -> None:
         """
         Initialize.
 
         TESTS::
 
-            sage: # needs sage.rings.finite_rings sage.rings.function_field
             sage: K.<x> = FunctionField(GF(2)); R.<Y> = K[]
             sage: F.<y> = K.extension(Y^3 - x^2*(x^2 + x + 1)^2)
             sage: E = F.extension_constant_field(GF(2^3))
@@ -105,7 +102,7 @@ class ConstantFieldExtension(FunctionFieldExtension):
             # construct constant field extension F_ext of F
             def_poly = F.polynomial().base_extend(F_ext_base)
             F_ext = F_ext_base.extension(def_poly, names=def_poly.variable_name())
-        else: # rational function field
+        else:  # rational function field
             F_ext = F_ext_base
 
         # embedding of F into F_ext
@@ -130,7 +127,6 @@ class ConstantFieldExtension(FunctionFieldExtension):
 
         EXAMPLES::
 
-            sage: # needs sage.rings.finite_rings sage.rings.function_field
             sage: K.<x> = FunctionField(GF(2)); R.<Y> = K[]
             sage: F.<y> = K.extension(Y^3 - x^2*(x^2 + x + 1)^2)
             sage: E = F.extension_constant_field(GF(2^3))
@@ -147,7 +143,6 @@ class ConstantFieldExtension(FunctionFieldExtension):
 
         EXAMPLES::
 
-            sage: # needs sage.rings.finite_rings sage.rings.function_field
             sage: K.<x> = FunctionField(GF(2)); R.<Y> = K[]
             sage: F.<y> = K.extension(Y^3 - x^2*(x^2 + x + 1)^2)
             sage: E = F.extension_constant_field(GF(2^3))
@@ -173,7 +168,6 @@ class ConstantFieldExtension(FunctionFieldExtension):
 
         EXAMPLES::
 
-            sage: # needs sage.rings.finite_rings sage.rings.function_field
             sage: K.<x> = FunctionField(GF(2)); R.<Y> = K[]
             sage: F.<y> = K.extension(Y^3 - x^2*(x^2 + x + 1)^2)
             sage: E = F.extension_constant_field(GF(2^3))
@@ -210,7 +204,6 @@ class ConstantFieldExtension(FunctionFieldExtension):
 
         EXAMPLES::
 
-            sage: # needs sage.rings.finite_rings sage.rings.function_field
             sage: K.<x> = FunctionField(GF(2)); R.<Y> = K[]
             sage: F.<y> = K.extension(Y^3 - x^2*(x^2 + x + 1)^2)
             sage: E = F.extension_constant_field(GF(2^3))

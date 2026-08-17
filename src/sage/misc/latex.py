@@ -14,6 +14,9 @@ AUTHORS:
 - William Stein: original implementation
 
 - Joel B. Mohler: latex_variable_name() drastic rewrite and many doc-tests
+
+.. autofunction:: _default_engine
+.. autofunction:: _latex_file_
 """
 # ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -66,11 +69,11 @@ r'''\textwidth=1.1\textwidth
 
 def list_function(x):
     r"""
-    Returns the LaTeX code for a list ``x``.
+    Return the LaTeX code for a list ``x``.
 
     INPUT:
 
-    - ``x`` -- a list
+    - ``x`` -- list
 
     EXAMPLES::
 
@@ -96,13 +99,13 @@ def list_function(x):
 
 def tuple_function(x, combine_all=False):
     r"""
-    Returns the LaTeX code for a tuple ``x``.
+    Return the LaTeX code for a tuple ``x``.
 
     INPUT:
 
-    - ``x`` -- a tuple
+    - ``x`` -- tuple
 
-    - ``combine_all`` -- boolean (default: ``False``) If ``combine_all`` is
+    - ``combine_all`` -- boolean (default: ``False``); if ``combine_all`` is
       ``True``, then it does not return a tuple and instead returns a string
       with all the elements separated by a single space. It does not collapse
       tuples which are inside tuples.
@@ -127,7 +130,7 @@ def tuple_function(x, combine_all=False):
 
 def bool_function(x):
     r"""
-    Returns the LaTeX code for a boolean ``x``.
+    Return the LaTeX code for a boolean ``x``.
 
     INPUT:
 
@@ -146,7 +149,7 @@ def bool_function(x):
 
 def builtin_constant_function(x):
     r"""
-    Returns the LaTeX code for a builtin constant ``x``.
+    Return the LaTeX code for a builtin constant ``x``.
 
     INPUT:
 
@@ -165,14 +168,13 @@ def builtin_constant_function(x):
         '\\mbox{\\rm NotImplemented}'
         sage: builtin_constant_function(Ellipsis)
         '\\mbox{\\rm Ellipsis}'
-
     """
     return "\\mbox{\\rm %s}" % x
 
 
 def None_function(x):
     r"""
-    Returns the LaTeX code for ``None``.
+    Return the LaTeX code for ``None``.
 
     INPUT:
 
@@ -210,9 +212,9 @@ def str_function(x):
 
     INPUT:
 
-    - ``x`` -- a string
+    - ``x`` -- string
 
-    OUTPUT: A string
+    OUTPUT: string
 
     EXAMPLES::
 
@@ -256,7 +258,7 @@ def dict_function(x):
 
     INPUT:
 
-    - ``x`` -- a dictionary
+    - ``x`` -- dictionary
 
     EXAMPLES::
 
@@ -281,7 +283,7 @@ def dict_function(x):
 
 def float_function(x):
     r"""
-    Returns the LaTeX code for a python float ``x``.
+    Return the LaTeX code for a python float ``x``.
 
     INPUT:
 
@@ -336,12 +338,10 @@ class LatexExpr(str):
 
     INPUT:
 
-    - ``str`` -- a string with valid math mode LaTeX code (or something
-      which can be converted to such a string).
+    - ``str`` -- string with valid math mode LaTeX code (or something
+      which can be converted to such a string)
 
-    OUTPUT:
-
-    - :class:`LatexExpr` wrapping the string representation of the input.
+    OUTPUT: :class:`LatexExpr` wrapping the string representation of the input
 
     EXAMPLES::
 
@@ -480,9 +480,13 @@ def has_latex_attr(x) -> bool:
 def default_engine():
     """
     Return the default latex engine and the official name of the engine.
-
     This is determined by availability of the popular engines on the user's
     system. It is assumed that at least latex is available.
+
+    This function is deprecated as part of the public API. There is
+    instead an internal counterpart
+    :func:`~sage.misc.latex._default_engine`, but no
+    stability promises are made with regards to its interface.
 
     EXAMPLES::
 
@@ -490,6 +494,9 @@ def default_engine():
         sage: default_engine()  # random
         ('lualatex', 'LuaLaTeX')
     """
+    from sage.misc.superseded import deprecation
+    deprecation(39351, "default_engine is being removed from the public API and replaced with the internal function _default_engine")
+
     from sage.features.latex import pdflatex, xelatex, lualatex
     if lualatex().is_present():
         return 'lualatex', 'LuaLaTeX'
@@ -500,12 +507,54 @@ def default_engine():
     return 'latex', 'LaTeX'
 
 
+@cached_function
+def _default_engine():
+    r"""
+    Return the name of the default latex engine.
+
+    This is determined by availability of the popular engines on the
+    user's system. It is assumed that at least "latex" is available.
+
+    EXAMPLES::
+
+        sage: from sage.misc.latex import _default_engine
+        sage: _default_engine()  # random
+        'lualatex'
+
+    TESTS:
+
+    Ensure that this (expensive) function is not necessary to obtain
+    the latex representation of a matrix (doing so probes the latex
+    options dict for the delimiters)::
+
+        sage: import sage.misc.latex
+        sage: real_de = sage.misc.latex._default_engine
+        sage: def crash():
+        ....:     raise ValueError
+        sage: sage.misc.latex._default_engine = crash
+        sage: latex(matrix.identity(QQ, 2))
+        \left(\begin{array}{rr}
+        1 & 0 \\
+        0 & 1
+        \end{array}\right)
+        sage: sage.misc.latex._default_engine = real_de
+    """
+    from sage.features.latex import pdflatex, xelatex, lualatex
+    if lualatex().is_present():
+        return 'lualatex'
+    if xelatex().is_present():
+        return 'xelatex'
+    if pdflatex().is_present():
+        return 'pdflatex'
+    return 'latex'
+
+
 class _Latex_prefs_object(SageObject):
     """
     An object that holds LaTeX global preferences.
     """
     def __init__(self, bb=False, delimiters=["(", ")"],
-                 matrix_column_alignment="r"):
+                 matrix_column_alignment='r'):
         """
         Define an object that holds LaTeX global preferences.
 
@@ -513,7 +562,7 @@ class _Latex_prefs_object(SageObject):
 
             sage: from sage.misc.latex import _Latex_prefs_object
             sage: latex_prefs = _Latex_prefs_object()
-            sage: TestSuite(latex_prefs).run(skip ="_test_pickling")
+            sage: TestSuite(latex_prefs).run(skip ='_test_pickling')
         """
         self.__option = {}
         self.__option["blackboard_bold"] = bb
@@ -523,6 +572,9 @@ class _Latex_prefs_object(SageObject):
         self.__option["macros"] = ""
         self.__option["preamble"] = ""
 
+        # If None, the _default_engine() will be used.
+        self.__option["engine"] = None
+
     @lazy_attribute
     def _option(self):
         """
@@ -531,18 +583,16 @@ class _Latex_prefs_object(SageObject):
         EXAMPLES::
 
             sage: from sage.misc.latex import _Latex_prefs_object
-            sage: _Latex_prefs_object()._option  # random
-            {'blackboard_bold': False,
-             'matrix_delimiters': ['(', ')'],
-             'vector_delimiters': ['(', ')'],
-             'matrix_column_alignment': 'r',
-             'macros': '',
-             'preamble': '',
-             'engine': 'lualatex',
-             'engine_name': 'LuaLaTeX'}
+            sage: sorted(_Latex_prefs_object()._option.items())
+            [('blackboard_bold', False),
+             ('engine', None),
+             ('macros', ''),
+             ('matrix_column_alignment', 'r'),
+             ('matrix_delimiters', ['(', ')']),
+             ('preamble', ''),
+             ('vector_delimiters', ['(', ')'])]
+
         """
-        self.__option["engine"] = default_engine()[0]
-        self.__option["engine_name"] = default_engine()[1]
         return self.__option
 
 
@@ -554,7 +604,7 @@ def latex_extra_preamble():
     Return the string containing the user-configured preamble,
     ``sage_latex_macros``, and any user-configured macros.  This is
     used in the :meth:`~Latex.eval` method for the :class:`Latex`
-    class, and in :func:`_latex_file_`; it follows either
+    class, and in :func:`~sage.misc.latex._latex_file_`; it follows either
     ``LATEX_HEADER`` or ``SLIDE_HEADER`` (defined at the top of this
     file) which is a string containing the documentclass and standard
     usepackage commands.
@@ -596,7 +646,7 @@ def latex_extra_preamble():
 def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_in_background=False):
     """
     This runs LaTeX on the TeX file "filename.tex".  It produces files
-    ``filename.dvi`` (or ``filename.pdf``` if ``engine`` is either ``'pdflatex'``,
+    ``filename.dvi`` (or ``filename.pdf`` if ``engine`` is either ``'pdflatex'``,
     ``'xelatex'``, or ``'lualatex'``) and if ``png`` is ``True``, ``filename.png``.
     If ``png`` is ``True`` and ``dvipng`` cannot convert the dvi file to png
     (because of postscript specials or other issues), then ``dvips`` is called, and
@@ -604,21 +654,21 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
 
     INPUT:
 
-    -  ``filename`` -- string; file to process, including full path
+    - ``filename`` -- string; file to process, including full path
 
-    -  ``debug`` -- bool (default: ``False``); whether to print
-       verbose debugging output
+    - ``debug`` -- boolean (default: ``False``); whether to print
+      verbose debugging output
 
-    -  ``density`` -- integer (default: 150); how big output
-       image is.
+    - ``density`` -- integer (default: 150); how big output
+      image is
 
-    -  ``engine`` -- string: latex engine to use.
+    - ``engine`` -- string; latex engine to use
 
-    -  ``png`` -- bool (default: ``False``); whether to produce a
-       png file.
+    - ``png`` -- boolean (default: ``False``); whether to produce a
+      png file
 
-    -  ``do_in_background`` -- bool (default: ``False``).  Unused,
-       kept for backwards compatibility.
+    - ``do_in_background`` -- boolean (default: ``False``);  unused,
+      kept for backwards compatibility
 
     OUTPUT:
 
@@ -644,7 +694,7 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
 
         sage: from sage.misc.latex import _run_latex_, _latex_file_
         sage: from tempfile import NamedTemporaryFile
-        sage: with NamedTemporaryFile(mode="w+t", suffix=".tex") as f:  # random, optional - latex
+        sage: with NamedTemporaryFile(mode='w+t', suffix='.tex') as f:  # random, optional - latex
         ....:     _ = f.write(_latex_file_([ZZ['x'], RR]))
         ....:     f.flush()
         ....:     _run_latex_(f.name)
@@ -652,6 +702,8 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
     """
     if engine is None:
         engine = _Latex_prefs._option["engine"]
+        if engine is None:
+            engine = _default_engine()
 
     if not engine or engine == "latex":
         from sage.features.latex import latex
@@ -697,7 +749,7 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
             print("http://www.imagemagick.org to download these programs.")
             return "Error"
         # if png output + [pdf|xe|lua]latex, check to see if magick/convert is installed.
-        elif engine in ["pdflatex", "xelatex", "lualatex"]:
+        if engine in ["pdflatex", "xelatex", "lualatex"]:
             ImageMagick().require()
     # check_validity: check to see if the dvi file is okay by trying
     # to convert to a png file.  if this fails, return_suffix will be
@@ -849,14 +901,12 @@ class LatexCall:
 
         - ``x`` -- a Sage object
 
-        - ``combine_all`` -- boolean (Default: ``False``) If ``combine_all``
+        - ``combine_all`` -- boolean (default: ``False``); if ``combine_all``
           is ``True`` and the input is a tuple, then it does not return a
           tuple and instead returns a string with all the elements separated by
-          a single space.
+          a single space
 
-        OUTPUT:
-
-        A :class:`LatexExpr` built from ``x``
+        OUTPUT: a :class:`LatexExpr` built from ``x``
 
         EXAMPLES::
 
@@ -931,7 +981,7 @@ class Latex(LatexCall):
 
             sage: from sage.misc.latex import Latex
             sage: l = Latex()
-            sage: TestSuite(l).run(skip ="_test_pickling")
+            sage: TestSuite(l).run(skip ='_test_pickling')
         """
         self.__debug = debug
         self.__slide = slide
@@ -940,7 +990,7 @@ class Latex(LatexCall):
 
     def _relation_symbols(self):
         """
-        Returns a dictionary whose keys are attributes of the
+        Return a dictionary whose keys are attributes of the
         :mod:`operator` module and whose values are the corresponding
         LaTeX expressions.
 
@@ -1030,7 +1080,6 @@ class Latex(LatexCall):
             ''
             sage: latex.eval(r"\ThisIsAnInvalidCommand", {}) # optional -- latex ImageMagick
             An error occurred...
-            No pages of output...
         """
         MACROS = latex_extra_preamble()
 
@@ -1067,10 +1116,12 @@ class Latex(LatexCall):
 
             O.close()
             if engine is None:
-                if self.__engine is None:
+                engine = self.__engine
+                if engine is None:
                     engine = _Latex_prefs._option["engine"]
-                else:
-                    engine = self.__engine
+                    if engine is None:
+                        engine = _default_engine()
+
             e = _run_latex_(os.path.join(base, filename + ".tex"),
                             debug=debug,
                             density=density,
@@ -1183,11 +1234,10 @@ class Latex(LatexCall):
         """
         if left is None and right is None:
             return _Latex_prefs._option['matrix_delimiters']
-        else:
-            if left is not None:
-                _Latex_prefs._option['matrix_delimiters'][0] = left
-            if right is not None:
-                _Latex_prefs._option['matrix_delimiters'][1] = right
+        if left is not None:
+            _Latex_prefs._option['matrix_delimiters'][0] = left
+        if right is not None:
+            _Latex_prefs._option['matrix_delimiters'][1] = right
 
     def vector_delimiters(self, left=None, right=None):
         r"""nodetex
@@ -1239,11 +1289,10 @@ class Latex(LatexCall):
         """
         if left is None and right is None:
             return _Latex_prefs._option['vector_delimiters']
-        else:
-            if left is not None:
-                _Latex_prefs._option['vector_delimiters'][0] = left
-            if right is not None:
-                _Latex_prefs._option['vector_delimiters'][1] = right
+        if left is not None:
+            _Latex_prefs._option['vector_delimiters'][0] = left
+        if right is not None:
+            _Latex_prefs._option['vector_delimiters'][1] = right
 
     def matrix_column_alignment(self, align=None):
         r"""nodetex
@@ -1252,8 +1301,8 @@ class Latex(LatexCall):
 
         INPUT:
 
-        - ``align`` -- a string (``'r'`` for right, ``'c'`` for center,
-          ``'l'`` for left) or ``None``.
+        - ``align`` -- string (``'r'`` for right, ``'c'`` for center,
+          ``'l'`` for left) or ``None``
 
         OUTPUT:
 
@@ -1289,15 +1338,14 @@ class Latex(LatexCall):
         """
         if align is None:
             return _Latex_prefs._option['matrix_column_alignment']
-        else:
-            _Latex_prefs._option['matrix_column_alignment'] = align
+        _Latex_prefs._option['matrix_column_alignment'] = align
 
     @cached_method
     def has_file(self, file_name) -> bool:
         """
         INPUT:
 
-        - ``file_name`` -- a string
+        - ``file_name`` -- string
 
         Tests whether the local LaTeX installation includes ``file_name``.
 
@@ -1321,9 +1369,9 @@ class Latex(LatexCall):
         """
         INPUT:
 
-        - ``file_name`` -- a string
+        - ``file_name`` -- string
 
-        - ``more_info`` -- a string (default: ``""``)
+        - ``more_info`` -- string (default: ``''``)
 
         Emit a warning if the local LaTeX installation does not
         include ``file_name``. The string ``more_info`` is appended
@@ -1375,8 +1423,7 @@ Warning: `{}` is not part of this computer's TeX installation.""".format(file_na
         """
         if macros is None:
             return _Latex_prefs._option['macros']
-        else:
-            _Latex_prefs._option['macros'] = macros
+        _Latex_prefs._option['macros'] = macros
 
     def add_macro(self, macro):
         r"""nodetex
@@ -1430,8 +1477,7 @@ Warning: `{}` is not part of this computer's TeX installation.""".format(file_na
         """
         if s is None:
             return _Latex_prefs._option['preamble']
-        else:
-            _Latex_prefs._option['preamble'] = s
+        _Latex_prefs._option['preamble'] = s
 
     def add_to_preamble(self, s):
         r"""nodetex
@@ -1480,13 +1526,13 @@ Warning: `{}` is not part of this computer's TeX installation.""".format(file_na
 
     def add_package_to_preamble_if_available(self, package_name):
         r"""
-        Adds a ``\usepackage{package_name}`` instruction to the latex
+        Add a ``\usepackage{package_name}`` instruction to the latex
         preamble if not yet present there, and if ``package_name.sty``
         is available in the LaTeX installation.
 
         INPUT:
 
-        - ``package_name`` -- a string
+        - ``package_name`` -- string
 
         .. SEEALSO::
 
@@ -1536,22 +1582,15 @@ Warning: `{}` is not part of this computer's TeX installation.""".format(file_na
             'pdflatex'
         """
         if e is None:
-            return _Latex_prefs._option["engine"]
+            e = _Latex_prefs._option["engine"]
+            if e is None:
+                return _default_engine()
+            return e
 
-        if e == "latex":
-            _Latex_prefs._option["engine"] = "latex"
-            _Latex_prefs._option["engine_name"] = "LaTeX"
-        elif e == "pdflatex":
-            _Latex_prefs._option["engine"] = "pdflatex"
-            _Latex_prefs._option["engine_name"] = "PDFLaTeX"
-        elif e == "xelatex":
-            _Latex_prefs._option["engine"] = e
-            _Latex_prefs._option["engine_name"] = "XeLaTeX"
-        elif e == "lualatex":
-            _Latex_prefs._option["engine"] = e
-            _Latex_prefs._option["engine_name"] = "LuaLaTeX"
-        else:
+        if e not in ["latex", "pdflatex", "xelatex", "luatex"]:
             raise ValueError("%s is not a supported LaTeX engine. Use latex, pdflatex, xelatex, or lualatex" % e)
+
+        _Latex_prefs._option["engine"] = e
 
 
 # Note: latex used to be a separate function, which by default was
@@ -1579,20 +1618,20 @@ def _latex_file_(objects, title='SAGE', debug=False,
 
     - ``objects`` -- list (or object)
 
-    - ``title`` -- string (default: 'Sage'); title for the document
+    - ``title`` -- string (default: ``'Sage'``); title for the document
 
-    - ``math_left`` -- string (default: '\\['), left delimiter for math mode
+    - ``math_left`` -- string (default: ``'\\['``); left delimiter for math mode
 
-    - ``math_right`` -- string (default: '\\]'), right delimiter for math mode
+    - ``math_right`` -- string (default: ``'\\]'``); right delimiter for math mode
 
-    - ``debug`` -- bool (default: ``False``); print verbose output
+    - ``debug`` -- boolean (default: ``False``); print verbose output
 
     - ``sep`` -- string (default: ``''``); separator between math objects
 
-    - ``tiny`` -- bool (default: ``False``); use 'tiny' font.
+    - ``tiny`` -- boolean (default: ``False``); use 'tiny' font
 
-    - ``extra_preamble`` -- string (default: ``''``); extra LaTeX commands,
-       inserted before ``"\\begin{document}"``
+    - ``extra_preamble`` -- string (default: ``''``); extra LaTeX commands;
+      inserted before ``'\\begin{document}'``
 
     This creates a string intended to be a LaTeX file containing the
     LaTeX representations of objects. It contains the following:
@@ -1688,7 +1727,9 @@ def _latex_file_(objects, title='SAGE', debug=False,
     s = LATEX_HEADER + '\n' + MACROS + s + '\n\\end{document}'
 
     if debug:
+        print('----')
         print(s)
+        print('----')
 
     return s
 
@@ -1706,21 +1747,21 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
     - ``objects`` -- list (or object)
 
     - ``title`` -- string (default: ``'Sage'``); title for the
-       document
+      document
 
-    - ``debug`` -- bool (default: ``False``); print verbose
-       output
+    - ``debug`` -- boolean (default: ``False``); print verbose
+      output
 
     - ``sep`` -- string (default: ``''``); separator between
-       math objects
+      math objects
 
-    - ``tiny`` -- bool (default: ``False``); use tiny font.
+    - ``tiny`` -- boolean (default: ``False``); use tiny font
 
     - ``engine`` -- string or ``None`` (default: ``None``); can take the
-       following values:
+      following values:
 
       - ``None`` -- the value defined in the LaTeX global preferences
-        ``latex.engine()`` is used.
+        ``latex.engine()`` is used
 
       - ``'pdflatex'`` -- compilation does ``tex`` -> ``pdf``
 
@@ -1733,26 +1774,23 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
         ``'pdflatex'`` and known to be broken when overfull hboxes are detected.
 
     - ``viewer`` -- string or ``None`` (default: ``None``); specify a viewer
-       to use; currently the only options are ``None`` and ``'pdf'``.
+      to use; currently the only options are ``None`` and ``'pdf'``
 
-    - ``tightpage`` -- bool (default: ``True``); use the LaTeX package
-       ``preview`` with the 'tightpage' option.
+    - ``tightpage`` -- boolean (default: ``True``); use the LaTeX package
+       ``preview`` with the 'tightpage' option
 
     - ``margin`` -- float or ``None`` (default: ``None``); adds a margin
-       of ``margin`` mm; has no affect if the option ``tightpage`` is
-       ``False``.
+      of ``margin`` mm. Has no affect if the option ``tightpage`` is ``False``.
 
     - ``mode`` -- string (default: ``'inline'``); ``'display'`` for
       displaymath or ``'inline'`` for inline math
 
-    - ``combine_all`` -- bool (default: ``False``); if ``combine_all`` is
+    - ``combine_all`` -- boolean (default: ``False``); if ``combine_all`` is
       ``True`` and the input is a tuple, then it does not return a tuple and
       instead returns a string with all the elements separated by a single
-      space.
+      space
 
-    OUTPUT:
-
-    Display typeset objects.
+    OUTPUT: display typeset objects
 
     The output is displayed in a separate viewer displaying a dvi (or pdf)
     file, with the following: the title string is printed, centered, at the
@@ -1802,10 +1840,10 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
         sage: from tempfile import NamedTemporaryFile
         sage: g = sage.misc.latex.latex_examples.graph()
         sage: latex.add_to_preamble(r"\usepackage{tkz-graph}")  # optional - latex_package_tkz_graph
-        sage: with NamedTemporaryFile(mode="w+t", suffix=".tex") as f:  # optional - latex latex_package_tkz_graph
+        sage: with NamedTemporaryFile(mode='w+t', suffix='.tex') as f:  # optional - latex latex_package_tkz_graph
         ....:     _ = f.write(_latex_file_(g))
         ....:     f.flush()
-        ....:     _run_latex_(f.name, engine="pdflatex")
+        ....:     _run_latex_(f.name, engine='pdflatex')
         'pdf'
 
         sage: view(4, margin=5, debug=True)     # not tested
@@ -1830,13 +1868,11 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
 
         sage: latex.extra_preamble('') # reset the preamble
 
-        sage: view(4, engine="garbage")
+        sage: view(4, engine='garbage')
         Traceback (most recent call last):
         ...
         ValueError: Unsupported LaTeX engine.
-
     """
-
     if tightpage:
         if margin is None:
             margin_str = ""
@@ -1854,6 +1890,9 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
     s = _latex_file_(objects, title=title, sep=sep, tiny=tiny, debug=debug, **latex_options)
     if engine is None:
         engine = _Latex_prefs._option["engine"]
+        if engine is None:
+            engine = _default_engine()
+
     if viewer == "pdf" and engine == "latex":
         engine = "pdflatex"
     # command line or notebook with viewer
@@ -1879,16 +1918,16 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
         tmp.cleanup()
         return
     output_file = os.path.join(tmp.name, "sage." + suffix)
-    # this should get changed if we switch the stuff in misc.viewer to
-    # producing lists
+
     if debug:
-        print('viewer: "{}"'.format(viewer))
+        print(f'temporary file: "{output_file}"')
+        print(f'viewer: "{viewer}"')
 
     # Return immediately but only clean up the temporary file after
     # the viewer has closed. This function is synchronous and waits
     # for the process to complete...
     def run_viewer():
-        run([viewer, output_file], capture_output=True)
+        run([*viewer.split(), output_file], capture_output=True, check=False)
         tmp.cleanup()
 
     # ...but we execute it asynchronously so that view() completes
@@ -1899,7 +1938,81 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
     t.daemon = True
     t.start()
 
-    return
+
+def pdf(x, filename, tiny=False, tightpage=True, margin=None, engine=None, debug=False):
+    """
+    Create an image from the latex representation of ``x`` and save it as a pdf
+    file with the given filename.
+
+    INPUT:
+
+    - ``x`` -- a Sage object
+
+    - ``filename`` -- the filename with which to save the image
+
+    - ``tiny`` -- boolean (default: ``False``); if ``True``, use a tiny font
+
+    - ``tightpage`` -- boolean (default: ``True``); use the LaTeX package
+      ``preview`` with the 'tightpage' option
+
+    - ``margin`` -- float (default: no margin); width of border, only effective
+      with 'tight page'
+
+    - ``engine`` -- (default: ``None``) ``'latex'``, ``'pdflatex'``,
+      ``'xelatex'`` or ``'lualatex'``; if ``None``, the value defined in the
+      LaTeX global preferences ``latex.engine()`` is used
+
+    - ``debug`` -- boolean (default: ``False``); if ``True``, print verbose output
+
+    EXAMPLES::
+
+        sage: # optional - latex
+        sage: from sage.misc.latex import pdf
+        sage: import tempfile
+        sage: with tempfile.NamedTemporaryFile(suffix=".pdf") as f:  # random
+        ....:     pdf(ZZ[x], f.name)
+    """
+    from sage.plot.graphics import Graphics
+    if isinstance(x, Graphics):
+        x.save(filename)
+        return
+
+    if tightpage:
+        if margin is None:
+            margin_str = ""
+        else:
+            margin_str = '\n\\setlength\\PreviewBorder{%fmm}' % margin
+        latex_options = {'extra_preamble':
+                         '\\usepackage[tightpage,active]{preview}\n' +
+                         '\\PreviewEnvironment{page}%s' % margin_str,
+                         'math_left': '\\begin{page}$',
+                         'math_right': '$\\end{page}'}
+    else:
+        latex_options = {}
+
+    # create a string of latex code to write in a file
+    s = _latex_file_([x], title='', tiny=tiny, debug=debug, **latex_options)
+    if engine is None:
+        engine = _Latex_prefs._option["engine"]
+        if engine is None:
+            engine = _default_engine()
+
+    # path name for permanent pdf output
+    abs_path_to_pdf = os.path.abspath(filename)
+    # temporary directory to store stuff
+    with TemporaryDirectory() as tmp:
+        tex_file = os.path.join(tmp, "sage.tex")
+        pdf_file = os.path.join(tmp, "sage.pdf")
+        # write latex string to file
+        with open(tex_file, 'w') as file:
+            file.write(s)
+        # run latex on the file
+        e = _run_latex_(tex_file, debug=debug, engine=engine)
+        if e == 'pdf':
+            # if no errors, copy pdf_file to the appropriate place
+            shutil.copy(pdf_file, abs_path_to_pdf)
+        else:
+            print("Latex error or no pdf was generated.")
 
 
 def png(x, filename, density=150, debug=False,
@@ -1916,12 +2029,12 @@ def png(x, filename, density=150, debug=False,
 
     - ``density`` -- integer (default: 150)
 
-    - ``debug`` -- bool (default: ``False``); print verbose output
+    - ``debug`` -- boolean (default: ``False``); print verbose output
 
-    - ``do_in_background`` -- bool (default: ``False``); Unused, kept for
+    - ``do_in_background`` -- boolean (default: ``False``); unused, kept for
       backwards compatibility
 
-    - ``tiny`` -- bool (default: ``False``); use tiny font
+    - ``tiny`` -- boolean (default: ``False``); use tiny font
 
     - ``engine`` -- (default: ``None``) ``'latex'``, ``'pdflatex'``,
       ``'xelatex'`` or ``'lualatex'``
@@ -1931,11 +2044,12 @@ def png(x, filename, density=150, debug=False,
         sage: # optional - imagemagick latex, needs sage.plot
         sage: from sage.misc.latex import png
         sage: import tempfile
-        sage: with tempfile.NamedTemporaryFile(suffix=".png") as f:  # random
+        sage: with tempfile.NamedTemporaryFile(suffix='.png') as f:  # random
         ....:     png(ZZ[x], f.name)
     """
-    import sage.plot.all
-    if isinstance(x, sage.plot.graphics.Graphics):
+    from sage.plot.graphics import Graphics
+
+    if isinstance(x, Graphics):
         x.save(filename)
         return
     # if not graphics: create a string of latex code to write in a file
@@ -1944,6 +2058,9 @@ def png(x, filename, density=150, debug=False,
                      extra_preamble='\\textheight=2\\textheight')
     if engine is None:
         engine = _Latex_prefs._option["engine"]
+        if engine is None:
+            engine = _default_engine()
+
     # path name for permanent png output
     abs_path_to_png = os.path.abspath(filename)
     # temporary directory to store stuff
@@ -1975,9 +2092,7 @@ def coeff_repr(c):
 
     - ``c`` -- a coefficient (i.e., an element of a ring)
 
-    OUTPUT:
-
-    A string
+    OUTPUT: string
 
     EXAMPLES::
 
@@ -2010,7 +2125,7 @@ def repr_lincomb(symbols, coeffs):
 
     - ``coeffs`` -- list of coefficients of the symbols
 
-    OUTPUT: A string
+    OUTPUT: string
 
     EXAMPLES::
 
@@ -2047,45 +2162,36 @@ def repr_lincomb(symbols, coeffs):
         sage: latex(x)
         \text{\texttt{x}} + 2\text{\texttt{y}}
     """
-    s = ""
-    first = True
-    i = 0
-
     from sage.rings.cc import CC
+    terms = []
+    for c, sym in zip(coeffs, symbols):
+        if c == 0:
+            continue
+        if c == 1:
+            coeff = ""
+        elif c == -1:
+            coeff = "-"
+        else:
+            coeff = coeff_repr(c)
 
-    for c in coeffs:
-        bv = symbols[i]
-        b = latex(bv)
-        if c != 0:
-            if c == 1:
-                if first:
-                    s += b
-                else:
-                    s += " + %s" % b
+        b = latex(sym)
+        # this is a hack: I want to say that if the symbol happens to
+        # be a number, then we should put a multiplication sign in
+        try:
+            if sym in CC and coeff not in ("", "-"):
+                term = f"{coeff}\\cdot {b}"
             else:
-                coeff = coeff_repr(c)
-                if coeff == "-1":
-                    coeff = "-"
-                if first:
-                    coeff = str(coeff)
-                else:
-                    coeff = " + %s" % coeff
-                # this is a hack: i want to say that if the symbol
-                # happens to be a number, then we should put a
-                # multiplication sign in
-                try:
-                    if bv in CC:
-                        s += r"%s\cdot %s" % (coeff, b)
-                    else:
-                        s += "%s%s" % (coeff, b)
-                except Exception:
-                    s += "%s%s" % (coeff, b)
-            first = False
-        i += 1
-    if first:
-        s = "0"
-    s = s.replace("+ -", "- ")
-    return s
+                term = f"{coeff}{b}"
+        except Exception:
+            term = f"{coeff}{b}"
+
+        terms.append(term)
+
+    if not terms:
+        return "0"
+
+    s = " + ".join(terms)
+    return s.replace("+ -", "- ")
 
 
 common_varnames = ['alpha',
@@ -2141,7 +2247,7 @@ def latex_varify(a, is_fname=False):
 
     - ``a`` -- string
 
-    OUTPUT: A string
+    OUTPUT: string
 
     EXAMPLES::
 
@@ -2165,14 +2271,13 @@ def latex_varify(a, is_fname=False):
     """
     if a in common_varnames:
         return "\\" + a
-    elif len(a) == 0:
+    if len(a) == 0:
         return ''
-    elif len(a) == 1:
+    if len(a) == 1:
         return a
-    elif is_fname is True:
+    if is_fname is True:
         return '{\\rm %s}' % a
-    else:
-        return '\\mathit{%s}' % a
+    return '\\mathit{%s}' % a
 
 
 def latex_variable_name(x, is_fname=False):
@@ -2268,8 +2373,7 @@ def latex_variable_name(x, is_fname=False):
         if suffix.strip("1234567890") != "":
             suffix = latex_variable_name(suffix, is_fname)  # recurse to deal with recursive subscripts
         return '%s_{%s}' % (latex_varify(prefix, is_fname), suffix)
-    else:
-        return latex_varify(prefix, is_fname)
+    return latex_varify(prefix, is_fname)
 
 
 class LatexExamples:
@@ -2310,7 +2414,7 @@ class LatexExamples:
 
         def _repr_(self):
             """
-            String representation
+            String representation.
 
             EXAMPLES::
 
@@ -2334,7 +2438,7 @@ https://www.ctan.org/pkg/tkz-graph)
 
         def _latex_(self):
             """
-            LaTeX representation
+            LaTeX representation.
 
             EXAMPLES::
 
@@ -2379,7 +2483,7 @@ https://www.ctan.org/pkg/tkz-graph)
 
         def _repr_(self):
             """
-            String representation
+            String representation.
 
             EXAMPLES::
 
@@ -2399,7 +2503,7 @@ with a picture of forces acting on a mass on a pendulum."""
 
         def _latex_(self):
             """
-            LaTeX representation
+            LaTeX representation.
 
             EXAMPLES::
 
@@ -2436,7 +2540,7 @@ with a picture of forces acting on a mass on a pendulum."""
 
         def _repr_(self):
             """
-            String representation
+            String representation.
 
             EXAMPLES::
 
@@ -2455,7 +2559,7 @@ and try viewing again.
 
         def _latex_(self):
             """
-            LaTeX representation
+            LaTeX representation.
 
             EXAMPLES::
 
@@ -2485,7 +2589,7 @@ and try viewing again.
 
         def _repr_(self):
             """
-            String representation
+            String representation.
 
             EXAMPLES::
 
@@ -2503,7 +2607,7 @@ from a filtered chain complex)."""
 
         def _latex_(self):
             """
-            LaTeX representation
+            LaTeX representation.
 
             EXAMPLES::
 

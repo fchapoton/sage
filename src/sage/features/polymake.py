@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-environment
 r"""
 Feature for testing the presence of ``jupymake``, the Python interface to polymake
 """
@@ -36,7 +35,7 @@ class JuPyMake(JoinFeature):
             True
         """
         JoinFeature.__init__(self, "jupymake",
-                             [PythonModule("JuPyMake", spkg="jupymake")])
+                             [PythonModule("JuPyMake", spkg='jupymake')])
 
 
 def all_features():

@@ -3,10 +3,8 @@ Morphism to bring a genus-one curve into Weierstrass form
 
 You should use
 :func:`~sage.schemes.elliptic_curves.constructor.EllipticCurve_from_cubic`
-or
-:func:`~sage.schemes.elliptic_curves.constructor.EllipticCurve_from_curve`
-to construct the transformation starting with a cubic or with a genus
-one curve.
+to construct the transformation starting with a plane cubic defining a
+genus-one curve.
 
 EXAMPLES::
 
@@ -62,13 +60,13 @@ class WeierstrassTransformation(SchemeMorphism_polynomial):
         INPUT:
 
         - ``domain``, ``codomain`` -- two schemes, one of which is an
-          elliptic curve.
+          elliptic curve
 
         - ``defining_polynomials`` -- triplet of polynomials that
-          define the transformation.
+          define the transformation
 
         - ``post_multiplication`` -- a polynomial to homogeneously
-          rescale after substituting the defining polynomials.
+          rescale after substituting the defining polynomials
 
         EXAMPLES::
 
@@ -116,9 +114,7 @@ class WeierstrassTransformation(SchemeMorphism_polynomial):
         Return the homogeneous rescaling to apply after the coordinate
         substitution.
 
-        OUTPUT:
-
-        A polynomial. See the example below.
+        OUTPUT: a polynomial; see the example below
 
         EXAMPLES::
 

@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-categories
 r"""
 Infinite Enumerated Sets
 
@@ -19,7 +18,7 @@ from sage.categories.category_with_axiom import CategoryWithAxiom
 
 class InfiniteEnumeratedSets(CategoryWithAxiom):
     """
-    The category of infinite enumerated sets
+    The category of infinite enumerated sets.
 
     An infinite enumerated sets is a countable set together with a
     canonical enumeration of its elements.
@@ -102,7 +101,7 @@ class InfiniteEnumeratedSets(CategoryWithAxiom):
 
             * :meth:`.cardinality` is supposed to return ``infinity``
 
-            * :meth:`.list` is supposed to raise a :class:`NotImplementedError`.
+            * :meth:`.list` is supposed to raise a :exc:`NotImplementedError`.
 
             EXAMPLES::
 

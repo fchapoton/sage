@@ -17,10 +17,10 @@ the *index* of the variable `x_n`.
 
 INPUT:
 
-- ``R``, the base ring. It has to be a commutative ring, and in some
+- ``R`` -- the base ring; it has to be a commutative ring, and in some
   applications it must even be a field
-- ``names``, a finite list of generator names. Generator names must be alpha-numeric.
-- ``order`` (optional string). The default order is ``'lex'`` (lexicographic).
+- ``names`` -- a finite list of generator names; generator names must be alpha-numeric
+- ``order`` -- (optional) string; the default order is ``'lex'`` (lexicographic).
   ``'deglex'`` is degree lexicographic, and ``'degrevlex'`` (degree reverse
   lexicographic) is possible but discouraged.
 
@@ -261,11 +261,13 @@ import operator
 import re
 from functools import reduce
 
-from sage.rings.ring import CommutativeRing
+from sage.rings.ring import Ring
 from sage.categories.rings import Rings
-from sage.structure.all import SageObject, parent
+from sage.structure.sage_object import SageObject
+from sage.structure.element import parent
 from sage.structure.factory import UniqueFactory
 from sage.misc.cachefunc import cached_method
+from sage.misc.misc_c import prod
 
 ###################################################
 #  The Construction Functor
@@ -279,8 +281,8 @@ from sage.categories.pushout import InfinitePolynomialFunctor
 class InfinitePolynomialRingFactory(UniqueFactory):
     """
     A factory for creating infinite polynomial ring elements.  It
-    handles making sure that they are unique as well as handling
-    pickling.  For more details, see
+    makes sure that they are unique as well as handling pickling.
+    For more details, see
     :class:`~sage.structure.factory.UniqueFactory` and
     :mod:`~sage.rings.polynomial.infinite_polynomial_ring`.
 
@@ -300,11 +302,10 @@ class InfinitePolynomialRingFactory(UniqueFactory):
 
         sage: X is loads(dumps(X))
         True
-
     """
     def create_key(self, R, names=('x',), order='lex', implementation='dense'):
         """
-        Creates a key which uniquely defines the infinite polynomial ring.
+        Create a key which uniquely defines the infinite polynomial ring.
 
         TESTS::
 
@@ -331,7 +332,7 @@ class InfinitePolynomialRingFactory(UniqueFactory):
             sage: _[0].all
             [FractionField, InfPoly{[x], "lex", "dense"}]
 
-        If it is attempted to use no generator, a :class:`ValueError` is raised::
+        If it is attempted to use no generator, a :exc:`ValueError` is raised::
 
             sage: InfinitePolynomialRing.create_key(ZZ, names=[])
             Traceback (most recent call last):
@@ -410,13 +411,12 @@ class InfiniteGenDict:
         <class 'sage.rings.polynomial.infinite_polynomial_element.InfinitePolynomial_dense'>
         sage: sage_eval('3*a_3*b_5-1/2*a_7', D._D[0])
         -1/2*a_7 + 3*a_3*b_5
-
     """
     def __init__(self, Gens):
         """
         INPUT:
 
-        - ``Gens`` -- a list of generators of an infinite polynomial ring.
+        - ``Gens`` -- list of generators of an infinite polynomial ring
 
         EXAMPLES::
 
@@ -557,7 +557,12 @@ class GenDictWithBasering:
         self._D = [start]
         while hasattr(P, 'base_ring') and (P.base_ring() is not P):
             P = P.base_ring()
-            D = P.gens_dict()
+            try:
+                D = P.gens_dict()
+            except AttributeError:
+                # Some base rings have no named generators to add to
+                # the evaluation namespace.
+                continue
             if isinstance(D, GenDictWithBasering):
                 self._D.extend(D._D)
                 break
@@ -566,7 +571,7 @@ class GenDictWithBasering:
 
     def __next__(self):
         """
-        Return a dictionary that can be used to interprete strings in the base ring of ``self``.
+        Return a dictionary that can be used to interpret strings in the base ring of ``self``.
 
         EXAMPLES::
 
@@ -616,11 +621,75 @@ class GenDictWithBasering:
                 pass
         raise KeyError("{} is not a variable name of {} or its iterated base rings".format(k, self._P))
 
+    def __iter__(self):
+        """
+        Iterate over the variable names that can be enumerated.
+
+        Since this dictionary is used as the namespace for evaluating
+        string representations of polynomials, Python may iterate over
+        it when introspecting that namespace, for instance when
+        suggesting a similar name for a :class:`NameError`. The keys
+        of an :class:`InfiniteGenDict` (such as ``'a_15'``) cannot be
+        enumerated and are therefore skipped.
+
+        TESTS::
+
+            sage: R.<a,b> = InfinitePolynomialRing(ZZ['t'])
+            sage: D = R.gens_dict()
+            sage: sorted(D)
+            ['1', 't']
+        """
+        seen = set()
+        for D in self._D:
+            if isinstance(D, dict):
+                for k in D:
+                    if k not in seen:
+                        seen.add(k)
+                        yield k
+
+    def __contains__(self, k):
+        """
+        Membership agrees with item access, in contrast to iteration,
+        which can only cover the enumerable variable names.
+
+        TESTS::
+
+            sage: R.<a,b> = InfinitePolynomialRing(ZZ['t'])
+            sage: D = R.gens_dict()
+            sage: 'a_15' in D
+            True
+            sage: 't' in D
+            True
+            sage: 'x' in D
+            False
+        """
+        try:
+            self[k]
+        except KeyError:
+            return False
+        return True
+
+    def keys(self):
+        """
+        Return the variable names that can be enumerated.
+
+        The keys of an :class:`InfiniteGenDict` (such as ``'a_15'``)
+        cannot be enumerated and are not listed, although they are
+        accessible by item access and contained in the dictionary.
+
+        TESTS::
+
+            sage: R.<a,b> = InfinitePolynomialRing(ZZ['t'])
+            sage: sorted(R.gens_dict().keys())
+            ['1', 't']
+        """
+        return list(self)
+
 
 ##############################################################
 #  The sparse implementation
 
-class InfinitePolynomialRing_sparse(CommutativeRing):
+class InfinitePolynomialRing_sparse(Ring):
     r"""
     Sparse implementation of Infinite Polynomial Rings.
 
@@ -663,7 +732,6 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
 
     See :mod:`~sage.rings.polynomial.infinite_polynomial_ring` for
     more details.
-
     """
     def __init__(self, R, names, order):
         """
@@ -699,12 +767,20 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             True
             sage: X.gen(1)[2]*Y.gen(0)[1]
             alpha_1*beta_2
+
+        TESTS::
+
+            sage: X.<x> = InfinitePolynomialRing(QQbar)
+            sage: TestSuite(X).run(skip='_test_elements')
+
+            sage: Y.<alpha,beta> = InfinitePolynomialRing(QQ, order='deglex', implementation='sparse')
+            sage: TestSuite(Y).run(skip='_test_elements')
         """
         if not names:
             names = ['x']
         for n in names:
             if not (isinstance(n, str) and n.isalnum() and (not n[0].isdigit())):
-                raise ValueError("generator names must be alpha-numeric strings not starting with a  digit, but %s is not" % n)
+                raise ValueError("generator names must be alphanumeric strings not starting with a digit, but %s is not" % n)
         if len(names) != len(set(names)):
             raise ValueError("generator names must be pairwise different")
         self._names = tuple(names)
@@ -740,10 +816,43 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         # some basic data
         self._order = order
         self._name_dict = {name: i for i, name in enumerate(names)}
-        from sage.categories.commutative_algebras import CommutativeAlgebras
-        CommutativeRing.__init__(self, R, category=CommutativeAlgebras(R))
-
+        from sage.rings.polynomial.polynomial_ring_constructor import polynomial_default_category
+        from sage.rings.infinity import Infinity
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.semirings.non_negative_integer_semiring import NN
+        from sage.categories.cartesian_product import cartesian_product
+        from sage.combinat.free_module import CombinatorialFreeModule
+        category = polynomial_default_category(R.category(), Infinity)
+        Ring.__init__(self, R, category=category)
+        self._indices = cartesian_product([CombinatorialFreeModule(ZZ,
+                                                                   basis_keys=NN,
+                                                                   prefix=v)
+                                           for v in names])
         self._populate_coercion_lists_()
+
+    def monomial(self, m):
+        """
+        Return the basis element indexed by ``m``.
+
+        INPUT:
+
+        - ``m`` -- an element of the index set
+
+        EXAMPLES::
+
+            sage: Z.<z> = InfinitePolynomialRing(QQ)
+            sage: Z.monomial([(1, 2), (5, 3)])
+            z_5^3*z_1^2
+
+            sage: X.<x, y> = InfinitePolynomialRing(QQ)
+            sage: X.monomial([((0, 2), 2), ((1, 5), 3)])
+            x_2^2*y_5^3
+        """
+        V = self.gens()
+        if len(V) > 1:
+            return prod(V[j][i]**e for (j, i), e in m)
+        v = V[0]
+        return prod(v[i]**e for i, e in m)
 
     def __repr__(self):
         """
@@ -813,7 +922,6 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             sage: R.<x,y> = InfinitePolynomialRing(GF(5))
             sage: R.construction()
             [InfPoly{[x,y], "lex", "dense"}, Finite Field of size 5]
-
         """
         return [InfinitePolynomialFunctor(self._names, self._order, 'sparse'), self._base]
 
@@ -865,7 +973,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
 
         INPUT:
 
-        - ``x`` -- any object that can be interpreted in ``self``.
+        - ``x`` -- any object that can be interpreted in ``self``
 
         TESTS::
 
@@ -888,22 +996,149 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             Traceback (most recent call last):
             ...
             ValueError: cannot convert 1/3 into an element of Infinite polynomial ring in x over Integer Ring
+
+        Converting an infinite polynomial into a ring with a larger
+        base ring does not match the variables by position
+        (:issue:`37756`)::
+
+            sage: L.<x, y> = QQ[]
+            sage: R.<a> = InfinitePolynomialRing(QQ)
+            sage: M = InfinitePolynomialRing(L, names=["a"])
+            sage: c = a[0]
+            sage: M(c)
+            a_0
+
+        Check :issue:`40540`::
+
+            sage: R.<a> = InfinitePolynomialRing(QQ)
+            sage: P.<x,y> = QQ[]
+            sage: a[0] * P.one()
+            a_0
+            sage: (a[0] * P.one()).parent()
+            Infinite polynomial ring in a over Multivariate Polynomial Ring in x, y over Rational Field
+
+        The same positional renaming is avoided for other named base
+        rings::
+
+            sage: LS.<x, y> = LazyPowerSeriesRing(QQ)
+            sage: R.<a> = InfinitePolynomialRing(QQ)
+            sage: o = LS(0); r = a[0]
+            sage: o + r
+            a_0
+            sage: (o + r).parent()
+            Infinite polynomial ring in a over Multivariate Lazy Taylor Series Ring in x, y over Rational Field
+
+            sage: PS.<x, y> = QQ[[]]
+            sage: R.<a> = InfinitePolynomialRing(QQ)
+            sage: o = PS(0); r = a[0]
+            sage: o + r
+            a_0
+
+            sage: LP.<x, y> = LaurentPolynomialRing(QQ)
+            sage: R.<a> = InfinitePolynomialRing(QQ)
+            sage: o = LP(0); r = a[0]
+            sage: o + r
+            a_0
+
+            sage: UCF = UniversalCyclotomicField()
+            sage: R.<a> = InfinitePolynomialRing(QQ)
+            sage: o = UCF(0); r = a[0]
+            sage: o + r
+            a_0
+
+        If the base ring is itself an infinite polynomial ring, finite
+        polynomials in variables of the base are still interpreted in
+        the base ring, and the result is an element of ``self``::
+
+            sage: A = InfinitePolynomialRing(ZZ, names=['a', 'b'])
+            sage: a, b = A.gens()
+            sage: Y = InfinitePolynomialRing(A, names=['z'], order='degrevlex')
+            sage: q = Y(a[2].polynomial()); q
+            a_2
+            sage: q.parent() is Y
+            True
+
+        Conversion also works if the base ring does not use
+        libsingular; the variables are then matched by name::
+
+            sage: Lg = PolynomialRing(QQ, ['x', 'y'], implementation='generic')
+            sage: Sg = InfinitePolynomialRing(Lg, names=['a'])
+            sage: p = Sg(sum(Lg.gens())); p
+            x + y
+            sage: p.parent() is Sg
+            True
+
+        Polynomials whose variable names are known neither to ``self``
+        nor to its base ring are rejected instead of being silently
+        renamed (:issue:`40540`)::
+
+            sage: S = InfinitePolynomialRing(L, names=["a"])
+            sage: R2.<u, v> = QQ[]
+            sage: S(u)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot convert u into an element of Infinite polynomial ring in a over Multivariate Polynomial Ring in x, y over Rational Field - no conversion into underlying polynomial ring
+
+        A variable name of the parent of ``x`` that the base ring does
+        not know prevents direct interpretation in the base ring, even
+        if the variable does not occur in ``x``; the variables are
+        nevertheless matched by name (:issue:`40540`)::
+
+            sage: B = PolynomialRing(QQ, ['b', 'c'])
+            sage: W.<w, b> = QQ[]
+            sage: S2 = InfinitePolynomialRing(B, names=['a'])
+            sage: S2(b)
+            b
+            sage: S2(b).parent() is S2
+            True
+
+        The same holds for base rings that do not use libsingular,
+        whose conversion would match same-size variable sets by
+        position even if the names agree up to a permutation::
+
+            sage: Np = PolynomialRing(QQ, ['y', 'x'], implementation='generic')
+            sage: Sg(Np.gen(0))
+            y
+
+        Base rings that are not polynomial rings use their own
+        conversion semantics, for instance evaluation at the generator
+        of a number field or quotient ring::
+
+            sage: t = polygen(QQ)
+            sage: K.<i> = NumberField(t^2 + 1)
+            sage: NK = InfinitePolynomialRing(K, ['a'])
+            sage: NK(t^2 + 1)
+            0
+            sage: NK(t + 1)
+            (i + 1)
+
+        ::
+
+            sage: T = InfinitePolynomialRing(SR, ['a'])
+            sage: T(polygen(QQ, 't'))
+            t
         """
         from sage.rings.polynomial.infinite_polynomial_element import InfinitePolynomial
         # In many cases, the easiest solution is to "simply" evaluate
         # the string representation.
         from sage.misc.sage_eval import sage_eval
+
+        def interpret_string(s):
+            # String evaluation resolves the variables of ``self`` and
+            # of its iterated base rings by name. The result may live
+            # in the base ring, so wrap it into an element of ``self``.
+            res = sage_eval(s, self.gens_dict())
+            P = parent(res)
+            if P is self:
+                return res
+            if self._base.has_coerce_map_from(P):
+                return InfinitePolynomial(self, self._base(res))
+            raise ValueError(f"cannot convert {s} into an element of {self}")
+
         if isinstance(x, str):
             try:
-                x = sage_eval(x, self.gens_dict())
-            except (TypeError, ValueError, SyntaxError):
-                raise ValueError(f"cannot convert {x} into an element of {self}")
-            P = parent(x)
-            if P is self:
-                return x
-            elif self._base.has_coerce_map_from(P):
-                return InfinitePolynomial(self, self._base(x))
-            else:
+                return interpret_string(x)
+            except (TypeError, ValueError, SyntaxError, NameError):
                 raise ValueError(f"cannot convert {x} into an element of {self}")
 
         if isinstance(parent(x), InfinitePolynomialRing_sparse):
@@ -916,18 +1151,53 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             xmaxind = -1
 
         # Now, we focus on the underlying classical polynomial ring.
-        # First, try interpretation in the base ring.
-        try:
+        # First, try interpretation in the base ring. This is unsafe
+        # if the parent of x is a polynomial ring and the base is a
+        # polynomial, Laurent, or series ring that does not know all
+        # variable names of the parent of x: such bases match the
+        # variables by position rather than by name, silently renaming
+        # them (:issue:`40540`). Other bases, such as number fields,
+        # interpret x by evaluation at their generators, so we let them.
+        from sage.rings.polynomial.multi_polynomial import MPolynomial
+        from sage.rings.polynomial.polynomial_element import Polynomial
+        if isinstance(x, (Polynomial, MPolynomial)) and not x.is_constant():
+            from sage.rings.lazy_series_ring import LazyPowerSeriesRing
+            from sage.rings.polynomial.laurent_polynomial_ring_base import LaurentPolynomialRing_generic
             from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict
+            from sage.rings.polynomial.multi_polynomial_ring_base import MPolynomialRing_base
+            from sage.rings.polynomial.polynomial_ring import PolynomialRing_generic
+            from sage.rings.power_series_ring import PowerSeriesRing_generic
             if isinstance(self._base, MPolynomialRing_polydict):
-                x = sage_eval(repr(), next(self.gens_dict()))
+                # MPolynomialRing_polydict maps the variables by
+                # position whenever the numbers of variables coincide,
+                # even if the variable names agree up to a permutation.
+                # We fall through to name-based string evaluation.
+                base_interpretable = False
+            elif isinstance(self._base, (PolynomialRing_generic,
+                                         MPolynomialRing_base,
+                                         LaurentPolynomialRing_generic,
+                                         PowerSeriesRing_generic,
+                                         LazyPowerSeriesRing)):
+                try:
+                    base_names = self._base.variable_names_recursive()
+                except AttributeError:
+                    base_names = self._base.variable_names()
+                base_interpretable = all(name in base_names
+                                         for name in x.parent().variable_names())
             else:
+                base_interpretable = True
+        else:
+            base_interpretable = True
+        if base_interpretable:
+            try:
                 x = self._base(x)
-            # remark: Conversion to self._P (if applicable)
-            # is done in InfinitePolynomial()
-            return InfinitePolynomial(self, x)
-        except (TypeError, ValueError):
-            pass
+                # remark: Conversion to self._P (if applicable)
+                # is done in InfinitePolynomial()
+                return InfinitePolynomial(self, x)
+            except (TypeError, ValueError, KeyError):
+                # MPolynomialRing_polydict raises KeyError when
+                # converting a PARI element with an unknown variable
+                pass
 
         # By now, we can assume that x has a parent, because
         # types like int have already been done in the previous step;
@@ -936,8 +1206,8 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         # the variables attribute), we fall back to using strings
         if not hasattr(x, 'variables'):
             try:
-                return sage_eval(repr(x), self.gens_dict())
-            except (TypeError, ValueError, SyntaxError):
+                return interpret_string(repr(x))
+            except (TypeError, ValueError, SyntaxError, NameError):
                 raise ValueError(f"cannot convert {x} into an element of {self}")
 
         # direct conversion will only be used if the underlying polynomials are libsingular.
@@ -985,7 +1255,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             # By now, x or self._P are not libsingular. Since MPolynomialRing_polydict
             # is too buggy, we use string evaluation
             try:
-                return sage_eval(repr(x), self.gens_dict())
+                return interpret_string(repr(x))
             except (ValueError, TypeError, NameError):
                 raise ValueError("cannot convert {} into an element of {} - no conversion into underlying polynomial ring".format(x, self))
 
@@ -1034,11 +1304,11 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
                 except (TypeError, ValueError):
                     # OK, last resort, to be on the safe side
                     try:
-                        return sage_eval(repr(x), self.gens_dict())
+                        return interpret_string(repr(x))
                     except (ValueError, TypeError, NameError):
                         raise ValueError("cannot convert {} into an element of {}; conversion of the underlying polynomial failed".format(x, self))
         try:
-            return sage_eval(repr(x), self.gens_dict())
+            return interpret_string(repr(x))
         except (ValueError, TypeError, NameError):
             raise ValueError(f"cannot convert {x} into an element of {self}")
 
@@ -1048,7 +1318,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
 
         INPUT:
 
-        - ``R`` -- a ring.
+        - ``R`` -- a ring
 
         OUTPUT:
 
@@ -1057,7 +1327,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
 
         NOTE:
 
-        It is required that the underlying ring of self coerces into ``R``.
+        It is required that the underlying ring of ``self`` coerces into ``R``.
         Hence, the tensor product is in fact merely an extension of the base
         ring.
 
@@ -1091,7 +1361,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
 
     # Basic Ring Properties
     # -- some stuff that is useful for quotient rings etc.
-    def is_noetherian(self):
+    def is_noetherian(self) -> bool:
         """
         Return ``False``, since polynomial rings in infinitely many
         variables are never Noetherian rings.
@@ -1121,7 +1391,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         """
         return False
 
-    def is_field(self, *args, **kwds):
+    def is_field(self, *args, **kwds) -> bool:
         """
         Return ``False`` since Infinite Polynomial Rings are never fields.
 
@@ -1156,19 +1426,17 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
 
         INPUT:
 
-        - ``x`` -- a string of the form ``a+'_'+str(n)``, where a is the
+        - ``x`` -- string of the form ``a+'_'+str(n)``, where a is the
           name of a generator, and n is an integer
 
-        RETURN:
-
-        a key used to sort the variables
+        OUTPUT: a key used to sort the variables
 
         THEORY:
 
         The order is defined as follows:
 
         x<y `\\iff` the string ``x.split('_')[0]`` is later in the list of
-        generator names of self than ``y.split('_')[0]``, or
+        generator names of ``self`` than ``y.split('_')[0]``, or
         (``x.split('_')[0]==y.split('_')[0]`` and
         ``int(x.split('_')[1])<int(y.split('_')[1])``)
 
@@ -1212,14 +1480,13 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             sage: X.<x1,x2> = InfinitePolynomialRing(QQ)
             sage: X.ngens()
             2
-
         """
         return len(self._names)
 
     @cached_method
     def gen(self, i=None):
         """
-        Return the `i^{th}` 'generator' (see the description in :meth:`.ngens`)
+        Return the `i`-th 'generator' (see the description in :meth:`.ngens`)
         of this infinite polynomial ring.
 
         EXAMPLES::
@@ -1242,8 +1509,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             key = ((0,), ())
             if key in self._cache__gen:
                 return self._cache__gen[key]
-            else:
-                self._cache__gen[key] = res
+            self._cache__gen[key] = res
         return res
 
     def _first_ngens(self, n):
@@ -1261,7 +1527,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         return self.gens()[-n:]
 
     @cached_method
-    def gens_dict(self):
+    def gens_dict(self) -> GenDictWithBasering:
         """
         Return a dictionary-like object containing the infinitely many
         ``{var_name:variable}`` pairs.
@@ -1286,7 +1552,6 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             sage: R.<a,b> = InfinitePolynomialRing(ZZ)
             sage: R._ideal_class_()
             <class 'sage.rings.polynomial.symmetric_ideal.SymmetricIdeal'>
-
         """
         import sage.rings.polynomial.symmetric_ideal
         return sage.rings.polynomial.symmetric_ideal.SymmetricIdeal
@@ -1302,7 +1567,6 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             Infinite polynomial ring in x, y over Finite Field in a of size 5^2
             sage: X.characteristic()                                                    # needs sage.rings.finite_rings
             5
-
         """
         return self._base.characteristic()
 
@@ -1374,8 +1638,8 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
 class InfinitePolynomialGen(SageObject):
     """
     This class provides the object which is responsible for returning
-    variables in an infinite polynomial ring (implemented in
-    :meth:`.__getitem__`).
+    variables in an infinite polynomial ring (implemented by
+    ``__getitem__``).
 
     EXAMPLES::
 
@@ -1386,7 +1650,6 @@ class InfinitePolynomialGen(SageObject):
         x1_5
         sage: x1 == loads(dumps(x1))
         True
-
     """
 
     def __init__(self, parent, name):
@@ -1396,7 +1659,6 @@ class InfinitePolynomialGen(SageObject):
             sage: X.<x> = InfinitePolynomialRing(QQ)
             sage: loads(dumps(x))
             x_*
-
         """
         self._name = name
         self._parent = parent
@@ -1456,7 +1718,7 @@ class InfinitePolynomialGen(SageObject):
         """
         Return the variable ``x[i]`` where ``x`` is this
         :class:`sage.rings.polynomial.infinite_polynomial_ring.InfinitePolynomialGen`,
-        and i is a non-negative integer.
+        and i is a nonnegative integer.
 
         EXAMPLES::
 
@@ -1468,7 +1730,7 @@ class InfinitePolynomialGen(SageObject):
             raise ValueError("the index (= %s) must be an integer" % i)
         i = int(i)
         if i < 0:
-            raise ValueError("the index (= %s) must be non-negative" % i)
+            raise ValueError("the index (= %s) must be nonnegative" % i)
         P = self._parent
         from sage.rings.polynomial.infinite_polynomial_element import InfinitePolynomial_dense, InfinitePolynomial_sparse
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -1536,7 +1798,7 @@ class InfinitePolynomialGen(SageObject):
 
 class InfinitePolynomialRing_dense(InfinitePolynomialRing_sparse):
     """
-    Dense implementation of Infinite Polynomial Rings
+    Dense implementation of Infinite Polynomial Rings.
 
     Compared with :class:`~sage.rings.polynomial.infinite_polynomial_ring.InfinitePolynomialRing_sparse`,
     from which this class inherits, it keeps a polynomial ring that comprises all elements that have
@@ -1549,7 +1811,6 @@ class InfinitePolynomialRing_dense(InfinitePolynomialRing_sparse):
             sage: X.<x2,alpha,y4> = InfinitePolynomialRing(ZZ, implementation='dense')
             sage: X == loads(dumps(X))
             True
-
         """
         if not names:
             names = ['x']
@@ -1585,7 +1846,7 @@ class InfinitePolynomialRing_dense(InfinitePolynomialRing_sparse):
 
         INPUT:
 
-        - ``R`` -- a ring.
+        - ``R`` -- a ring
 
         OUTPUT:
 
@@ -1594,7 +1855,7 @@ class InfinitePolynomialRing_dense(InfinitePolynomialRing_sparse):
 
         NOTE:
 
-        It is required that the underlying ring of self coerces into ``R``.
+        It is required that the underlying ring of ``self`` coerces into ``R``.
         Hence, the tensor product is in fact merely an extension of the base
         ring.
 
@@ -1611,7 +1872,6 @@ class InfinitePolynomialRing_dense(InfinitePolynomialRing_sparse):
             sage: R.<x,y> = InfinitePolynomialRing(QQ, implementation='sparse')
             sage: R.tensor_with_ring(QQ) is R
             True
-
         """
         if not R.has_coerce_map_from(self._underlying_ring):
             raise TypeError("we cannot tensor with " + repr(R))
@@ -1631,7 +1891,7 @@ class InfinitePolynomialRing_dense(InfinitePolynomialRing_sparse):
         """
         Return the underlying *finite* polynomial ring.
 
-        .. note::
+        .. NOTE::
 
            The ring returned can change over time as more variables
            are used.
@@ -1649,6 +1909,5 @@ class InfinitePolynomialRing_dense(InfinitePolynomialRing_sparse):
             sage: X.polynomial_ring()
             Multivariate Polynomial Ring in xx_3, xx_2, xx_1, xx_0, yy_3, yy_2, yy_1, yy_0
              over Integer Ring
-
         """
         return self._P

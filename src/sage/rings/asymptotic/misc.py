@@ -28,21 +28,26 @@ Functions, Classes and Methods
 # ****************************************************************************
 
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_import import lazy_import
 from sage.structure.sage_object import SageObject
 
+lazy_import('sage.rings.lazy_series_ring', 'LazyPowerSeriesRing')
+lazy_import('sage.rings.multi_power_series_ring', 'MPowerSeriesRing_generic')
+lazy_import('sage.rings.polynomial.multi_polynomial_ring_base', 'MPolynomialRing_base')
+lazy_import('sage.rings.polynomial.polynomial_ring', 'PolynomialRing_generic')
+lazy_import('sage.rings.power_series_ring', 'PowerSeriesRing_generic')
 
-def repr_short_to_parent(s):
+
+def repr_short_to_parent(s: str):
     r"""
     Helper method for the growth group factory, which converts a short
     representation string to a parent.
 
     INPUT:
 
-    - ``s`` -- a string, short representation of a parent.
+    - ``s`` -- string; short representation of a parent
 
-    OUTPUT:
-
-    A parent.
+    OUTPUT: a parent
 
     The possible short representations are shown in the examples below.
 
@@ -101,18 +106,16 @@ def repr_short_to_parent(s):
     return P
 
 
-def parent_to_repr_short(P):
+def parent_to_repr_short(P) -> str:
     r"""
     Helper method which generates a short(er) representation string
     out of a parent.
 
     INPUT:
 
-    - ``P`` -- a parent.
+    - ``P`` -- a parent
 
-    OUTPUT:
-
-    A string.
+    OUTPUT: string
 
     EXAMPLES::
 
@@ -149,29 +152,27 @@ def parent_to_repr_short(P):
     from sage.rings.real_mpfi import RIF
     from sage.rings.real_mpfr import RR
     from sage.symbolic.ring import SR
-    from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-    from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
-    from sage.rings.power_series_ring import is_PowerSeriesRing
+
+    abbreviations = {ZZ: 'ZZ', QQ: 'QQ', SR: 'SR',
+                     RR: 'RR', CC: 'CC',
+                     RIF: 'RIF', CIF: 'CIF',
+                     RBF: 'RBF', CBF: 'CBF'}
 
     def abbreviate(P):
         try:
             return P._repr_short_()
         except AttributeError:
             pass
-        abbreviations = {ZZ: 'ZZ', QQ: 'QQ', SR: 'SR',
-                         RR: 'RR', CC: 'CC',
-                         RIF: 'RIF', CIF: 'CIF',
-                         RBF: 'RBF', CBF: 'CBF'}
         try:
             return abbreviations[P]
         except KeyError:
             pass
         raise ValueError('Cannot abbreviate %s.' % (P,))
 
-    poly = is_PolynomialRing(P) or is_MPolynomialRing(P)
-    from sage.rings import multi_power_series_ring
-    power = is_PowerSeriesRing(P) or \
-            multi_power_series_ring.is_MPowerSeriesRing(P)
+    poly = isinstance(P, (PolynomialRing_generic,
+                          MPolynomialRing_base))
+    power = isinstance(P, (PowerSeriesRing_generic,
+                           MPowerSeriesRing_generic, LazyPowerSeriesRing))
 
     if poly or power:
         if poly:
@@ -191,25 +192,23 @@ def parent_to_repr_short(P):
     return s
 
 
-def split_str_by_op(string, op, strip_parentheses=True):
+def split_str_by_op(string: str, op: str, strip_parentheses=True) -> tuple:
     r"""
     Split the given string into a tuple of substrings arising by
     splitting by ``op`` and taking care of parentheses.
 
     INPUT:
 
-    - ``string`` -- a string.
+    - ``string`` -- string
 
-    - ``op`` -- a string. This is used by
+    - ``op`` -- string; this is used by
       :python:`str.split <library/stdtypes.html#str.split>`.
       Thus, if this is ``None``, then any whitespace string is a
       separator and empty strings are removed from the result.
 
-    - ``strip_parentheses`` -- (default: ``True``) a boolean.
+    - ``strip_parentheses`` -- boolean (default: ``True``)
 
-    OUTPUT:
-
-    A tuple of strings.
+    OUTPUT: a tuple of strings
 
     TESTS::
 
@@ -257,16 +256,16 @@ def split_str_by_op(string, op, strip_parentheses=True):
         sage: split_str_by_op('(e^(n*log(n)))^SR.subring(no_variables=True)', '*')
         ('(e^(n*log(n)))^SR.subring(no_variables=True)',)
     """
-    def is_balanced(s):
+    def is_balanced(s: str) -> bool:
         open = 0
-        for l in s:
-            if l == '(':
+        for let in s:
+            if let == '(':
                 open += 1
-            elif l == ')':
+            elif let == ')':
                 open -= 1
             if open < 0:
                 return False
-        return bool(open == 0)
+        return not open
 
     factors = []
     balanced = True
@@ -302,25 +301,23 @@ def split_str_by_op(string, op, strip_parentheses=True):
     return tuple(strip(f) for f in factors)
 
 
-def repr_op(left, op, right=None, latex=False):
+def repr_op(left, op: str, right=None, latex=False) -> str:
     r"""
     Create a string ``left op right`` with
     taking care of parentheses in its operands.
 
     INPUT:
 
-    - ``left`` -- an element.
+    - ``left`` -- an element
 
-    - ``op`` -- a string.
+    - ``op`` -- string
 
-    - ``right`` -- an element.
+    - ``right`` -- an element
 
-    - ``latex`` -- (default: ``False``) a boolean. If set, then
-      LaTeX-output is returned.
+    - ``latex`` -- boolean (default: ``False``); if set, then
+      LaTeX-output is returned
 
-    OUTPUT:
-
-    A string.
+    OUTPUT: string
 
     EXAMPLES::
 
@@ -355,8 +352,8 @@ def repr_op(left, op, right=None, latex=False):
             return s
         if any(sig in s for sig in signals) or latex and s.startswith(r'\frac'):
             if latex:
-                return r'\left({}\right)'.format(s)
-            return '({})'.format(s)
+                return fr'\left({s}\right)'
+            return f'({s})'
         return s
 
     return add_parentheses(left, op) + op + add_parentheses(right, op)
@@ -368,13 +365,11 @@ def combine_exceptions(e, *f):
 
     INPUT:
 
-    - ``e`` -- an exception.
+    - ``e`` -- an exception
 
-    - ``*f`` -- exceptions.
+    - ``*f`` -- exceptions
 
-    OUTPUT:
-
-    An exception.
+    OUTPUT: an exception
 
     EXAMPLES::
 
@@ -416,14 +411,11 @@ def substitute_raise_exception(element, e):
 
     INPUT:
 
-    - ``element`` -- an element.
+    - ``element`` -- an element
 
-    - ``e`` -- an exception which is included in the raised error
-      message.
+    - ``e`` -- an exception which is included in the raised error message
 
-    OUTPUT:
-
-    Raise an exception of the same type as ``e``.
+    OUTPUT: raise an exception of the same type as ``e``
 
     TESTS::
 
@@ -445,9 +437,9 @@ def bidirectional_merge_overlapping(A, B, key=None):
 
     INPUT:
 
-    - ``A`` -- a list or tuple (type has to coincide with type of ``B``).
+    - ``A`` -- list or tuple (type has to coincide with type of ``B``)
 
-    - ``B`` -- a list or tuple (type has to coincide with type of ``A``).
+    - ``B`` -- list or tuple (type has to coincide with type of ``A``)
 
     - ``key`` -- (default: ``None``) a function. If ``None``, then the
       identity is used.  This ``key``-function applied on an element
@@ -578,9 +570,9 @@ def bidirectional_merge_sorted(A, B, key=None):
 
     INPUT:
 
-    - ``A`` -- a list or tuple (type has to coincide with type of ``B``).
+    - ``A`` -- list or tuple (type has to coincide with type of ``B``)
 
-    - ``B`` -- a list or tuple (type has to coincide with type of ``A``).
+    - ``B`` -- list or tuple (type has to coincide with type of ``A``)
 
     - ``key`` -- (default: ``None``) a function. If ``None``, then the
       identity is used.  This ``key``-function applied on an element
@@ -708,20 +700,18 @@ def bidirectional_merge_sorted(A, B, key=None):
     return (resultA, resultB)
 
 
-def log_string(element, base=None):
+def log_string(element, base=None) -> str:
     r"""
     Return a representation of the log of the given element to the
     given base.
 
     INPUT:
 
-    - ``element`` -- an object.
+    - ``element`` -- an object
 
-    - ``base`` -- an object or ``None``.
+    - ``base`` -- an object or ``None``
 
-    OUTPUT:
-
-    A string.
+    OUTPUT: string
 
     EXAMPLES::
 
@@ -742,13 +732,13 @@ def strip_symbolic(expression):
 
     If ``expression`` is not symbolic, then ``expression`` is returned.
 
+    This also transforms integers in QQ to integers in ZZ.
+
     INPUT:
 
     - ``expression`` -- an object
 
-    OUTPUT:
-
-    An object.
+    OUTPUT: an object
 
     EXAMPLES::
 
@@ -765,9 +755,14 @@ def strip_symbolic(expression):
         sage: strip_symbolic(pi); _.parent()
         pi
         Symbolic Ring
+        sage: strip_symbolic(QQ(2)); _.parent()
+        2
+        Integer Ring
     """
     from sage.structure.element import parent, Element
     from sage.symbolic.ring import SymbolicRing
+    from sage.rings.integer_ring import ZZ
+    from sage.rings.rational_field import QQ
 
     P = parent(expression)
     if isinstance(P, SymbolicRing):
@@ -777,6 +772,10 @@ def strip_symbolic(expression):
                 return stripped
         except TypeError:
             pass
+
+    # convert integers in QQ to integers in ZZ
+    if P is QQ and expression in ZZ:
+        return ZZ(expression)
     return expression
 
 
@@ -790,9 +789,10 @@ class NotImplementedOZero(NotImplementedError):
         r"""
         INPUT:
 
-        - ``asymptotic_ring`` -- (default: ``None``) an :class:`AsymptoticRing` or ``None``.
+        - ``asymptotic_ring`` -- (default: ``None``) an :class:`AsymptoticRing`
+          or ``None``
 
-        - ``var`` -- (default: ``None``) a string.
+        - ``var`` -- (default: ``None``) a string
 
         Either ``asymptotic_ring`` or ``var`` has to be specified.
 
@@ -853,9 +853,10 @@ class NotImplementedBZero(NotImplementedError):
         r"""
         INPUT:
 
-        - ``asymptotic_ring`` -- (default: ``None``) an :class:`AsymptoticRing` or ``None``.
+        - ``asymptotic_ring`` -- (default: ``None``) an :class:`AsymptoticRing`
+          or ``None``
 
-        - ``var`` -- (default: ``None``) a string.
+        - ``var`` -- (default: ``None``) string
 
         Either ``asymptotic_ring`` or ``var`` has to be specified.
 
@@ -922,15 +923,15 @@ def transform_category(category,
 
     INPUT:
 
-    - ``category`` -- a category.
+    - ``category`` -- a category
 
-    - ``subcategory_mapping`` -- a list (or other iterable) of triples
+    - ``subcategory_mapping`` -- list (or other iterable) of triples
       ``(from, to, mandatory)``, where
 
       - ``from`` and ``to`` are categories and
       - ``mandatory`` is a boolean.
 
-    - ``axiom_mapping`` -- a list (or other iterable) of triples
+    - ``axiom_mapping`` -- list (or other iterable) of triples
       ``(from, to, mandatory)``, where
 
       - ``from`` and ``to`` are strings describing axioms and
@@ -944,9 +945,7 @@ def transform_category(category,
       :class:`category of objects <sage.categories.objects.Objects>`
       is used.
 
-    OUTPUT:
-
-    A category.
+    OUTPUT: a category
 
     .. NOTE::
 
@@ -1136,9 +1135,7 @@ class Locals(dict):
         Return the default locals used in
         the :class:`~sage.rings.asymptotic.asymptotic_ring.AsymptoticRing`.
 
-        OUTPUT:
-
-        A dictionary.
+        OUTPUT: a dictionary
 
         EXAMPLES::
 
@@ -1202,9 +1199,7 @@ class WithLocals(SageObject):
           the default values)
           :class:`Locals` object is created and returned.
 
-        OUTPUT:
-
-        A :class:`Locals` object.
+        OUTPUT: a :class:`Locals` object
 
         TESTS::
 

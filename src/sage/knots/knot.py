@@ -1,3 +1,4 @@
+# sage.doctest: needs sage.graphs sage.groups
 r"""
 Knots
 
@@ -16,19 +17,38 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+from enum import Enum
 
-from sage.knots.link import Link
+from sage.categories.monoids import Monoids
+from sage.knots.gauss_code import (
+    dowker_to_gauss,
+    recover_orientations,
+    rectangular_diagram,
+)
 from sage.knots.knot_table import small_knots_table
-from sage.knots.gauss_code import (recover_orientations, dowker_to_gauss,
-                                   rectangular_diagram)
-
-from sage.structure.parent import Parent
-from sage.structure.element import Element
+from sage.knots.link import Link
+from sage.misc.cachefunc import cached_method
 from sage.misc.fast_methods import Singleton
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.categories.monoids import Monoids
+from sage.structure.element import Element
+from sage.structure.parent import Parent
+
+
+class SymmetryType(Enum):
+    r"""
+    Specify the symmetry type of a knot. See also
+    :meth:`~sage.knots.knot.Knot.symmetry_type`
+    and :meth:`~sage.knots.knotinfo.KnotInfoBase.symmetry_type`.
+    """
+    chiral = 'chiral'
+    reversible = 'reversible'
+    pos_amphicheiral = 'positive amphicheiral'
+    neg_amphicheiral = 'negative amphicheiral'
+    ful_amphicheiral = 'fully amphicheiral'
 
 # We need Link to be first in the MRO in order to use its equality, hash, etc.
+
+
 class Knot(Link, Element, metaclass=InheritComparisonClasscallMetaclass):
     r"""
     A knot.
@@ -46,7 +66,7 @@ class Knot(Link, Element, metaclass=InheritComparisonClasscallMetaclass):
     INPUT:
 
     - ``data`` -- see :class:`Link` for the allowable inputs
-    - ``check`` -- optional, default ``True``. If ``True``, make sure
+    - ``check`` -- boolean (default: ``True``); if ``True``, make sure
       that the data define a knot, not a link
 
     EXAMPLES:
@@ -147,14 +167,6 @@ class Knot(Link, Element, metaclass=InheritComparisonClasscallMetaclass):
         """
         Return unicode art for the knot.
 
-        INPUT:
-
-        - a knot
-
-        OUTPUT:
-
-        - unicode art for the knot
-
         EXAMPLES::
 
             sage: W = Knots()
@@ -207,14 +219,13 @@ class Knot(Link, Element, metaclass=InheritComparisonClasscallMetaclass):
                 x, y, xx, yy = xx, yy, x, y
             if y < b:
                 if xx < a:
-                    M[a][b] = u"╯"
+                    M[a][b] = "╯"
                 else:
-                    M[a][b] = u"╮"
+                    M[a][b] = "╮"
+            elif xx < a:
+                M[a][b] = "╰"
             else:
-                if xx < a:
-                    M[a][b] = u"╰"
-                else:
-                    M[a][b] = u"╭"
+                M[a][b] = "╭"
 
         for ab, cd in graphe.edge_iterator(labels=False):
             a, b = ab
@@ -222,21 +233,21 @@ class Knot(Link, Element, metaclass=InheritComparisonClasscallMetaclass):
             if a == c:
                 b, d = sorted((b, d))
                 for i in range(b + 1, d):
-                    M[a][i] = u"─"
+                    M[a][i] = "─"
             else:
                 a, c = sorted((a, c))
                 for i in range(a + 1, c):
-                    M[i][b] = u"│"
+                    M[i][b] = "│"
 
         if style == 0:
-            H = u"┿"
-            V = u"╂"
+            H = "┿"
+            V = "╂"
         elif style == 1:
-            H = u"━"
-            V = u"┃"
+            H = "━"
+            V = "┃"
         elif style == 2:
-            H = u"─"
-            V = u"│"
+            H = "─"
+            V = "│"
 
         for x, y in hori:
             M[x][y] = H
@@ -271,10 +282,12 @@ class Knot(Link, Element, metaclass=InheritComparisonClasscallMetaclass):
             sage: K = Knot([[1,5,2,4],[5,3,6,2],[3,1,4,6]])
             sage: K.dt_code()
             [4, 6, 2]
+
             sage: B = BraidGroup(4)
             sage: K = Knot(B([1, 2, 1, 2]))
             sage: K.dt_code()
             [4, -6, 8, -2]
+
             sage: K = Knot([[[1, -2, 3, -4, 5, -1, 2, -3, 4, -5]],
             ....:          [1, 1, 1, 1, 1]])
             sage: K.dt_code()
@@ -295,7 +308,7 @@ class Knot(Link, Element, metaclass=InheritComparisonClasscallMetaclass):
                     crossing = i
                     break
             if not string_found:
-                for i in range(0, crossing):
+                for i in range(crossing):
                     if abs(b[i]) == string or abs(b[i]) == string - 1:
                         string_found = True
                         crossing = i
@@ -401,9 +414,7 @@ class Knot(Link, Element, metaclass=InheritComparisonClasscallMetaclass):
 
         - ``other`` -- a knot
 
-        OUTPUT:
-
-        A knot equivalent to the connected sum of ``self`` and ``other``.
+        OUTPUT: a knot equivalent to the connected sum of ``self`` and ``other``
 
         EXAMPLES::
 
@@ -441,13 +452,13 @@ class Knot(Link, Element, metaclass=InheritComparisonClasscallMetaclass):
 
         Observe that both knots have according ``dowker_notation`` (showing that
         the constructing from DT-code may not be unique for non prime knots, see
-        :meth:`from_dowker_code`)::
+        :meth:`~sage.knots.knot.Knots.from_dowker_code`)::
 
             sage: K.dowker_notation()
             [(4, 1), (2, 5), (6, 3), (10, 7), (8, 11), (12, 9)]
             sage: K2.dowker_notation()
             [(4, 1), (2, 5), (6, 3), (7, 10), (11, 8), (9, 12)]
-            sage: K.homfly_polynomial() == K2.homfly_polynomial()
+            sage: K.homfly_polynomial() == K2.homfly_polynomial()  # needs libbraiding libhomfly
             False
 
         TESTS::
@@ -484,6 +495,88 @@ class Knot(Link, Element, metaclass=InheritComparisonClasscallMetaclass):
         return type(self)(nogc)
 
     _mul_ = connected_sum
+
+    @cached_method
+    def symmetry_type(self):
+        r"""
+        Return the symmetry type of ``self`` according to
+        :meth:`~sage.knots.knotinfo.KnotInfoBase.symmetry_type`.
+
+        OUTPUT: an element of enum :class:`SymmetryType`
+
+        .. NOTE::
+
+           This method uses the SnapPy ``is_isometric_to`` method of manifolds.
+           It therefore needs the optional package ``snappy``. For more
+           information on this see `is_isometric_to`_.
+
+        .. _`is_isometric_to`: https://snappy.computop.org/manifold.html#snappy.Manifold.is_isometric_to
+
+        EXAMPLES::
+
+            sage: K = Knots().from_table(6,3)
+            sage: s = K.symmetry_type(); s            # optional - snappy
+            <SymmetryType.ful_amphicheiral: 'fully amphicheiral'>
+            sage: s == KnotInfo.K6_3.symmetry_type()  # optional - snappy
+            True
+        """
+        from sage.interfaces.snappy import snappy
+        sK = snappy(self)
+        eK = sK.exterior()
+        try:
+            iso = eK.is_isometric_to(eK, return_isometries=True)
+        except RuntimeError:
+            raise NotImplementedError('the symmetry type cannot be calculated for %s' % self)
+        s = []
+        for i in iso:
+            for M in i.cusp_maps().sage():
+                M.set_immutable()
+                s.append(M)
+        S = set(s)
+        if len(S) == 1:
+            return SymmetryType.chiral
+        if len(S) == 4:
+            return SymmetryType.ful_amphicheiral
+        if len(S) != 2:
+            return None
+
+        if [-1, -1] in [m.diagonal() for m in S]:
+            return SymmetryType.reversible
+        if [-1, 1] in [m.diagonal() for m in S]:
+            return SymmetryType.pos_amphicheiral
+        return SymmetryType.neg_amphicheiral
+
+    def deconnect_sum(self):
+        r"""
+        Return a list of (not neccessarily prime) knots such that ``self``
+        is isotopic to their connected sum.
+
+        .. NOTE::
+
+           This method is taken from the SnapPy method ``deconnect_sum``
+           and therefore needs the optional package ``snappy``. More
+           information on the usage of the method can be found in `deconnect_sum`_.
+
+        .. _`deconnect_sum`: https://snappy.computop.org/spherogram.html#spherogram.Link.deconnect_sum
+
+        OUTPUT: a list of instances of class :class:`Knot`
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(4)
+            sage: K = Knot(B((1, 2, 2, 2, -1, 2, 2, 2, -3, -3, -3)))
+            sage: d = K.deconnect_sum(); d        # optional - snappy
+            [Knot represented by 3 crossings, Knot represented by 8 crossings]
+            sage: K2 = d[1].simplify()            # optional - snappy
+            sage: d2 = K2.deconnect_sum(); d2     # optional - snappy
+            [Knot represented by 3 crossings, Knot represented by 3 crossings]
+            sage: K.get_knotinfo()                # needs libhomfly
+            KnotInfo['K3_1']^2*KnotInfo['K3_1m']
+        """
+        from sage.interfaces.snappy import snappy
+        Ks = snappy(self)
+        from sage.knots.link import sort
+        return sorted([k.sage_link() for k in Ks.deconnect_sum()], key=sort)
 
 
 class Knots(Singleton, Parent):
@@ -542,11 +635,9 @@ class Knots(Singleton, Parent):
 
         INPUT:
 
-        - a signed Gauss code
+        - ``gauss`` -- a signed Gauss code
 
-        OUTPUT:
-
-        - a knot
+        OUTPUT: a knot
 
         EXAMPLES::
 
@@ -578,11 +669,10 @@ class Knots(Singleton, Parent):
 
         INPUT:
 
-        a list of signed even numbers, the Dowker-Thistlethwaite code of a knot
+        - ``code`` -- list of signed even numbers; the Dowker-Thistlethwaite
+          code of a knot
 
-        OUTPUT:
-
-        a knot
+        OUTPUT: a knot
 
         .. WARNING::
 
@@ -591,7 +681,7 @@ class Knots(Singleton, Parent):
             mix up non prime knots. For example ``[4, 6, 2, 10, 12, 8]`` describes
             the connected sum of two trefoil knots, as well as the connected sum
             of a trefoil with its mirror (see the corresponding example in the
-            documentation of :meth:`connected_sum`).
+            documentation of :meth:`~sage.knots.knot.Knot.connected_sum`).
 
         EXAMPLES::
 
@@ -611,7 +701,7 @@ class Knots(Singleton, Parent):
             sage: K3.dowker_notation()
             [(5, 2), (4, 9), (1, 6), (7, 8), (10, 11), (12, 3)]
 
-        .. SEEALSO:: :meth:`~sage.knots.knot.Knot.dowker_notation`
+        .. SEEALSO:: :meth:`~sage.knots.link.Link.dowker_notation`
 
         REFERENCES:
 
@@ -630,11 +720,9 @@ class Knots(Singleton, Parent):
         INPUT:
 
         - ``n`` -- the crossing number
-        - ``k`` -- a positive integer
+        - ``k`` -- positive integer
 
-        OUTPUT:
-
-        the knot `K_{n,k}` in the Rolfsen table
+        OUTPUT: the knot `K_{n,k}` in the Rolfsen table
 
         EXAMPLES::
 
@@ -678,12 +766,13 @@ class Knots(Singleton, Parent):
         """
         if n > 10:
             raise ValueError('more than 10 crossings, not in the knot table')
-        from sage.groups.braid import BraidGroup
         if (n, k) in small_knots_table:
             m, word = small_knots_table[(n, k)]
+
+            from sage.groups.braid import BraidGroup
+
             G = BraidGroup(m)
             return Knot(G(word))
-        else:
-            raise ValueError('not found in the knot table')
+        raise ValueError('not found in the knot table')
 
     Element = Knot

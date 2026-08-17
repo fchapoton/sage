@@ -6,15 +6,14 @@ cdef extern from 'symmetrica/def.h':
     INT gupta_tafel(OP max, OP res)
     INT random_partition(OP nx, OP res)
 
+
 def strict_to_odd_part_symmetrica(part):
     """
-    implements the bijection between strict partitions
+    Implement the bijection between strict partitions
     and partitions with odd parts. input is a VECTOR type partition, the
     result is a partition of the same weight with only odd parts.
-
     """
-
-    #Make sure that the partition is strict
+    # Make sure that the partition is strict
     cdef INT i
     for i from 0 <= i < len(part)-1:
         if part[i] == part[i+1]:
@@ -37,14 +36,14 @@ def strict_to_odd_part_symmetrica(part):
 
     return res
 
+
 def odd_to_strict_part_symmetrica(part):
     """
-    implements the bijection between partitions with odd parts
+    Implement the bijection between partitions with odd parts
     and strict partitions. input is a VECTOR type partition, the
     result is a partition of the same weight with different parts.
     """
-
-    #Make sure that the partition is strict
+    # Make sure that the partition is strict
     cdef INT i
     for i from 0 <= i < len(part):
         if part[i] % 2 == 0:
@@ -70,15 +69,12 @@ def odd_to_strict_part_symmetrica(part):
 
 def q_core_symmetrica(part, d):
     """
-    computes the q-core of a PARTITION object
+    Compute the q-core of a PARTITION object
     part. This is the remaining partition (=res) after
     removing of all hooks of length d (= INTEGER object).
     The result may be an empty object, if the whole
     partition disappears.
-
     """
-
-
     cdef OP cpart, cres, cd
     anfang()
     cpart = callocobject()
@@ -102,20 +98,17 @@ def q_core_symmetrica(part, d):
 
 def gupta_nm_symmetrica(n, m):
     """
-    this routine computes the number of partitions
-    of n with maximal part m. The result is erg. The
-    input n,m must be INTEGER objects. The result is
+    This routine computes the number of partitions
+    of ``n`` with maximal part ``m``. The result is erg. The
+    input ``n``, ``m`` must be INTEGER objects. The result is
     freed first to an empty object. The result must
     be a different from m and n.
     """
-
-
     cdef OP cn, cm, cres
     anfang()
     cm = callocobject()
     cn = callocobject()
     cres = callocobject()
-
 
     _op_integer(n, cn)
     _op_integer(m, cm)
@@ -131,22 +124,20 @@ def gupta_nm_symmetrica(n, m):
 
     return res
 
+
 def gupta_tafel_symmetrica(max):
     """
-    it computes the table of the above values. The entry
+    It computes the table of the above values. The entry
     n,m is the result of gupta_nm. mat is freed first.
     max must be an INTEGER object, it is the maximum
     weight for the partitions. max must be different from
     result.
     """
-
-
     cdef OP cmax, cres
     anfang()
 
     cmax = callocobject()
     cres = callocobject()
-
 
     _op_integer(max, cmax)
 
@@ -163,20 +154,18 @@ def gupta_tafel_symmetrica(max):
 
 def random_partition_symmetrica(n):
     """
-    Return a random partition p of the entered weight w.
+    Return a random partition ``p`` of the entered weight ``n``.
 
-    w must be an INTEGER object, p becomes a PARTITION object.
+    ``n`` must be an INTEGER object, ``p`` becomes a PARTITION object.
+
     Type of partition is VECTOR . It uses the algorithm of
     Nijenhuis and Wilf, p.76
     """
-
-
     cdef OP cn, cres
     anfang()
 
     cn = callocobject()
     cres = callocobject()
-
 
     _op_integer(n, cn)
 

@@ -10,10 +10,10 @@ can be identified with the set of morphisms `Spec(K) \to X`. In Sage
 the rational points are implemented by such scheme morphisms. This is
 done by :class:`SchemeHomset_points` and its subclasses.
 
-.. note::
+.. NOTE::
 
     You should not create the Hom-sets manually. Instead, use the
-    :meth:`~sage.structure.parent.Hom` method that is inherited by all
+    :meth:`~sage.structure.parent.Parent.Hom` method that is inherited by all
     schemes.
 
 AUTHORS:
@@ -36,8 +36,6 @@ from copy import copy
 
 from sage.misc.verbose import verbose
 from sage.rings.integer_ring import ZZ
-from sage.rings.real_mpfr import RR
-from sage.rings.cc import CC
 from sage.rings.rational_field import RationalField
 from sage.categories.fields import Fields
 from sage.categories.number_fields import NumberFields
@@ -93,7 +91,7 @@ class SchemeHomset_points_spec(SchemeHomset_generic):
         """
         Return a string representation of a homset.
 
-        OUTPUT: A string.
+        OUTPUT: string
 
         EXAMPLES::
 
@@ -180,9 +178,7 @@ class SchemeHomset_points_affine(SchemeHomset_points):
         by lowering the tolerance.
 
 
-        INPUT:
-
-        kwds:
+        INPUT: keyword arguments:
 
         - ``bound`` -- real number (default: 0). The bound for the
           height of the coordinates. Only used for subschemes with
@@ -192,15 +188,13 @@ class SchemeHomset_points_affine(SchemeHomset_points):
           For numerically inexact fields, points are on the subscheme if they
           satisfy the equations to within tolerance.
 
-        - ``tolerance`` -- a rational number in (0,1] used in doyle-krumm algorithm-4
-          for enumeration over number fields.
+        - ``tolerance`` -- a rational number in (0,1] used in Doyle-Krumm
+          algorithm-4 for enumeration over number fields
 
         - ``precision`` -- the precision to use for computing the elements of
-          bounded height of number fields.
+          bounded height of number fields
 
-        OUTPUT:
-
-        - a list of rational points of a affine scheme
+        OUTPUT: list of rational points of a affine scheme
 
         .. WARNING::
 
@@ -268,6 +262,7 @@ class SchemeHomset_points_affine(SchemeHomset_points):
             if hasattr(X.base_ring(), 'precision'):
                 numerical = True
                 verbose("Warning: computations in the numerical fields are inexact;points may be computed partially or incorrectly.", level=0)
+                from sage.rings.real_mpfr import RR
                 zero_tol = RR(kwds.pop('zero_tolerance', 10**(-10)))
                 if zero_tol <= 0:
                     raise ValueError("tolerance must be positive")
@@ -359,11 +354,10 @@ class SchemeHomset_points_affine(SchemeHomset_points):
                 raise TypeError("a positive bound B (= %s) must be specified" % B)
             from sage.schemes.affine.affine_rational_point import enum_affine_number_field
             return enum_affine_number_field(self, bound=B, tolerance=tol, precision=prec)
-        elif isinstance(R, FiniteField):
+        if isinstance(R, FiniteField):
             from sage.schemes.affine.affine_rational_point import enum_affine_finite_field
             return enum_affine_finite_field(self)
-        else:
-            raise TypeError("unable to enumerate points over %s" % R)
+        raise TypeError("unable to enumerate points over %s" % R)
 
     def numerical_points(self, F=None, **kwds):
         """
@@ -384,7 +378,7 @@ class SchemeHomset_points_affine(SchemeHomset_points):
           For numerically inexact fields, points are on the subscheme if they
           satisfy the equations to within tolerance.
 
-        OUTPUT: A list of points in the ambient space.
+        OUTPUT: list of points in the ambient space
 
         .. WARNING::
 
@@ -438,7 +432,7 @@ class SchemeHomset_points_affine(SchemeHomset_points):
         """
         from sage.schemes.affine.affine_space import AffineSpace_generic
         if F is None:
-            F = CC
+            from sage.rings.cc import CC as F
         if F not in Fields() or not hasattr(F, 'precision'):
             raise TypeError('F must be a numerical field')
         X = self.codomain()
@@ -455,6 +449,7 @@ class SchemeHomset_points_affine(SchemeHomset_points):
             return []
 
         # if X zero-dimensional
+        from sage.rings.real_mpfr import RR
         zero_tol = RR(kwds.pop('zero_tolerance', 10**(-10)))
         if zero_tol <= 0:
             raise ValueError("tolerance must be positive")

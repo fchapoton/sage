@@ -92,7 +92,6 @@ cdef class ManinSymbol(Element):
         sage: s = ManinSymbol(m,(2,2,3))
         sage: s.parent()
         Manin Symbol List of weight 8 for Gamma0(5)
-
     """
     def __init__(self, parent, t):
         r"""
@@ -118,7 +117,6 @@ cdef class ManinSymbol(Element):
             sage: m = ManinSymbolList_gamma0(5,8)
             sage: s = ManinSymbol(m,(2,2,3)); s
             [X^2*Y^4,(2,3)]
-
         """
         Element.__init__(self, parent)
         (i, u, v) = t
@@ -138,7 +136,6 @@ cdef class ManinSymbol(Element):
             sage: s = ManinSymbol(m, (2, 2, 3))
             sage: loads(dumps(s))
             (2,3)
-
         """
         return ManinSymbol, (self.parent(), self.tuple())
 
@@ -154,7 +151,6 @@ cdef class ManinSymbol(Element):
             sage: s = ManinSymbol(m,(2,2,3))
             sage: loads(dumps(s))
             (2,3)
-
         """
         self._parent = state['_ManinSymbol__parent']
         (self.i, self.u, self.v) = state['_ManinSymbol__t']
@@ -207,7 +203,7 @@ cdef class ManinSymbol(Element):
         """
         return self._repr_()
 
-    cpdef _richcmp_(self, right, int op):
+    cpdef _richcmp_(self, other, int op):
         """
         Comparison function for ManinSymbols.
 
@@ -228,17 +224,17 @@ cdef class ManinSymbol(Element):
             sage: slist[20] != slist[20]
             False
         """
-        cdef ManinSymbol other = <ManinSymbol>right
+        cdef ManinSymbol _other = <ManinSymbol>other
         # Compare tuples (i,u,v)
         lx = self.i
-        rx = other.i
+        rx = _other.i
         if lx != rx:
             return richcmp_not_equal(lx, rx, op)
         lx = self.u
-        rx = other.u
+        rx = _other.u
         if lx != rx:
             return richcmp_not_equal(lx, rx, op)
-        return richcmp(self.v, other.v, op)
+        return richcmp(self.v, _other.v, op)
 
     def __hash__(self):
         """
@@ -246,15 +242,15 @@ cdef class ManinSymbol(Element):
 
             sage: from sage.modular.modsym.manin_symbol import ManinSymbol
             sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0
-            sage: m = ManinSymbolList_gamma0(5,2)
-            sage: s = ManinSymbol(m,(2,2,3))
+            sage: m = ManinSymbolList_gamma0(5, 2)
+            sage: s = ManinSymbol(m, (2, 2, 3))
             sage: hash(s)  # random
             7331463901
         """
-        cdef unsigned long h1 = hash(self.i)
-        cdef unsigned long h2 = hash(self.u)
-        cdef unsigned long h3 = hash(self.v)
-        return <Py_hash_t>(h1 + 1247963869*h2 + 1611845387*h3)
+        cdef Py_hash_t h1 = hash(self.i)
+        cdef Py_hash_t h2 = hash(self.u)
+        cdef Py_hash_t h3 = hash(self.v)
+        return h1 + 1247963869 * h2 + 1611845387 * h3
 
     def __mul__(self, matrix):
         """
@@ -291,9 +287,9 @@ cdef class ManinSymbol(Element):
                            matrix[0]*self.u + matrix[2]*self.v,
                            matrix[1]*self.u + matrix[3]*self.v))
 
-    def apply(self, a,b,c,d):
+    def apply(self, a, b, c, d):
         """
-        Return the image of self under the matrix `[a,b;c,d]`.
+        Return the image of ``self`` under the matrix `[a,b;c,d]`.
 
         Not implemented for raw ManinSymbol objects, only for members
         of ManinSymbolLists.
@@ -342,7 +338,6 @@ cdef class ManinSymbol(Element):
             [X^2*Y^4,(2,3)]
             sage: s.lift_to_sl2z()
             [1, 1, 2, 3]
-
         """
         if N is None:
             N = self.level()
@@ -406,7 +401,7 @@ cdef class ManinSymbol(Element):
             N=int(N)
             if N < 1:
                 raise ArithmeticError("N must be positive")
-        a,b,c,d = self.lift_to_sl2z()
+        a, b, c, d = self.lift_to_sl2z()
         return Cusp(b, d), Cusp(a, c)
 
     def weight(self):
@@ -421,7 +416,6 @@ cdef class ManinSymbol(Element):
             sage: s = ManinSymbol(m,(2,2,3))
             sage: s.weight()
             8
-
         """
         return self.parent().weight()
 
@@ -437,7 +431,6 @@ cdef class ManinSymbol(Element):
             sage: s = ManinSymbol(m,(2,2,3))
             sage: s.level()
             5
-
         """
         return self.parent().level()
 
@@ -456,14 +449,11 @@ cdef class ManinSymbol(Element):
             sage: s = ManinSymbol(m,(2,2,3))
             sage: s.modular_symbol_rep()
              144*X^6*{1/3, 1/2} - 384*X^5*Y*{1/3, 1/2} + 424*X^4*Y^2*{1/3, 1/2} - 248*X^3*Y^3*{1/3, 1/2} + 81*X^2*Y^4*{1/3, 1/2} - 14*X*Y^5*{1/3, 1/2} + Y^6*{1/3, 1/2}
-
-
         """
         # TODO: It would likely be much better to do this slightly more directly
         from sage.modular.modsym.modular_symbols import ModularSymbol
         x = ModularSymbol(self.parent(), self.i, 0, Infinity)
-        a,b,c,d = self.lift_to_sl2z()
-        return x.apply([a,b,c,d])
+        return x.apply(self.lift_to_sl2z())
 
 
 def _print_polypart(i, j):
@@ -498,8 +488,7 @@ def _print_polypart(i, j):
         times = ""
     if xpart or ypart:
         return xpart + times + ypart
-    else:
-        return ""
+    return ""
 
 
 register_unpickle_override('sage.modular.modsym.manin_symbols',

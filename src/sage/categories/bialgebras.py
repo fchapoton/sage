@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-categories
 # sage.doctest: needs sage.combinat
 r"""
 Bialgebras
@@ -20,7 +19,7 @@ from sage.misc.lazy_import import LazyImport
 
 class Bialgebras(Category_over_base_ring):
     """
-    The category of bialgebras
+    The category of bialgebras.
 
     EXAMPLES::
 
@@ -54,7 +53,8 @@ class Bialgebras(Category_over_base_ring):
 
         .. SEEALSO:: :meth:`Category.additional_structure`
 
-        .. TODO:: This category should be a :class:`CategoryWithAxiom`.
+        .. TODO:: This category should be a
+           :class:`~sage.categories.category_with_axiom.CategoryWithAxiom`.
 
         EXAMPLES::
 

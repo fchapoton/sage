@@ -485,8 +485,8 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
                 return None
 
             # copy the vector sequence into a working vector sequence ws
-            #!!! ws only needs to be the actual vector sequence, not some
-            #!!! fancy crystal graph element
+            # !!! ws only needs to be the actual vector sequence, not some
+            # !!! fancy crystal graph element
             P = self.parent()
             ws = P(self.value)
 
@@ -506,8 +506,8 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
                 else:
                     ws = ws.reflect_step(j, i)
                 ix -= 1
-            #!!! at this point we should return the fancy crystal graph element
-            #!!! corresponding to the humble vector sequence ws
+            # !!! at this point we should return the fancy crystal graph element
+            # !!! corresponding to the humble vector sequence ws
             return P(ws.compress())
 
         def dualize(self):
@@ -605,8 +605,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
             diff = ph - ep
             if diff >= 0:
                 return self.f(i, power=diff)
-            else:
-                return self.e(i, power=-diff)
+            return self.e(i, power=-diff)
 
         def weight(self):
             """
@@ -651,7 +650,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
 
     When ``weight`` is just a single fundamental weight `\Lambda_r`, this
     crystal is isomorphic to a Kirillov-Reshetikhin (KR) crystal, see also
-    :meth:`sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinFromLSPaths`.
+    :func:`sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystalFromLSPaths`.
     For general weights, it is isomorphic to a tensor product of
     single-column KR crystals.
 
@@ -760,7 +759,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
 
         - ``q`` -- (default: ``None``) a variable or ``None``; if ``None``,
           a variable ``q`` is set in the code
-        - ``group_components`` -- (default: ``True``) boolean; if ``True``,
+        - ``group_components`` -- boolean (default: ``True``); if ``True``,
           then the terms are grouped by classical component
 
         The one-dimensional configuration sum is the sum of the weights
@@ -835,7 +834,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
             return sum(q**(c[0].energy_function()) * B.sum(B(weight(b)) for b in c) for c in C)
         return B.sum(q**(b.energy_function()) * B(weight(b)) for b in self)
 
-    def is_perfect(self, level=1):
+    def is_perfect(self, level=1) -> bool:
         r"""
         Check whether the crystal ``self`` is perfect (of level ``level``).
 
@@ -997,7 +996,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
             """
             cartan = self.parent().weight.parent().cartan_type().classical()
             I = cartan.index_set()
-            W = WeylGroup(cartan, prefix='s', implementation="permutation")
+            W = WeylGroup(cartan, prefix='s', implementation='permutation')
             return [W.from_reduced_word(x.to_dominant_chamber(index_set=I, reduced_word=True)[1]) for x in self.value]
 
         @cached_in_parent_method
@@ -1151,7 +1150,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
             ct = P.cartan_type()
             cartan = ct.classical()
             Qv = RootSystem(cartan).coroot_lattice()
-            W = WeylGroup(cartan, prefix='s', implementation="permutation")
+            W = WeylGroup(cartan, prefix='s', implementation='permutation')
             J = tuple(weight.weyl_stabilizer())
             L = self.weyl_group_representation()
             if ct.is_untwisted_affine() or ct.type() == 'BC':
@@ -1160,7 +1159,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
             else:
                 untwisted = False
                 cartan_dual = cartan.dual()
-                Wd = WeylGroup(cartan_dual, prefix='s', implementation="permutation")
+                Wd = WeylGroup(cartan_dual, prefix='s', implementation='permutation')
                 G = Wd.quantum_bruhat_graph(J)
                 Qd = RootSystem(cartan_dual).root_lattice()
 
@@ -1177,8 +1176,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
                     #if a.is_short_root():
                     #    if cartan_dual.type() == 'G':
                     #        return 3*a
-                    #    else:
-                    #        return 2*a
+                    #    return 2*a
                     #return a
 
             paths = [G.shortest_path(L[i+1],L[i]) for i in range(len(L)-1)]
@@ -1189,15 +1187,12 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
                         for i, label in enumerate(paths_labels))
                 if ct.type() == 'BC':
                     return 2 * s
-                else:
-                    return s
-            else:
-                s = sum((1 - scalars[i]) * c_weight.scalar(dualize(Qd.sum(stretch_short_root(root) for root in label)))
-                        for i, label in enumerate(paths_labels))
-                if ct.dual().type() == 'BC':
-                    return s / 2
-                else:
-                    return s
+                return s
+            s = sum((1 - scalars[i]) * c_weight.scalar(dualize(Qd.sum(stretch_short_root(root) for root in label)))
+                    for i, label in enumerate(paths_labels))
+            if ct.dual().type() == 'BC':
+                return s / 2
+            return s
 
 
 #####################################################################
@@ -1305,7 +1300,7 @@ class InfinityCrystalOfLSPaths(UniqueRepresentation, Parent):
             - ``i`` -- element of the index set
             - ``power`` -- (default: 1) positive integer; specifies the
               power of the lowering operator to be applied
-            - ``length_only`` -- (default: ``False``) boolean; if ``True``,
+            - ``length_only`` -- boolean (default: ``False``); if ``True``,
               then return the distance to the anti-dominant end of the
               `i`-string of ``self``
 
@@ -1332,7 +1327,9 @@ class InfinityCrystalOfLSPaths(UniqueRepresentation, Parent):
                 sage: x.e_string([3,2,1,0]) == mg
                 True
 
-            We check that :meth:`epsilon` works::
+            We check that
+            :meth:`~sage.categories.crystals.Crystals.ElementMethods.epsilon`
+            works::
 
                 sage: B = crystals.infinity.LSPaths(['D',4])
                 sage: mg = B.highest_weight_vector()
@@ -1382,7 +1379,7 @@ class InfinityCrystalOfLSPaths(UniqueRepresentation, Parent):
             - ``i`` -- element of the index set
             - ``power`` -- (default: 1) positive integer; specifies the
               power of the lowering operator to be applied
-            - ``length_only`` -- (default: ``False``) boolean; if ``True``,
+            - ``length_only`` -- boolean (default: ``False``); if ``True``,
               then return the distance to the anti-dominant end of the
               `i`-string of ``self``
 
@@ -1455,7 +1452,7 @@ class InfinityCrystalOfLSPaths(UniqueRepresentation, Parent):
             alpha = WLR.simple_roots()
             return -WLR.sum(alpha[i] for i in self.to_highest_weight()[1])
 
-        def phi(self,i):
+        def phi(self, i):
             r"""
             Return `\varphi_i` of ``self``.
 

@@ -66,8 +66,10 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+from sage.categories.finite_lattice_posets import FiniteLatticePosets
 from sage.combinat.nu_dyck_word import NuDyckWords, NuDyckWord
 from sage.combinat.posets.lattices import LatticePoset
+from sage.rings.integer_ring import ZZ
 
 
 def NuTamariLattice(nu):
@@ -76,11 +78,9 @@ def NuTamariLattice(nu):
 
     INPUT:
 
-    - `\nu` -- a list of 0s and 1s or a string of 0s and 1s.
+    - `\nu` -- list of 0s and 1s or a string of 0s and 1s
 
-    OUTPUT:
-
-    a finite lattice
+    OUTPUT: a finite lattice
 
     The elements of the lattice are
     :func:`\nu-Dyck paths<sage.combinat.nu_dyck_word.NuDyckWord>` weakly above
@@ -113,7 +113,8 @@ def NuTamariLattice(nu):
             new_ndw = ndw.mutate(i)
             if new_ndw is not None:
                 covers.append([ndw, new_ndw])
-    return LatticePoset([elements, covers])
+    cat = FiniteLatticePosets().Trim().CongruenceUniform()
+    return LatticePoset([elements, covers], cover_relations=True, category=cat)
 
 
 def delta_swap(p, k, delta):
@@ -133,13 +134,11 @@ def delta_swap(p, k, delta):
 
     - ``p`` -- a `\nu`-Dyck word
 
-    - ``k`` -- an integer between `0` and ``p.length()-1``
+    - ``k`` -- integer between `0` and ``p.length()-1``
 
-    - ``delta`` -- a list of nonnegative integers of length ``p.height()``
+    - ``delta`` -- list of nonnegative integers of length ``p.height()``
 
-    OUTPUT:
-
-    - a `\nu`-Dyck word
+    OUTPUT: a `\nu`-Dyck word
 
     EXAMPLES::
 
@@ -209,13 +208,11 @@ def AltNuTamariLattice(nu, delta=None):
 
     INPUT:
 
-    - `\nu` -- a list of 0s and 1s or a string of 0s and 1s.
+    - `\nu` -- list of 0s and 1s or a string of 0s and 1s
 
-    - `\delta` -- a list of nonnegative integers.
+    - `\delta` -- list of nonnegative integers
 
-    OUTPUT:
-
-    - a finite lattice
+    OUTPUT: a finite lattice
 
     EXAMPLES::
 
@@ -226,7 +223,7 @@ def AltNuTamariLattice(nu, delta=None):
         Finite lattice containing 7 elements
         sage: AltNuTamariLattice('01001') == AltNuTamariLattice('01001', [2, 0])
         True
-        sage: nu = '00100100101'; P = AltNuTamariLattice(nu); Q = NuTamariLattice(nu); P == Q
+        sage: nu = '00100100101'; P = AltNuTamariLattice(nu); Q = NuTamariLattice(nu); P.is_isomorphic(Q)
         True
 
     TESTS::
@@ -247,6 +244,14 @@ def AltNuTamariLattice(nu, delta=None):
         Traceback (most recent call last):
         ...
         ValueError: delta is not a valid increment vector
+        sage: AltNuTamariLattice('010', [-1])
+        Traceback (most recent call last):
+        ...
+        ValueError: delta is not a valid increment vector
+        sage: AltNuTamariLattice('010', [1/2])
+        Traceback (most recent call last):
+        ...
+        ValueError: delta is not a valid increment vector
 
     REFERENCES:
 
@@ -264,7 +269,9 @@ def AltNuTamariLattice(nu, delta=None):
     deltamax = [len(a) for a in nu.split(sep='1')[1:]]
     if delta is None:
         delta = deltamax
-    elif len(delta) != len(deltamax) or any(delta[i] > deltamax[i] for i in range(len(delta))):
+    elif (len(delta) != len(deltamax)
+          or any(d not in ZZ or d < 0 or d > m
+                 for d, m in zip(delta, deltamax))):
         raise ValueError("delta is not a valid increment vector")
 
     def covers(p):

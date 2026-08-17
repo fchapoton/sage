@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-categories
 r"""
 Group Algebras
 
@@ -189,9 +188,7 @@ class GroupAlgebras(AlgebrasCategory):
             classes of the group, and `f_\sigma` is the sum of the
             elements in the conjugacy class of `\sigma`.
 
-            OUTPUT:
-
-            - ``tuple`` of elements of ``self``
+            OUTPUT: tuple of elements of ``self``
 
             .. WARNING::
 
@@ -206,10 +203,10 @@ class GroupAlgebras(AlgebrasCategory):
 
             .. SEEALSO::
 
-                - :meth:`Groups.Algebras.ElementMethods.central_form`
+                - :meth:`sage.categories.group_algebras.GroupAlgebras.ElementMethods.central_form`
                 - :meth:`Monoids.Algebras.ElementMethods.is_central`
             """
-            return tuple([self.sum_of_monomials(conj) for conj  in
+            return tuple([self.sum_of_monomials(conj) for conj in
                           self.basis().keys().conjugacy_classes()])
 
         # Hopf algebra structure
@@ -240,7 +237,7 @@ class GroupAlgebras(AlgebrasCategory):
             g = self.term(g)
             return tensor([g, g])
 
-        def antipode_on_basis(self,g):
+        def antipode_on_basis(self, g):
             r"""
             Return the antipode of the element ``g`` of the basis.
 
@@ -265,7 +262,7 @@ class GroupAlgebras(AlgebrasCategory):
             """
             return self.term(~g)
 
-        def counit_on_basis(self,g):
+        def counit_on_basis(self, g):
             r"""
             Return the counit of the element ``g`` of the basis.
 
@@ -285,7 +282,7 @@ class GroupAlgebras(AlgebrasCategory):
             """
             return self.base_ring().one()
 
-        def counit(self,x):
+        def counit(self, x):
             r"""
             Return the counit of the element ``x`` of the group
             algebra.
@@ -380,7 +377,7 @@ class GroupAlgebras(AlgebrasCategory):
             - A formal linear combination of the conjugacy class
               representatives representing its coordinates in the
               canonical basis of the center. See
-              :meth:`Groups.Algebras.ParentMethods.center_basis` for
+              :meth:`sage.categories.group_algebras.GroupAlgebras.ParentMethods.center_basis` for
               details.
 
             .. WARNING::
@@ -423,7 +420,7 @@ class GroupAlgebras(AlgebrasCategory):
 
             .. SEEALSO::
 
-                - :meth:`Groups.Algebras.ParentMethods.center_basis`
+                - :meth:`sage.categories.group_algebras.GroupAlgebras.ParentMethods.center_basis`
                 - :meth:`Monoids.Algebras.ElementMethods.is_central`
             """
             from sage.combinat.free_module import CombinatorialFreeModule

@@ -118,13 +118,13 @@ cdef class qAdicCappedRelativeElement(CRElement):
         Return the element with the same reduction mod p that can be expressed
         with coefficients between 0 and p-1.  The absolute precision will be maximal.
 
-        This method is used in printing and computing p-adic expansions.
+        This method is used in printing and computing `p`-adic expansions.
 
         INPUT:
 
-        - ``use_smallest_mode`` -- if True, use reps between -p/2 and p/2 instead.
-        - ``return_list`` -- if True, return a list of coefficients (as integers).
-            For use in printing.
+        - ``use_smallest_mode`` -- if ``True``, use reps between -p/2 and p/2 instead
+        - ``return_list`` -- if ``True``, return a list of coefficients (as integers);
+          for use in printing
 
         EXAMPLES::
 
@@ -147,13 +147,12 @@ cdef class qAdicCappedRelativeElement(CRElement):
             L = cmodp_rep(rep.unit, self.unit, smallest_mode if use_smallest_mode else simple_mode, return_list, self.prime_pow)
         if return_list:
             return rep, L
-        else:
-            return rep
+        return rep
 
     def __hash__(self):
         r"""
-        Raise a ``TypeError`` since this element is not hashable
-        (:issue:`11895`.)
+        Raise a :exc:`TypeError` since this element is not hashable
+        (:issue:`11895`).
 
         TESTS::
 
@@ -162,7 +161,6 @@ cdef class qAdicCappedRelativeElement(CRElement):
             Traceback (most recent call last):
             ...
             TypeError: unhashable type: 'sage.rings.padics.qadic_flint_CR.qAdicCappedRelativeElement'
-
         """
         # Eventually, hashing will be disabled for all (non-fixed-mod) p-adic
         # elements (#11895), until then, we only to this for types which did

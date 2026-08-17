@@ -35,18 +35,15 @@ cdef inline int point_c_cmp(point_c P, point_c Q) noexcept:
         if P.y == Q.y:
             if P.z == Q.z:
                 return 0
-            elif P.z < Q.z:
+            if P.z < Q.z:
                 return -1
-            else:
-                return 1
-        elif P.y < Q.y:
-            return -1
-        else:
             return 1
-    elif P.x < Q.x:
-        return -1
-    else:
+        if P.y < Q.y:
+            return -1
         return 1
+    if P.x < Q.x:
+        return -1
+    return 1
 
 cdef inline void point_c_update_finite_lower_bound(point_c* res, point_c P) noexcept:
     # We use the condition "not P.x > res.x" so that the condition returns True if res.x is NaN
@@ -110,7 +107,7 @@ cdef inline void point_c_middle(point_c* res, point_c P, point_c Q, double a) no
 
 cdef inline void point_c_transform(point_c* res, double* M, point_c P) noexcept:
     """
-    M is a flattened 4x4 matrix, row major, representing an Euclidean Transformation.
+    M is a flattened 4x4 matrix, row major, representing a Euclidean Transformation.
     Operate on P as a point.
     """
     res.x = M[0]*P.x + M[1]*P.y + M[2]*P.z + M[3]
@@ -119,7 +116,7 @@ cdef inline void point_c_transform(point_c* res, double* M, point_c P) noexcept:
 
 cdef inline void point_c_stretch(point_c* res, double* M, point_c P) noexcept:
     """
-    M is a flattened 4x4 matrix, row major, representing an Euclidean Transformation.
+    M is a flattened 4x4 matrix, row major, representing a Euclidean Transformation.
     Operate on P as a vector (i.e. ignore the translation component)
     """
     res.x = M[0]*P.x + M[1]*P.y + M[2]*P.z

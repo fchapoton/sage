@@ -261,7 +261,8 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
 
         INPUT:
 
-        - ``norm_bound`` -- (positive integer) upper bound on the norm of primes tested.
+        - ``norm_bound`` -- (positive integer) upper bound on the norm of
+          primes tested
 
         EXAMPLES::
 
@@ -302,7 +303,7 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
                 return P
         raise RuntimeError("No prime of norm less than %s found in class %s" % (norm_bound, c))
 
-    def gens(self):
+    def gens(self) -> tuple:
         r"""
         Return generators for a representative ideal in this
         (`S`-)ideal class.
@@ -479,11 +480,10 @@ class ClassGroup(AbelianGroupWithValues_class):
         """
         if isinstance(args[0], FractionalIdealClass):
             return self.element_class(self, None, self._number_field.ideal(args[0].ideal()))
-        else:
-            I = self._number_field.ideal(*args, **kwds)
-            if I.is_zero():
-                raise TypeError("The zero ideal is not a fractional ideal")
-            return self.element_class(self, None, I)
+        I = self._number_field.ideal(*args, **kwds)
+        if I.is_zero():
+            raise TypeError("The zero ideal is not a fractional ideal")
+        return self.element_class(self, None, I)
 
     def _ideal_log(self, ideal):
         """
@@ -508,11 +508,9 @@ class ClassGroup(AbelianGroupWithValues_class):
         r"""
         Return generating ideals for the (`S`-)class group.
 
-        This is an alias for :meth:`gens_values`.
+        This is an alias for :meth:`~sage.groups.abelian_gps.values.AbelianGroupWithValues_class.gens_values`.
 
-        OUTPUT:
-
-        A tuple of ideals, one for each abstract Abelian group generator.
+        OUTPUT: a tuple of ideals, one for each abstract Abelian group generator
 
         EXAMPLES::
 
@@ -525,9 +523,9 @@ class ClassGroup(AbelianGroupWithValues_class):
             Class group of order 68 with structure C34 x C2 of Number Field
             in a with defining polynomial x^2 + x + 23899
             sage: C.gens()
-            (Fractional ideal class (7, a + 5), Fractional ideal class (5, a + 3))
+            (Fractional ideal class (83, a + 21), Fractional ideal class (15, a + 8))
             sage: C.gens_ideals()
-            (Fractional ideal (7, a + 5), Fractional ideal (5, a + 3))
+            (Fractional ideal (83, a + 21), Fractional ideal (15, a + 8))
         """
         return self.gens_values()
 
@@ -737,11 +735,10 @@ class SClassGroup(ClassGroup):
         """
         if isinstance(args[0], FractionalIdealClass):
             return self.element_class(self, None, args[0].ideal())
-        else:
-            I = self.number_field().ideal(*args, **kwds)
-            if I.is_zero():
-                raise TypeError("The zero ideal is not a fractional ideal")
-            return self.element_class(self, None, I)
+        I = self.number_field().ideal(*args, **kwds)
+        if I.is_zero():
+            raise TypeError("The zero ideal is not a fractional ideal")
+        return self.element_class(self, None, I)
 
     def _repr_(self):
         r"""

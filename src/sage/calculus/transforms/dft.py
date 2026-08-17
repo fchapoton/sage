@@ -9,16 +9,20 @@ of a permutation group, or the conjugacy classes of a matrix group.
 
 This file implements:
 
-- :meth:`__eq__`
+- :meth:`IndexedSequence.__eq__`
 
-- :meth:`__mul__` (for right multiplication by a scalar)
+- :meth:`IndexedSequence.__mul__` (for right multiplication by a scalar)
 
 - plotting, printing -- :meth:`IndexedSequence.plot`,
-  :meth:`IndexedSequence.plot_histogram`, :meth:`_repr_`, :meth:`__str__`
+  :meth:`IndexedSequence.plot_histogram`,
+  :meth:`IndexedSequence._repr_`, ``__str__``
 
-- :meth:`dft` --  computes the discrete Fourier transform for the following cases:
+- :meth:`IndexedSequence.dft` --  computes the discrete Fourier transform
+  for the following cases:
 
-  * a sequence (over `\QQ` or :class:`CyclotomicField`) indexed by ``range(N)``
+  * a sequence (over `\QQ` or
+    :class:`CyclotomicField <sage.rings.number_field.number_field.CyclotomicFieldFactory>`)
+    indexed by ``range(N)``
     or `\ZZ / N \ZZ`
   * a sequence (as above) indexed by a finite abelian group
   * a sequence (as above) indexed by a complete set of representatives of
@@ -26,22 +30,27 @@ This file implements:
   * a sequence (as above) indexed by a complete set of representatives of
     the conjugacy classes of a finite matrix group
 
-- :meth:`idft` --  computes the discrete Fourier transform for the following cases:
+- :meth:`IndexedSequence.idft` --  computes the discrete Fourier transform
+  for the following cases:
 
-  * a sequence (over `\QQ` or CyclotomicField) indexed by ``range(N)`` or
-    `\ZZ / N \ZZ`
+  * a sequence (over `\QQ` or
+    :class:`CyclotomicField <sage.rings.number_field.number_field.CyclotomicFieldFactory>`)
+    indexed by ``range(N)`` or `\ZZ / N \ZZ`
 
-- :meth:`dct`, :meth:`dst`  (for discrete Fourier/Cosine/Sine transform)
+- :meth:`IndexedSequence.dct`, :meth:`IndexedSequence.dst`  (for discrete
+  Fourier/Cosine/Sine transform)
 
 - convolution (in :meth:`IndexedSequence.convolution` and
   :meth:`IndexedSequence.convolution_periodic`)
 
-- :meth:`fft`, :meth:`ifft` -- (fast Fourier transforms) wrapping GSL's
+- :meth:`IndexedSequence.fft`, :meth:`IndexedSequence.ifft` -- (fast Fourier
+  transforms) wrapping GSL's
   ``gsl_fft_complex_forward()``, ``gsl_fft_complex_inverse()``,
   using William Stein's :func:`FastFourierTransform`
 
-- :meth:`dwt`, :meth:`idwt` -- (fast wavelet transforms) wrapping GSL's ``gsl_dwt_forward()``,
-  ``gsl_dwt_backward()`` using Joshua Kantor's :func:`WaveletTransform` class.
+- :meth:`IndexedSequence.dwt`, :meth:`IndexedSequence.idwt` -- (fast wavelet
+  transforms) wrapping GSL's ``gsl_dwt_forward()``, ``gsl_dwt_backward()``
+  using Joshua Kantor's :func:`WaveletTransform` class.
   Allows for wavelets of type:
 
   * "haar"
@@ -50,7 +59,6 @@ This file implements:
   * "haar_centered"
   * "bspline"
   * "bspline_centered"
-
 
 .. TODO::
 
@@ -93,11 +101,17 @@ class IndexedSequence(SageObject):
 
     INPUT:
 
-    - ``L`` -- A list
+    - ``L`` -- list
 
-    - ``index_object`` must be a Sage object with an ``__iter__`` method
+    - ``index_object`` -- must be a Sage object with an ``__iter__`` method
       containing the same number of elements as ``self``, which is a
-      list of elements taken from a field.
+      list of elements taken from a field
+
+    .. automethod:: __eq__
+
+    .. automethod:: __mul__
+
+    .. automethod:: _repr_
     """
     def __init__(self, L, index_object):
         r"""
@@ -203,7 +217,7 @@ class IndexedSequence(SageObject):
 
     def _repr_(self):
         """
-        Implements print method.
+        Implement print method.
 
         EXAMPLES::
 
@@ -474,12 +488,10 @@ class IndexedSequence(SageObject):
 
         INPUT:
 
-        - ``other`` --  a collection of elements of a ring with
+        - ``other`` -- a collection of elements of a ring with
           index set a finite abelian group (under `+`)
 
-        OUTPUT:
-
-        The Dirichlet convolution of ``self`` and ``other``.
+        OUTPUT: the Dirichlet convolution of ``self`` and ``other``
 
         EXAMPLES::
 
@@ -533,11 +545,9 @@ class IndexedSequence(SageObject):
 
         INPUT:
 
-        - ``other`` --  a sequence of elements of `\CC`, `\RR` or `\GF{q}`
+        - ``other`` -- a sequence of elements of `\CC`, `\RR` or `\GF{q}`
 
-        OUTPUT:
-
-        The Dirichlet convolution of ``self`` and ``other``.
+        OUTPUT: the Dirichlet convolution of ``self`` and ``other``
 
         EXAMPLES::
 
@@ -578,7 +588,7 @@ class IndexedSequence(SageObject):
 
     def __mul__(self, other):
         """
-        Implements scalar multiplication (on the right).
+        Implement scalar multiplication (on the right).
 
         EXAMPLES::
 
@@ -598,7 +608,7 @@ class IndexedSequence(SageObject):
 
     def __eq__(self, other):
         """
-        Implements boolean equals.
+        Implement boolean equals.
 
         EXAMPLES::
 
@@ -668,7 +678,7 @@ class IndexedSequence(SageObject):
 
     def ifft(self):
         """
-        Implements the gsl ``FastFourierTransform.inverse`` in
+        Implement the gsl ``FastFourierTransform.inverse`` in
         :mod:`~sage.calculus.transforms.fft`.
 
         If the number of sample points in the input is a power of 2
@@ -703,7 +713,7 @@ class IndexedSequence(SageObject):
         a.inverse_transform()
         return IndexedSequence([a[j][0] + I * a[j][1] for j in J], J)
 
-    def dwt(self, other="haar", wavelet_k=2):
+    def dwt(self, other='haar', wavelet_k=2):
         r"""
         Wraps the gsl ``WaveletTransform.forward`` in :mod:`~sage.calculus.transforms.dwt`
         (written by Joshua Kantor). Assumes the length of the sample is a
@@ -720,9 +730,9 @@ class IndexedSequence(SageObject):
           * ``'bspline'``
           * ``'bspline_centered'``
 
-        - ``wavelet_k`` -- For daubechies wavelets, ``wavelet_k`` specifies a
-          daubechie wavelet with `k/2` vanishing moments.
-          `k = 4,6,...,20` for `k` even are the only ones implemented.
+        - ``wavelet_k`` -- for daubechies wavelets, ``wavelet_k`` specifies a
+          daubechie wavelet with `k/2` vanishing moments;
+          `k = 4,6,...,20` for `k` even are the only ones implemented
 
           For Haar wavelets, ``wavelet_k`` must be 2.
 
@@ -767,9 +777,9 @@ class IndexedSequence(SageObject):
         a.forward_transform()
         return IndexedSequence([RR(a[j]) for j in J], J)
 
-    def idwt(self, other="haar", wavelet_k=2):
+    def idwt(self, other='haar', wavelet_k=2):
         r"""
-        Implements the gsl ``WaveletTransform.backward()`` in
+        Implement the gsl ``WaveletTransform.backward()`` in
         :mod:`~sage.calculus.transforms.dwt`.
 
         Assumes the length of the sample is a power of 2. Uses the
@@ -777,18 +787,18 @@ class IndexedSequence(SageObject):
 
         INPUT:
 
-        - ``other`` -- Must be one of the following:
+        - ``other`` -- must be one of the following:
 
-          * ``"haar"``
-          * ``"daubechies"``
-          * ``"daubechies_centered"``
-          * ``"haar_centered"``
-          * ``"bspline"``
-          * ``"bspline_centered"``
+          * ``'haar'``
+          * ``'daubechies'``
+          * ``'daubechies_centered'``
+          * ``'haar_centered'``
+          * ``'bspline'``
+          * ``'bspline_centered'``
 
-        - ``wavelet_k`` -- For daubechies wavelets, ``wavelet_k`` specifies a
-          daubechie wavelet with `k/2` vanishing moments.
-          `k = 4,6,...,20` for `k` even are the only ones implemented.
+        - ``wavelet_k`` -- for daubechies wavelets, ``wavelet_k`` specifies a
+          daubechie wavelet with `k/2` vanishing moments;
+          `k = 4,6,...,20` for `k` even are the only ones implemented
 
           For Haar wavelets, ``wavelet_k`` must be 2.
 

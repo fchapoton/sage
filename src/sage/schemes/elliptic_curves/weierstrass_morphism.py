@@ -23,14 +23,15 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.structure.element import get_coercion_model
-
-from .constructor import EllipticCurve
-from sage.schemes.elliptic_curves.hom import EllipticCurveHom
-from sage.structure.richcmp import (richcmp, richcmp_not_equal, op_EQ, op_NE)
-from sage.structure.sequence import Sequence
 from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.schemes.elliptic_curves.hom import EllipticCurveHom
+from sage.structure.element import get_coercion_model
+from sage.structure.richcmp import op_EQ, op_NE, richcmp, richcmp_not_equal
+from sage.structure.sequence import Sequence
+
+from .constructor import EllipticCurve
+
 
 class baseWI:
     r"""
@@ -60,7 +61,7 @@ class baseWI:
     """
     def __init__(self, u=1, r=0, s=0, t=0):
         r"""
-        Constructor: check for valid parameters (defaults to identity)
+        Constructor: check for valid parameters (defaults to identity).
 
         INPUT:
 
@@ -179,11 +180,9 @@ class baseWI:
 
         INPUT:
 
-        - ``EorP`` -- either an elliptic curve, or a point on an elliptic curve.
+        - ``EorP`` -- either an elliptic curve, or a point on an elliptic curve
 
-        OUTPUT:
-
-        The transformed curve or point.
+        OUTPUT: the transformed curve or point
 
         EXAMPLES::
 
@@ -222,12 +221,12 @@ class baseWI:
 
 def _isomorphisms(E, F):
     r"""
-    Enumerate all isomorphisms between two elliptic curves,
-    as a generator object.
+    Enumerate all isomorphisms between two elliptic curves, as a generator.
+    Normalized isomorphisms are output before any non-normalized ones.
 
     INPUT:
 
-    - ``E``, ``F`` (EllipticCurve) -- Two elliptic curves.
+    - ``E``, ``F`` -- two elliptic curves
 
     OUTPUT:
 
@@ -313,10 +312,12 @@ def _isomorphisms(E, F):
 
     char = K.characteristic()
 
+    one_first = lambda vs: [K.one()] * (K.one() in vs) + [v for v in vs if not v.is_one()]
+
     if char == 2:
         if j == 0:
             ulist = (x**3 - a3E/a3F).roots(multiplicities=False)
-            for u in ulist:
+            for u in one_first(ulist):
                 slist = (x**4 + a3E*x + (a2F**2 + a4F)*u**4 + a2E**2 + a4E).roots(multiplicities=False)
                 for s in slist:
                     r = s**2 + a2E + a2F*u**2
@@ -338,7 +339,7 @@ def _isomorphisms(E, F):
     if char == 3:
         if j == 0:
             ulist = (x**4 - b4E/b4F).roots(multiplicities=False)
-            for u in ulist:
+            for u in one_first(ulist):
                 s = a1E - a1F*u
                 t = a3E - a3F*u**3
                 rlist = (x**3 - b4E*x + b6E - b6F*u**6).roots(multiplicities=False)
@@ -346,7 +347,7 @@ def _isomorphisms(E, F):
                     yield (u, r, s, t + r*a1E)
         else:
             ulist = (x**2 - b2E/b2F).roots(multiplicities=False)
-            for u in ulist:
+            for u in one_first(ulist):
                 r = (b4F * u**4 - b4E) / b2E
                 s = a1E - a1F * u
                 t = a3E - a3F * u**3 + a1E * r
@@ -365,7 +366,7 @@ def _isomorphisms(E, F):
     else:
         m, um = 2, (c6E*c4F)/(c6F*c4E)
     ulist = (x**m - um).roots(multiplicities=False)
-    for u in ulist:
+    for u in one_first(ulist):
         s = (a1F*u - a1E)/2
         r = (a2F*u**2 + a1E*s + s**2 - a2E)/3
         t = (a3F*u**3 - a1E*r - a3E)/2
@@ -378,12 +379,12 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
 
     INPUT:
 
-    - ``E`` -- an ``EllipticCurve``, or ``None`` (see below).
+    - ``E`` -- an ``EllipticCurve``, or ``None`` (see below)
 
     - ``urst`` -- a 4-tuple `(u,r,s,t)`, a :class:`baseWI` object,
-      or ``None`` (see below).
+      or ``None`` (see below)
 
-    - ``F`` -- an ``EllipticCurve``, or ``None`` (see below).
+    - ``F`` -- an ``EllipticCurve``, or ``None`` (see below)
 
     Given two Elliptic Curves ``E`` and ``F`` (represented by Weierstrass
     models as usual), and a transformation ``urst`` from ``E`` to ``F``,
@@ -617,7 +618,7 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
 
         INPUT:
 
-        - ``P`` (Point) -- a point on the domain curve.
+        - ``P`` -- Point; a point on the domain curve
 
         OUTPUT:
 
@@ -737,6 +738,12 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
                 raise ValueError("Domain of first argument must equal codomain of second")
             w = baseWI.__mul__(left, right)
             return WeierstrassIsomorphism(right._domain, w.tuple(), left._codomain)
+
+        if isinstance(left, WeierstrassIsomorphism) and left.is_identity():
+            return right
+
+        if isinstance(right, WeierstrassIsomorphism) and right.is_identity():
+            return left
 
         return NotImplemented
 
@@ -867,7 +874,7 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
         """
         return self._poly_ring(1)
 
-    def dual(self):
+    def dual(self, algorithm=None):
         """
         Return the dual isogeny of this isomorphism.
 
@@ -890,6 +897,8 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
             True
         """
         return ~self
+
+    inverse = dual
 
     def __neg__(self):
         """
@@ -983,7 +992,7 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
             sage: p = 97
             sage: Fp = GF(p)
             sage: E = EllipticCurve(Fp, [1, 28])
-            sage: ws = WeierstrassIsomorphism(E, None, E)
+            sage: ws = E.automorphisms()[1]
             sage: ws.is_identity()
             False
 
@@ -993,7 +1002,7 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
             sage: p = 97
             sage: Fp = GF(p)
             sage: E = EllipticCurve(Fp, [1, 28])
-            sage: ws = WeierstrassIsomorphism(E, (1, 0, 0, 0), None)
+            sage: ws = E.automorphisms()[0]
             sage: ws.is_identity()
             True
         """
@@ -1003,9 +1012,9 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
         r"""
         Compute the order of this Weierstrass isomorphism if it is an automorphism.
 
-        A :class:`ValueError` is raised if the domain is not equal to the codomain.
+        A :exc:`ValueError` is raised if the domain is not equal to the codomain.
 
-        A :class:`NotImplementedError` is raised if the order of the automorphism is not 1, 2, 3, 4 or 6.
+        A :exc:`NotImplementedError` is raised if the order of the automorphism is not 1, 2, 3, 4 or 6.
 
         EXAMPLES::
 
@@ -1013,7 +1022,7 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
             sage: p = 97
             sage: Fp = GF(p)
             sage: E = EllipticCurve(Fp, [1, 28])
-            sage: ws = WeierstrassIsomorphism(E, None, E)
+            sage: ws = E.automorphisms()[1]
             sage: ws.order()
             2
 
@@ -1023,7 +1032,7 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
             sage: p = 97
             sage: Fp = GF(p)
             sage: E = EllipticCurve(Fp, [1, 28])
-            sage: ws = WeierstrassIsomorphism(E, None, E)
+            sage: ws = E.automorphisms()[1]
             sage: ws.order()
             2
             sage: E1 = EllipticCurve(Fp, [1, 69])
@@ -1044,7 +1053,7 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
             3
             sage: F2_bar = GF(2).algebraic_closure()
             sage: E = EllipticCurve_from_j(F2_bar(0))
-            sage: ws = WeierstrassIsomorphism(E, None, E)
+            sage: ws = E.automorphisms()[8]
             sage: ws.order()
             3
         """
@@ -1073,6 +1082,7 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
 
         raise NotImplementedError("the order of the endomorphism is not 1, 2, 3, 4 or 6")
 
+
 def identity_morphism(E):
     r"""
     Given an elliptic curve `E`, return the identity morphism
@@ -1089,6 +1099,7 @@ def identity_morphism(E):
     R = E.base_ring()
     zero = R.zero()
     return WeierstrassIsomorphism(E, (R.one(), zero, zero, zero))
+
 
 def negation_morphism(E):
     r"""

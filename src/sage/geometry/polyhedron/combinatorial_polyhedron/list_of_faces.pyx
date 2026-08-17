@@ -39,7 +39,6 @@ Obtain the facets of a polyhedron::
 
 Obtain the Vrepresentation of a polyhedron as facet-incidences::
 
-    sage: # needs sage.combinat
     sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
     ....:         import incidence_matrix_to_bit_rep_of_Vrep
     sage: P = polytopes.associahedron(['A',3])
@@ -74,7 +73,7 @@ Obtain the matrix of a list of faces::
     :mod:`~sage.geometry.polyhedron.combinatorial_polyhedron.base`,
     :mod:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator`,
     :mod:`~sage.geometry.polyhedron.combinatorial_polyhedron.conversions`,
-    :mod:`~sage.geometry.polyhedron.combinatorial_polyhedron.polyhedron_faces_lattice`.
+    :mod:`~sage.geometry.polyhedron.combinatorial_polyhedron.polyhedron_face_lattice`.
 
 AUTHOR:
 
@@ -112,10 +111,10 @@ cdef class ListOfFaces:
 
     .. SEEALSO::
 
-        :meth:`incidence_matrix_to_bit_rep_of_facets`,
-        :meth:`incidence_matrix_to_bit_rep_of_Vrep`,
-        :meth:`facets_tuple_to_bit_rep_of_facets`,
-        :meth:`facets_tuple_to_bit_rep_of_Vrep`,
+        :func:`~sage.geometry.polyhedron.combinatorial_polyhedron.conversions.incidence_matrix_to_bit_rep_of_facets`,
+        :func:`~sage.geometry.polyhedron.combinatorial_polyhedron.conversions.incidence_matrix_to_bit_rep_of_Vrep`,
+        :func:`~sage.geometry.polyhedron.combinatorial_polyhedron.conversions.facets_tuple_to_bit_rep_of_facets`,
+        :func:`~sage.geometry.polyhedron.combinatorial_polyhedron.conversions.facets_tuple_to_bit_rep_of_Vrep`,
         :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator`,
         :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron`.
 
@@ -180,7 +179,7 @@ cdef class ListOfFaces:
 
     cpdef ListOfFaces __copy__(self):
         r"""
-        Return a copy of self.
+        Return a copy of ``self``.
 
         EXAMPLES::
 
@@ -423,7 +422,7 @@ cdef class ListOfFaces:
 
     cdef void delete_faces_unsafe(self, bint *delete, face_t face) noexcept:
         r"""
-        Deletes face ``i`` if and only if ``delete[i]``.
+        Delete face ``i`` if and only if ``delete[i]``.
 
         Alternatively, deletes all faces such that the ``i``-th bit in ``face`` is not set.
 
@@ -478,7 +477,7 @@ cdef class ListOfFaces:
 
     def matrix(self):
         r"""
-        Obtain the matrix of self.
+        Obtain the matrix of ``self``.
 
         Each row represents a face and each column an atom.
 
@@ -529,7 +528,7 @@ cdef tuple face_as_combinatorial_polyhedron(ListOfFaces facets, ListOfFaces Vrep
     - ``face`` -- face in Vrepresentation or ``NULL``
     - ``dual`` -- boolean
 
-    OUTPUT: A tuple of new facets and new Vrepresentation as :class:`ListOfFaces`.
+    OUTPUT: a tuple of new facets and new Vrepresentation as :class:`ListOfFaces`.
     """
     cdef ListOfFaces new_facets, new_Vrep
     cdef bint* delete

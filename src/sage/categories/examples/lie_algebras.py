@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-categories
 # sage.doctest: needs sage.modules
 r"""
 Examples of a Lie algebra
@@ -216,7 +215,7 @@ class LieAlgebraFromAssociative(Parent, UniqueRepresentation):
 
         def __bool__(self) -> bool:
             """
-            Check non-zero.
+            Check nonzero.
 
             EXAMPLES::
 

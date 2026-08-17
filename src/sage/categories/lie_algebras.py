@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-categories
 r"""
 Lie Algebras
 
@@ -178,7 +177,7 @@ class LieAlgebras(Category_over_base_ring):
 
         def extra_super_categories(self):
             """
-            Implements the fact that a finite dimensional Lie algebra over
+            Implement the fact that a finite dimensional Lie algebra over
             a finite ring is finite.
 
             EXAMPLES::
@@ -286,7 +285,7 @@ class LieAlgebras(Category_over_base_ring):
                 if rhs in LieAlgebras:
                     return lhs.product_space(rhs)
                 return lhs.ideal(rhs)
-            elif rhs in LieAlgebras:
+            if rhs in LieAlgebras:
                 return rhs.ideal(lhs)
             return self(lhs)._bracket_(self(rhs))
 
@@ -555,7 +554,7 @@ class LieAlgebras(Category_over_base_ring):
                 0
             """
 
-        def is_abelian(self):
+        def is_abelian(self) -> bool:
             r"""
             Return ``True`` if this Lie algebra is abelian.
 
@@ -589,10 +588,11 @@ class LieAlgebras(Category_over_base_ring):
             zero = self.zero()
             return all(x._bracket_(y) == zero for x in G for y in G)
 
-        def is_commutative(self):
+        def is_commutative(self) -> bool:
             """
-            Return if ``self`` is commutative. This is equivalent to ``self``
-            being abelian.
+            Return if ``self`` is commutative.
+
+            This is equivalent to ``self`` being abelian.
 
             EXAMPLES::
 
@@ -637,7 +637,7 @@ class LieAlgebras(Category_over_base_ring):
             Return the element `\log(\exp(X)\exp(Y))`.
 
             The BCH formula is an expression for `\log(\exp(X)\exp(Y))`
-            as a sum of Lie brackets of ``X ` and ``Y`` with rational
+            as a sum of Lie brackets of ``X`` and ``Y`` with rational
             coefficients. It is only defined if the base ring of
             ``self`` has a coercion from the rationals.
 
@@ -645,7 +645,7 @@ class LieAlgebras(Category_over_base_ring):
 
             - ``X`` -- an element of ``self``
             - ``Y`` -- an element of ``self``
-            - ``prec`` -- an integer; the maximum length of Lie brackets to be
+            - ``prec`` -- integer; the maximum length of Lie brackets to be
               considered in the formula
 
             EXAMPLES:
@@ -674,7 +674,7 @@ class LieAlgebras(Category_over_base_ring):
                 Traceback (most recent call last):
                 ...
                 ValueError: the Lie algebra is not known to be nilpotent,
-                so you must specify the precision
+                 so you must specify the precision
                 sage: L.bch(X, Y, 4)                                                    # needs sage.combinat sage.modules
                 X + 1/12*[X, [X, Y]] + 1/24*[X, [[X, Y], Y]]
                 + 1/2*[X, Y] + 1/12*[[X, Y], Y] + Y
@@ -687,6 +687,23 @@ class LieAlgebras(Category_over_base_ring):
                 ...
                 TypeError: the BCH formula is not well defined
                 since Integer Ring has no coercion from Rational Field
+
+            We use the free nilpotent Lie algebra to approximate the BCH
+            formula in the nilpotent completion of the free Lie algebra,
+            where the BCH formula can be treated as a formal group law
+            (we thank Greg Kuperberg for this example)::
+
+                sage: L = LieAlgebra(QQ, 2, step=4)
+                sage: L.options.display = "brackets"
+                sage: a, b = L.basis(1)
+                sage: L.bch(a, b)
+                X_1 + X_2 + 1/2*[X_1, X_2] + 1/12*[X_1, [X_1, X_2]]
+                 + 1/12*[[X_1, X_2], X_2] + 1/24*[X_1, [[X_1, X_2], X_2]]
+                sage: L.bch(L.bch(L.bch(a, b), -a), -b)  # the commutator
+                [X_1, X_2] + 1/2*[X_1, [X_1, X_2]] - 1/2*[[X_1, X_2], X_2]
+                 + 1/6*[X_1, [X_1, [X_1, X_2]]] - 1/4*[X_1, [[X_1, X_2], X_2]]
+                 + 1/6*[[[X_1, X_2], X_2], X_2]
+                sage: L.options._reset()  # reset the printing options
             """
             if self not in LieAlgebras.Nilpotent and prec is None:
                 raise ValueError("the Lie algebra is not known to be nilpotent,"
@@ -742,7 +759,7 @@ class LieAlgebras(Category_over_base_ring):
 
             * the elements of ``self`` by matrices;
             * the basis elements of ``self`` using a ``dict`` or
-              a :func:`Family`;
+              a :func:`~sage.sets.family.Family`;
             * a function on basis elements (either passed as ``on_basis``
               or setting ``on_basis=True``).
 
@@ -781,7 +798,7 @@ class LieAlgebras(Category_over_base_ring):
 
             INPUT:
 
-            - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+            - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
             EXAMPLES:
 
@@ -820,7 +837,7 @@ class LieAlgebras(Category_over_base_ring):
 
             INPUT:
 
-            - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+            - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
             EXAMPLES:
 
@@ -852,7 +869,7 @@ class LieAlgebras(Category_over_base_ring):
 
             INPUT:
 
-            - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+            - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
             TESTS::
 
@@ -864,7 +881,7 @@ class LieAlgebras(Category_over_base_ring):
             By default, this method runs the tests only on the
             elements returned by ``self.some_elements()``::
 
-                sage: L = LieAlgebra(QQ, 3, 'x,y,z', representation="polynomial")       # needs sage.combinat sage.modules
+                sage: L = LieAlgebra(QQ, 3, 'x,y,z', representation='polynomial')       # needs sage.combinat sage.modules
                 sage: L.some_elements()                                                 # needs sage.combinat sage.modules
                 [x + y + z]
                 sage: L._test_distributivity()                                          # needs sage.combinat sage.modules
@@ -939,7 +956,8 @@ class LieAlgebras(Category_over_base_ring):
             ``self``).
 
             Implement this if you implement ``g.module()``.
-            See :meth:`LieAlgebras.module` for how this is to be done.
+            See :meth:`~sage.categories.lie_algebras.LieAlgebras.ParentMethods.module`
+            for how this is to be done.
 
             EXAMPLES::
 
@@ -1004,7 +1022,7 @@ class LieAlgebras(Category_over_base_ring):
                 sage: h = X.exp(); h
                 exp(X)
                 sage: g.parent()
-                Lie group G of Free Nilpotent Lie algebra on 3 generators (X, Y, Z)
+                Lie group G of Free Nilpotent Lie algebra of rank 2 and step 2
                  over Rational Field
                 sage: g.parent() is h.parent()
                 True
@@ -1016,7 +1034,7 @@ class LieAlgebras(Category_over_base_ring):
                 sage: k = Z.exp(lie_group=H); k
                 exp(Z)
                 sage: k.parent()
-                Lie group H of Free Nilpotent Lie algebra on 3 generators (X, Y, Z)
+                Lie group H of Free Nilpotent Lie algebra of rank 2 and step 2
                  over Rational Field
                 sage: g.parent() == k.parent()
                 False
@@ -1043,7 +1061,7 @@ class LiftMorphism(Morphism):
         We skip the category test since this is currently not an element of
         a homspace::
 
-            sage: TestSuite(f).run(skip="_test_category")                               # needs sage.combinat sage.libs.singular sage.modules
+            sage: TestSuite(f).run(skip='_test_category')                               # needs sage.combinat sage.libs.singular sage.modules
         """
         Morphism.__init__(self, Hom(domain, codomain))
 

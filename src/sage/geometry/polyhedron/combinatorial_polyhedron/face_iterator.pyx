@@ -16,7 +16,7 @@ Terminology in this module:
   face iterator. This will be facets or Vrep.  In non-dual mode, faces
   are constructed as intersections of the facets. In dual mode, they
   are constructed theoretically as joins of vertices.  The coatoms are
-  repsented as incidences with the atoms they contain.
+  represented as incidences with the atoms they contain.
 
 - Atoms -- facets or Vrep depending on application of algorithm.  Atoms are
   represented as incidences of coatoms they are contained in.
@@ -639,7 +639,6 @@ cdef class FaceIterator_base(SageObject):
 
         If the iterator has already been used, it must be reset before::
 
-            sage: # needs sage.groups sage.rings.number_field
             sage: P = polytopes.dodecahedron()
             sage: it = P.face_generator()
             sage: _ = next(it), next(it)
@@ -679,8 +678,7 @@ cdef class FaceIterator_base(SageObject):
                    if not (self._n_facets <= i < self._n_facets + self._n_equations)]
         if self.dual:
             return self._join_of_atoms(*indices)
-        else:
-            return self._meet_of_coatoms(*indices)
+        return self._meet_of_coatoms(*indices)
 
     def join_of_Vrep(self, *indices):
         r"""
@@ -725,7 +723,6 @@ cdef class FaceIterator_base(SageObject):
 
         If the iterator has already been used, it must be reset before::
 
-            sage: # needs sage.groups sage.rings.number_field
             sage: P = polytopes.dodecahedron()
             sage: it = P.face_generator()
             sage: _ = next(it), next(it)
@@ -810,8 +807,7 @@ cdef class FaceIterator_base(SageObject):
         """
         if not self.dual:
             return self._join_of_atoms(*indices)
-        else:
-            return self._meet_of_coatoms(*indices)
+        return self._meet_of_coatoms(*indices)
 
     def _meet_of_coatoms(self, *indices):
         r"""
@@ -850,7 +846,6 @@ cdef class FaceIterator_base(SageObject):
 
         The face iterator must not have the output dimension specified::
 
-            sage: # needs sage.groups sage.rings.number_field
             sage: P = polytopes.dodecahedron()
             sage: it = P.face_generator(2)
             sage: it._meet_of_coatoms(1,2)
@@ -960,7 +955,6 @@ cdef class FaceIterator_base(SageObject):
 
         If the iterator has already been used, it must be reset before::
 
-            sage: # needs sage.groups sage.rings.number_field
             sage: P = polytopes.dodecahedron()
             sage: it = P.face_generator()
             sage: _ = next(it), next(it)
@@ -976,7 +970,6 @@ cdef class FaceIterator_base(SageObject):
 
         The face iterator must not have the output dimension specified::
 
-            sage: # needs sage.groups sage.rings.number_field
             sage: P = polytopes.dodecahedron()
             sage: it = P.face_generator(2)
             sage: it._join_of_atoms(1,2)
@@ -1035,8 +1028,9 @@ cdef class FaceIterator_base(SageObject):
             face_clear(face)
         elif not self._bounded and face_issubset(face, self._far_face):
             # The join is not well-defined.
-            # We allow for unbounded polyhedra to compute the join, even with rays.
-            # However, the result is not necesarrily well-defined.
+            # We allow for unbounded polyhedra to compute the join,
+            # even with rays.
+            # However, the result is not necessarily well-defined.
             raise ValueError("the join is not well-defined")
 
         self.find_face(face)
@@ -1591,7 +1585,7 @@ cdef class FaceIterator(FaceIterator_base):
         """
         if self.structure.output_dimension != -2:
             if self.dual:
-                # ouput_dimension is stored with respect to the dual
+                # output_dimension is stored with respect to the dual
                 intended_dimension = self.structure.dimension - 1 - self.structure.output_dimension
             else:
                 intended_dimension = self.structure.output_dimension
@@ -1906,7 +1900,7 @@ cdef class FaceIterator_geom(FaceIterator_base):
 
     def current(self):
         r"""
-        Retrieve the last value of :meth:`__next__`.
+        Retrieve the last value of ``__next__``.
 
         EXAMPLES::
 
@@ -2140,7 +2134,7 @@ cdef inline int prepare_face_iterator_for_partial_job(
     The first digit determines which facet to visit.
     The next digit determines which facet of the facet should be visited.
 
-    OUTPUT: ``1`` if the job exists and ``0`` otherwise.
+    OUTPUT: ``1`` if the job exists and ``0`` otherwise
 
     In addition, the first job treating a face will "visit" this face
     and increase the corresponding entry of the f-vector.

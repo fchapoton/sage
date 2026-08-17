@@ -25,7 +25,7 @@ AUTHORS:
 
 - Paul Scurek (2013-08-12): added :func:`~sage.logic.propcalc.get_formulas()`,
   :func:`~sage.logic.propcalc.consistent()`,
-  :func:`~sage.logic.propcalc.valid_consequence()`
+  :func:`~sage.logic.boolformula.is_consequence`
 
 EXAMPLES:
 
@@ -145,20 +145,17 @@ It is an error to create a formula with bad syntax::
 
 from . import boolformula
 from . import logicparser
-from sage.misc.superseded import deprecated_function_alias
 
 
 def formula(s):
     r"""
-    Return an instance of :class:`BooleanFormula`.
+    Return an instance of :class:`~sage.logic.boolformula.BooleanFormula`.
 
     INPUT:
 
-    - ``s`` -- a string that contains a logical expression
+    - ``s`` -- string that contains a logical expression
 
-    OUTPUT:
-
-    An instance of :class:`BooleanFormula`.
+    OUTPUT: an instance of :class:`~sage.logic.boolformula.BooleanFormula`
 
     EXAMPLES:
 
@@ -193,7 +190,7 @@ def formula(s):
 def get_formulas(*statements):
     r"""
     Convert statements and parse trees into instances of
-    :class:`BooleanFormula`.
+    :class:`~sage.logic.boolformula.BooleanFormula`.
 
     INPUT:
 
@@ -201,9 +198,7 @@ def get_formulas(*statements):
       full syntax parse tree of a formula, and a string must
       be a string representation of a formula
 
-    OUTPUT:
-
-    The converted formulas in a list.
+    OUTPUT: the converted formulas in a list
 
     EXAMPLES:
 
@@ -263,17 +258,15 @@ def get_formulas(*statements):
     return formulas
 
 
-def consistent(*formulas):
+def consistent(*formulas) -> bool:
     r"""
     Determine if the formulas are logically consistent.
 
     INPUT:
 
-    - ``*formulas`` -- instances of :class:`BooleanFormula`
+    - ``*formulas`` -- instances of :class:`~sage.logic.boolformula.BooleanFormula`
 
-    OUTPUT:
-
-    A boolean value to be determined as follows:
+    OUTPUT: a boolean value to be determined as follows:
 
     - ``True`` -- if the formulas are logically consistent
 
@@ -299,7 +292,7 @@ def consistent(*formulas):
 
     - Paul Scurek (2013-08-12)
     """
-    # make sure only instances of :class:`BooleanFormula` were passed as arguments
+    # make sure only instances of :class:`~sage.logic.boolformula.BooleanFormula` were passed as arguments
     for formula in formulas[1:]:
         if not isinstance(formula, boolformula.BooleanFormula):
             raise TypeError("consistent() takes BooleanFormula() class instances as arguments")
@@ -311,7 +304,3 @@ def consistent(*formulas):
 
     # if conjunction is a contradiction, the formulas are inconsistent
     return not conjunction.is_contradiction()
-
-
-# define function ``valid_consequence`` for backward compatibility
-valid_consequence = deprecated_function_alias(28052, boolformula.is_consequence)

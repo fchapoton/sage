@@ -1,7 +1,8 @@
-# sage_setup: distribution = sagemath-categories
 # sage.doctest: needs sage.groups
 r"""
 Common category for Generalized Coxeter Groups or Complex Reflection Groups
+
+.. automethod:: sage.categories.complex_reflection_or_generalized_coxeter_groups::ComplexReflectionOrGeneralizedCoxeterGroups.ElementMethods._mul_
 """
 # ****************************************************************************
 #  Copyright (C) 2016 Nicolas M. Thiéry <nthiery at users.sf.net>
@@ -53,7 +54,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
     - A collection of *reflections* which are the conjugates of all
       the non trivial powers of the simple reflections.
 
-    The usual notions of reduced words, length, irreducibility, etc
+    The usual notions of reduced words, length, irreducibility, etc.,
     can be canonically defined from the above.
 
     The following methods must be implemented:
@@ -76,8 +77,8 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
 
     .. SEEALSO::
 
-        - :class:`complex_reflection_groups.ComplexReflectionGroups`
-        - :class:`generalized_coxeter_groups.GeneralizedCoxeterGroups`
+        - :class:`~sage.categories.complex_reflection_groups.ComplexReflectionGroups`
+        - :class:`~sage.categories.generalized_coxeter_groups.GeneralizedCoxeterGroups`
 
     EXAMPLES::
 
@@ -387,7 +388,8 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
             returning some typical elements of ``self``.
 
             The result is currently composed of the simple reflections
-            together with the unit and the result of :meth:`an_element`.
+            together with the unit and the result of
+            :meth:`~sage.categories.sets_cat.Sets.ParentMethods.an_element`.
 
             EXAMPLES::
 
@@ -448,7 +450,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
 
             .. SEEALSO::
 
-                - :meth:`reflections_index_set`
+                - :meth:`reflection_index_set`
                 - :meth:`reflections`
 
             EXAMPLES::
@@ -560,7 +562,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
 
             INPUT:
 
-            - ``i`` -- an element of the index set of the distinguished reflections.
+            - ``i`` -- an element of the index set of the distinguished reflections
 
             .. SEEALSO::
 
@@ -650,7 +652,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
 
             INPUT:
 
-            - ``word`` -- a list (or iterable) of elements of the
+            - ``word`` -- list (or iterable) of elements of the
               index set of ``self`` (resp. of the distinguished
               or of all reflections)
             - ``word_type`` -- (default: ``'simple'``):
@@ -676,8 +678,8 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 - :meth:`reflection_index_set`
                 - :meth:`hyperplane_index_set`
                 - :meth:`~ComplexReflectionOrGeneralizedCoxeterGroups.ElementMethods.apply_simple_reflections`
-                - :meth:`~CoxeterGroup.ElementMethods.reduced_word`
-                - :meth:`~CoxeterGroup.ParentMethods._test_reduced_word`
+                - :meth:`~sage.categories.coxeter_groups.CoxeterGroups.ElementMethods.reduced_word`
+                - ``CoxeterGroups.ParentMethods._test_reduced_word``
 
             EXAMPLES::
 
@@ -740,8 +742,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
             """
             if word_type == 'simple':
                 return self.one().apply_simple_reflections(word)
-            else:
-                return self.one().apply_reflections(word, word_type=word_type)
+            return self.one().apply_reflections(word, word_type=word_type)
 
         ##########################################################################
         # Irreducible components
@@ -773,7 +774,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                        [[i,j]
                         for i,j in itertools.combinations(I,2)
                         if s[i]*s[j] != s[j]*s[i] ]],
-                      format="vertices_and_edges")
+                      format='vertices_and_edges')
             return G.connected_components(sort=False)
 
         @abstract_method(optional=True)
@@ -942,7 +943,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
             INPUT:
 
             - ``i`` -- an element of the index set
-            - ``side`` -- (default: ``"right"``) ``"left"`` or ``"right"``
+            - ``side`` -- (default: ``'right'``) ``'left'`` or ``'right'``
 
             This default implementation simply calls
             :meth:`apply_simple_reflection_left` or
@@ -953,20 +954,20 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 sage: W = CoxeterGroups().example()
                 sage: w = W.an_element(); w
                 (1, 2, 3, 0)
-                sage: w.apply_simple_reflection(0, side="left")
+                sage: w.apply_simple_reflection(0, side='left')
                 (0, 2, 3, 1)
-                sage: w.apply_simple_reflection(1, side="left")
+                sage: w.apply_simple_reflection(1, side='left')
                 (2, 1, 3, 0)
-                sage: w.apply_simple_reflection(2, side="left")
+                sage: w.apply_simple_reflection(2, side='left')
                 (1, 3, 2, 0)
-                sage: w.apply_simple_reflection(0, side="right")
+                sage: w.apply_simple_reflection(0, side='right')
                 (2, 1, 3, 0)
-                sage: w.apply_simple_reflection(1, side="right")
+                sage: w.apply_simple_reflection(1, side='right')
                 (1, 3, 2, 0)
-                sage: w.apply_simple_reflection(2, side="right")
+                sage: w.apply_simple_reflection(2, side='right')
                 (1, 2, 0, 3)
 
-            By default, ``side`` is ``"right"``::
+            By default, ``side`` is ``'right'``::
 
                 sage: w.apply_simple_reflection(0)
                 (2, 1, 3, 0)
@@ -979,17 +980,17 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 5-colored permutations of size 3
                 sage: w = W.an_element(); w
                 [[1, 0, 0], [3, 1, 2]]
-                sage: w.apply_simple_reflection(1, side="left")
+                sage: w.apply_simple_reflection(1, side='left')
                 [[0, 1, 0], [1, 3, 2]]
-                sage: w.apply_simple_reflection(2, side="left")
+                sage: w.apply_simple_reflection(2, side='left')
                 [[1, 0, 0], [3, 2, 1]]
-                sage: w.apply_simple_reflection(3, side="left")
+                sage: w.apply_simple_reflection(3, side='left')
                 [[1, 0, 1], [3, 1, 2]]
-                sage: w.apply_simple_reflection(1, side="right")
+                sage: w.apply_simple_reflection(1, side='right')
                 [[1, 0, 0], [3, 2, 1]]
-                sage: w.apply_simple_reflection(2, side="right")
+                sage: w.apply_simple_reflection(2, side='right')
                 [[1, 0, 0], [2, 1, 3]]
-                sage: w.apply_simple_reflection(3, side="right")
+                sage: w.apply_simple_reflection(3, side='right')
                 [[2, 0, 0], [3, 1, 2]]
 
             TESTS::
@@ -999,8 +1000,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
             """
             if side == 'right':
                 return self.apply_simple_reflection_right(i)
-            else:
-                return self.apply_simple_reflection_left(i)
+            return self.apply_simple_reflection_left(i)
 
         def apply_simple_reflections(self, word, side='right', type='simple'):
             r"""
@@ -1119,10 +1119,12 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
 
         def _mul_(self, other):
             r"""
-            Return the product of ``self`` and ``other``
+            Return the product of ``self`` and ``other``.
 
             This default implementation computes a reduced word of
-            ``other`` using :meth:`reduced_word`, and applies the
+            ``other`` using
+            :meth:`~sage.categories.coxeter_groups.CoxeterGroups.ElementMethods.reduced_word`,
+            and applies the
             corresponding simple reflections on ``self`` using
             :meth:`apply_simple_reflections`.
 

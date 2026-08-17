@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-repl
 r"""
 Test Backend
 
@@ -30,14 +29,14 @@ We switch to the test backend for the remainder of this file::
     TestOutputPlainText container
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 
 from sage.structure.sage_object import SageObject
@@ -90,16 +89,14 @@ class TestOutputPlainText(OutputPlainText):
 
 class TestObject(SageObject):
     """
-    Test object with both :meth:`_repr_` and :meth:`_rich_repr_`
+    Test object with both ``_repr_`` and ``_rich_repr_``
     """
 
     def _repr_(self):
         """
-        Return string representation
+        Return string representation.
 
-        OUTPUT:
-
-        String.
+        OUTPUT: string
 
         EXAMPLES::
 
@@ -112,7 +109,7 @@ class TestObject(SageObject):
 
     def _rich_repr_(self, display_manager):
         """
-        Rich Output Magic Method
+        Rich Output Magic Method.
 
         See :mod:`sage.repl.rich_output` for details.
 
@@ -135,11 +132,9 @@ class BackendTest(BackendBase):
 
     def _repr_(self):
         """
-        Return the string representation
+        Return the string representation.
 
-        OUTPUT:
-
-        String.
+        OUTPUT: string
 
         EXAMPLES::
 
@@ -157,7 +152,7 @@ class BackendTest(BackendBase):
         OUTPUT:
 
         Iterable of output container classes. Only the
-        :class:`~sage.repl.rich_repr.test_backend.TestOutputPlainText`
+        :class:`~sage.repl.rich_output.test_backend.TestOutputPlainText`
         output container is supported by the test backend.
 
         EXAMPLES::
@@ -181,7 +176,7 @@ class BackendTest(BackendBase):
 
         INPUT:
 
-        Same as :meth:`displayhook`.
+        Same as :meth:`~sage.repl.rich_output.backend_base.BackendBase.displayhook`.
 
         OUTPUT:
 

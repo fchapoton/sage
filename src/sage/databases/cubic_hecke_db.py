@@ -23,7 +23,7 @@ demonstration purposes.
 
 Furthermore, this module contains the class :class:`CubicHeckeFileCache`
 that enables
-:class:`~sage.algebras.hecke_algebras.cubic_hecke_algebras.CubicHeckeAlgebra`
+:class:`~sage.algebras.hecke_algebras.cubic_hecke_algebra.CubicHeckeAlgebra`
 to keep intermediate results of calculations in the file system.
 
 The enum :class:`MarkovTraceModuleBasis` serves as basis for the submodule
@@ -50,15 +50,15 @@ AUTHORS:
 - Sebastian Oehms (2022-03): PyPi version and Markov trace functionality
 """
 
-##############################################################################
+# ############################################################################
 #       Copyright (C) 2020 Sebastian Oehms <seb.oehms@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-##############################################################################
+#                  https://www.gnu.org/licenses/
+# ############################################################################
 
 import os
 from enum import Enum
@@ -117,7 +117,9 @@ def simplify(mat):
     d = mat.dict()
     if isinstance(B, CubicHeckeExtensionRing):
         # Laurent polynomial cannot be reconstructed from string
-        res = {k: {tuple(j): u.dict() for j, u in v.dict().items()} for k, v in d.items()}
+        res = {k: {tuple(j): u.monomial_coefficients()
+                   for j, u in v.monomial_coefficients().items()}
+               for k, v in d.items()}
     else:
         res = {k: str(v) for k, v in d.items()}
     return res
@@ -129,9 +131,9 @@ class CubicHeckeDataSection(Enum):
 
     The following choices are possible:
 
-    - ``basis``  -- list of basis elements
-    - ``reg_left_reprs``  -- data for the left regular representation
-    - ``reg_right_reprs``  -- data for the right regular representation
+    - ``basis`` -- list of basis elements
+    - ``reg_left_reprs`` -- data for the left regular representation
+    - ``reg_right_reprs`` -- data for the right regular representation
     - ``irr_reprs`` -- data for the split irreducible representations
     - ``markov_tr_cfs`` -- data for the coefficients of the formal Markov traces
 
@@ -156,7 +158,7 @@ class CubicHeckeDataSection(Enum):
 class CubicHeckeDataBase(SageObject):
     r"""
     Database interface for
-    :class:`~sage.algebras.hecke_algebras.cubic_hecke_algebras.CubicHeckeAlgebra`
+    :class:`~sage.algebras.hecke_algebras.cubic_hecke_algebra.CubicHeckeAlgebra`
 
     The original data are obtained from `Ivan Marin's web page
     <http://www.lamfa.u-picardie.fr/marin/representationH4-en.html>`__
@@ -239,9 +241,7 @@ class CubicHeckeDataBase(SageObject):
         - ``section`` -- instance of enum :class:`CubicHeckeDataSection`
           to select the data to be read in
 
-        OUTPUT:
-
-        A dictionary containing the data corresponding to the section.
+        OUTPUT: a dictionary containing the data corresponding to the section
 
         EXAMPLES::
 
@@ -309,8 +309,6 @@ class CubicHeckeDataBase(SageObject):
         - ``representation_type`` -- an element of
           :class:`~sage.algebras.hecke_algebras.cubic_hecke_matrix_rep.RepresentationType`
           specifying the type of the representation
-
-        OUTPUT:
 
         EXAMPLES::
 
@@ -418,9 +416,7 @@ class MarkovTraceModuleBasis(Enum):
         - ``strands_embed`` -- (optional) the number of strands of the braid
           if strands should be added
 
-        OUTPUT:
-
-        A tuple representing the braid in Tietze form.
+        OUTPUT: a tuple representing the braid in Tietze form
 
         EXAMPLES::
 
@@ -459,7 +455,7 @@ class MarkovTraceModuleBasis(Enum):
         Return a description of the link corresponding to this basis element.
 
         In the case of knots it refers to the naming according to
-        `KnotInfo <https://knotinfo.math.indiana.edu/>`__.
+        `KnotInfo <https://knotinfo.org/>`__.
 
         EXAMPLES::
 
@@ -487,10 +483,9 @@ class MarkovTraceModuleBasis(Enum):
             # since :class:`Link` does not construct disjoint union of unlinks
             # from the braid representation, we need a pd_code here
             return Link(pd_code)
-        else:
-            from sage.groups.braid import BraidGroup
-            B = BraidGroup(self.strands())
-            return Link(B(self.braid_tietze()))
+        from sage.groups.braid import BraidGroup
+        B = BraidGroup(self.strands())
+        return Link(B(self.braid_tietze()))
 
     def regular_homfly_polynomial(self):
         r"""
@@ -502,6 +497,7 @@ class MarkovTraceModuleBasis(Enum):
 
         EXAMPLES::
 
+            sage: # needs libhomfly
             sage: from sage.databases.cubic_hecke_db import MarkovTraceModuleBasis
             sage: MarkovTraceModuleBasis.U1.regular_homfly_polynomial()
             1
@@ -651,23 +647,24 @@ links_gould = {
 class CubicHeckeFileCache(SageObject):
     """
     A class to cache calculations of
-    :class:`~sage.algebras.hecke_algebras.cubic_hecke_algebras.CubicHeckeAlgebra`
+    :class:`~sage.algebras.hecke_algebras.cubic_hecke_algebra.CubicHeckeAlgebra`
     in the local file system.
     """
 
     class section(Enum):
         r"""
-        Enum for the different sections of file cache. The following choices are
-        possible:
+        Enum for the different sections of file cache.
 
-        - ``matrix_representations``  -- file cache for representation matrices
+        The following choices are possible:
+
+        - ``matrix_representations`` -- file cache for representation matrices
           of basis elements
-        - ``braid_images``  -- file cache for images of braids
+        - ``braid_images`` -- file cache for images of braids
         - ``basis_extensions`` -- file cache for a dynamical growing basis used
           in the case of cubic Hecke algebras on more than 4 strands
         - ``markov_trace`` -- file cache for intermediate results of long
           calculations in order to recover the results already obtained by
-          preboius attemps of calculation until the corresponding intermediate
+          previous attempts of calculation until the corresponding intermediate
           step
 
         EXAMPLES::
@@ -700,8 +697,7 @@ class CubicHeckeFileCache(SageObject):
             """
             if nstrands is None:
                 return '%s.sobj' % self.value
-            else:
-                return '%s_%s.sobj' % (self.value, nstrands)
+            return '%s_%s.sobj' % (self.value, nstrands)
 
         matrix_representations = 'matrix_representations'
         braid_images = 'braid_images'
@@ -733,7 +729,7 @@ class CubicHeckeFileCache(SageObject):
 
     def _warn_incompatibility(self, fname):
         """
-        Warn the user that he has an incomaptible file cache under `Sage_DOT`
+        Warn the user that he has an incompatible file cache under ``Sage_DOT``
         and move it away to another file (marked with timestamp).
 
         EXAMPLES::
@@ -1071,7 +1067,7 @@ class CubicHeckeFileCache(SageObject):
             sage: cha_fc.is_empty(CubicHeckeFileCache.section.braid_images)
             True
             sage: b2_img = CHA2(b2); b2_img
-            w*c^-1 + u*c + (-v)
+            w*c^-1 + u*c - v
             sage: cha_fc.write_braid_image(b2.Tietze(), b2_img.to_vector())
             sage: cha_fc.read_braid_image(b2.Tietze(), ring_of_definition)
             (-v, u, w)
@@ -1106,7 +1102,7 @@ class CubicHeckeFileCache(SageObject):
             sage: B2 = BraidGroup(2)
             sage: b, = B2.gens(); b3 = b**3
             sage: b3_img = CHA2(b3); b3_img
-            u*w*c^-1 + (u^2-v)*c + (-u*v+w)
+            u*w*c^-1 + (u^2-v)*c - (u*v-w)
             sage: cha_fc.write_braid_image(b3.Tietze(), b3_img.to_vector())
             sage: cha_fc.read_braid_image(b3.Tietze(), ring_of_definition)
             (-u*v + w, u^2 - v, u*w)
@@ -1157,7 +1153,6 @@ class CubicHeckeFileCache(SageObject):
         """
         self._data_library.update({self.section.basis_extensions: new_basis_extensions})
         self.write(self.section.basis_extensions)
-        return
 
 
 # -----------------------------------------------------------------------------
@@ -1291,6 +1286,7 @@ def read_basis(num_strands=3):
         -1], [2, -1, 2], [1, 2, -1, 2], [-1, 2, -1, 2]]
     return data[num_strands]
 
+
 def read_irr(variables, num_strands=3):
     r"""
     Return precomputed data of Ivan Marin.
@@ -1333,6 +1329,7 @@ def read_irr(variables, num_strands=3):
         -1/(a*b), (2, 2): 1/a}, {(0, 0): 1/a, (0, 1): 1/(a*b), (0, 2):
         1/b, (1, 1): 1/b, (1, 2): a/b + b/c, (2, 2): 1/c}]])
     return data[num_strands]
+
 
 def read_regl(variables, num_strands=3):
     r"""
@@ -1406,6 +1403,7 @@ def read_regl(variables, num_strands=3):
         (20, 20): v/w, (20, 23): v, (21, 13): -v/w, (21, 19): 1/w,
         (22, 6): 1/w, (22, 13): u/w, (22, 22): v/w, (23, 13): 1}]])
     return data[num_strands]
+
 
 def read_regr(variables, num_strands=3):
     r"""
@@ -1496,7 +1494,6 @@ def read_markov(bas_ele, variables, num_strands=4):
     - ``variables`` -- tuple consisting of the variables used in
       the coefficients
     - ``num_strands`` -- integer (default: 4); the number of strands
-
 
     OUTPUT:
 

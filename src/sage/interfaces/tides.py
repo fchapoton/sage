@@ -37,16 +37,19 @@ REFERENCES:
 
 - [TIDES]_
 """
+from pathlib import Path
 
-from sage.rings.real_mpfr import RealField
-from sage.misc.lazy_import import lazy_import
-lazy_import("sage.calculus.all", "symbolic_expression")
-from sage.misc.flatten import flatten
 from sage.ext.fast_callable import fast_callable
-from sage.rings.semirings.non_negative_integer_semiring import NN
 from sage.functions.log import log, exp
 from sage.functions.other import floor, ceil
+from sage.misc.flatten import flatten
 from sage.misc.functional import sqrt
+from sage.misc.lazy_import import lazy_import
+from sage.rings.real_mpfr import RealField
+from sage.rings.semirings.non_negative_integer_semiring import NN
+
+
+lazy_import("sage.calculus.all", "symbolic_expression")
 
 
 def subexpressions_list(f, pars=None):
@@ -56,11 +59,11 @@ def subexpressions_list(f, pars=None):
 
     INPUT:
 
-    - ``f`` -- a symbolic function of several components.
+    - ``f`` -- a symbolic function of several components
 
-    - ``pars`` -- a list of the parameters that appear in the function
+    - ``pars`` -- list of the parameters that appear in the function
       this should be the symbolic constants that appear in f but are not
-      arguments.
+      arguments
 
     OUTPUT:
 
@@ -73,7 +76,6 @@ def subexpressions_list(f, pars=None):
 
     For the trigonometric functions, some extra expressions will be added.
     These extra expressions will be used later to compute their derivatives.
-
 
     EXAMPLES::
 
@@ -145,8 +147,6 @@ def subexpressions_list(f, pars=None):
         ('cos', y),
         ('add', sin(y), x^2),
         ('exp', x^2 + sin(y))])
-
-
     """
     from sage.functions.trig import sin, cos, arcsin, arctan, arccos
     variables = f[0].arguments()
@@ -156,7 +156,7 @@ def subexpressions_list(f, pars=None):
         parameters = pars
     varpar = list(parameters) + list(variables)
     F = symbolic_expression([i(*variables) for i in f]).function(*varpar)
-    lis = flatten([fast_callable(i,vars=varpar).op_list() for i in F], max_level=1)
+    lis = flatten([fast_callable(i, vars=varpar).op_list() for i in F], max_level=1)
     stack = []
     const = []
     stackcomp = []
@@ -173,7 +173,7 @@ def subexpressions_list(f, pars=None):
                     stack.append(a*basis)
                     stackcomp.append(stack[-1])
             else:
-                detail.append(('pow',stack[-1],i[1]))
+                detail.append(('pow', stack[-1], i[1]))
                 stack[-1] = stack[-1]**i[1]
                 stackcomp.append(stack[-1])
 
@@ -197,7 +197,7 @@ def subexpressions_list(f, pars=None):
         elif i == 'add':
             a = stack.pop(-1)
             b = stack.pop(-1)
-            detail.append(('add',a,b))
+            detail.append(('add', a, b))
             stack.append(a+b)
             stackcomp.append(stack[-1])
 
@@ -300,7 +300,7 @@ def subexpressions_list(f, pars=None):
             stack.append(-a)
             stackcomp.append(-a)
 
-    return stackcomp,detail
+    return stackcomp, detail
 
 
 def remove_repeated(l1, l2):
@@ -332,8 +332,6 @@ def remove_repeated(l1, l2):
         ('add', 1, -a^2),
         ('pow', -a^2 + 1, 0.5),
         ('asin', a)])
-
-
     """
     for i in range(len(l1)-1):
         j = i+1
@@ -345,7 +343,7 @@ def remove_repeated(l1, l2):
                 j += 1
 
 
-def remove_constants(l1,l2):
+def remove_constants(l1, l2):
     """
     Given two lists, remove the entries in the first that are real constants,
     and also the corresponding elements in the second one.
@@ -361,7 +359,6 @@ def remove_constants(l1,l2):
         sage: remove_constants(l1,l2)
         sage: l1, l2
         ([a*cos(7), a*cos(7) + 1], [('mul', cos(7), a), ('add', 1, a*cos(7))])
-
     """
     i = 0
     while i < len(l1):
@@ -373,31 +370,31 @@ def remove_constants(l1,l2):
 
 
 def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
-                      tolrel=1e-16, tolabs=1e-16, output=''):
+                      tolrel=1e-16, tolabs=1e-16, output : str = ''):
     r"""
     Generate the needed files for the min_tides library.
 
     INPUT:
 
-    - ``integrator`` -- the name of the integrator file.
+    - ``integrator`` -- the name of the integrator file
 
-    - ``driver`` -- the name of the driver file.
+    - ``driver`` -- the name of the driver file
 
-    - ``f`` -- the function that determines the differential equation.
+    - ``f`` -- the function that determines the differential equation
 
-    - ``ics`` -- a list or tuple with the initial conditions.
+    - ``ics`` -- list or tuple with the initial conditions
 
-    - ``initial`` -- the initial time for the integration.
+    - ``initial`` -- the initial time for the integration
 
-    - ``final`` -- the final time for the integration.
+    - ``final`` -- the final time for the integration
 
-    - ``delta`` -- the step of the output.
+    - ``delta`` -- the step of the output
 
-    - ``tolrel`` -- the relative tolerance.
+    - ``tolrel`` -- the relative tolerance
 
-    - ``tolabs`` -- the absolute tolerance.
+    - ``tolabs`` -- the absolute tolerance
 
-    -  ``output`` -- the name of the file that the compiled integrator will write to
+    - ``output`` -- the name of the file that the compiled integrator will write to
 
     This function creates two files, integrator and driver, that can be used
     later with the min_tides library [TIDES]_.
@@ -462,8 +459,6 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
         sage: l[18]
         '    \tv[0] = 3.1415926535897931 ; \n'
         sage: shutil.rmtree(tempdir)
-
-
     """
     RR = RealField()
 
@@ -547,10 +542,11 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
     l0 = lv + l0
     indices = [l0.index(str(i(*var))) + n for i in f]
     for i in range(1, n):
-        res.append("XX[{}][i+1] = XX[{}][i] / (i+1.0);".format(i,indices[i-1]-n))
+        res.append("XX[{}][i+1] = XX[{}][i] / (i+1.0);".format(i, indices[i-1]-n))
 
     code = res
 
+    integrator = Path(integrator)
     outfile = open(integrator, 'a')
     auxstring = """
     /****************************************************************************
@@ -595,6 +591,7 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
     outfile.write('}\n')
     outfile.write('\n')
 
+    driver = Path(driver)
     outfile = open(driver, 'a')
 
     auxstring = """
@@ -633,39 +630,39 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
 
 def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
                   parameters=None, parameter_values=None, dig=20, tolrel=1e-16,
-                  tolabs=1e-16, output=''):
+                  tolabs=1e-16, output : str = ''):
     r"""
         Generate the needed files for the mpfr module of the tides library.
 
     INPUT:
 
-    - ``integrator`` -- the name of the integrator file.
+    - ``integrator`` -- the name of the integrator file
 
-    - ``driver`` -- the name of the driver file.
+    - ``driver`` -- the name of the driver file
 
-    - ``f`` -- the function that determines the differential equation.
+    - ``f`` -- the function that determines the differential equation
 
-    - ``ics`` -- a list or tuple with the initial conditions.
+    - ``ics`` -- list or tuple with the initial conditions
 
-    - ``initial`` -- the initial time for the integration.
+    - ``initial`` -- the initial time for the integration
 
-    - ``final`` -- the final time for the integration.
+    - ``final`` -- the final time for the integration
 
-    - ``delta`` -- the step of the output.
+    - ``delta`` -- the step of the output
 
     - ``parameters`` -- the variables inside the function that should be treated
-       as parameters.
+      as parameters
 
     - ``parameter_values`` -- the values of the parameters for the particular
-       initial value problem.
+      initial value problem
 
     - ``dig`` -- the number of digits of precision that will be used in the integration
 
-    - ``tolrel`` -- the relative tolerance.
+    - ``tolrel`` -- the relative tolerance
 
-    - ``tolabs`` -- the absolute tolerance.
+    - ``tolabs`` -- the absolute tolerance
 
-    -  ``output`` -- the name of the file that the compiled integrator will write to
+    - ``output`` -- the name of the file that the compiled integrator will write to
 
     This function creates two files, integrator and driver, that can be used
     later with the tides library ([TIDES]_).
@@ -743,7 +740,6 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
         sage: l[24]
         '\tmpfr_set_str(v[0], "3.141592653589793238462643383279502884197169399375101", 10, TIDES_RND);\n'
         sage: shutil.rmtree(tempdir)
-
     """
     if parameters is None:
         parameters = []
@@ -798,7 +794,7 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
             if consta:
                 oper += '_c'
                 if not oper == 'div':
-                    bb, aa = aa,bb
+                    bb, aa = aa, bb
             elif constb:
                 oper += '_c'
             l3.append((oper, aa, bb))
@@ -878,8 +874,8 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
     return NUM_COLUMNS;
 }
     """
-
-    with open(integrator, 'a') as outfile:
+    integrator = Path(integrator)
+    with integrator.open('a') as outfile:
         outfile.write(auxstring1)
 
         outfile.write(f"\n\tstatic int VARIABLES = {VAR};\n")
@@ -895,7 +891,6 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
         outfile.write(auxstring2)
 
     npar = len(parameter_values)
-    outfile = open(driver, 'a')
 
     auxstring3 = """
     /****************************************************************************
@@ -915,32 +910,34 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
 
     int nfun = 0;
     """
-    outfile.write(auxstring3)
-    outfile.write('\tset_precision_digits({});'.format(dig))
-    outfile.write('\n\tint npar = {};\n'.format(npar))
-    outfile.write('\tmpfr_t p[npar];\n')
-    outfile.write('\tfor(i=0; i<npar; i++) mpfr_init2(p[i], TIDES_PREC);\n')
 
-    for i in range(npar):
-        outfile.write('\tmpfr_set_str(p[{}], "{}", 10, TIDES_RND);\n'.format(i,RR(parameter_values[i]).str()))
-    outfile.write('\tint nvar = {};\n\tmpfr_t v[nvar];\n'.format(VAR))
-    outfile.write('\tfor(i=0; i<nvar; i++) mpfr_init2(v[i], TIDES_PREC);\n')
-    for i in range(len(ics)):
-        outfile.write('\tmpfr_set_str(v[{}], "{}", 10, TIDES_RND);\n'.format(i,RR(ics[i]).str()))
-    outfile.write('\tmpfr_t tolrel, tolabs;\n')
-    outfile.write('\tmpfr_init2(tolrel, TIDES_PREC); \n')
-    outfile.write('\tmpfr_init2(tolabs, TIDES_PREC); \n')
-    outfile.write('\tmpfr_set_str(tolrel, "{}", 10, TIDES_RND);\n'.format(RR(tolrel).str()))
-    outfile.write('\tmpfr_set_str(tolabs, "{}", 10, TIDES_RND);\n'.format(RR(tolabs).str()))
+    driver = Path(driver)
+    with driver.open('a') as outfile:
+        outfile.write(auxstring3)
+        outfile.write('\tset_precision_digits({});'.format(dig))
+        outfile.write('\n\tint npar = {};\n'.format(npar))
+        outfile.write('\tmpfr_t p[npar];\n')
+        outfile.write('\tfor(i=0; i<npar; i++) mpfr_init2(p[i], TIDES_PREC);\n')
 
-    outfile.write('\tmpfr_t tini, dt; \n')
-    outfile.write('\tmpfr_init2(tini, TIDES_PREC); \n')
-    outfile.write('\tmpfr_init2(dt, TIDES_PREC); \n')
+        for i in range(npar):
+            outfile.write('\tmpfr_set_str(p[{}], "{}", 10, TIDES_RND);\n'.format(i, RR(parameter_values[i]).str()))
+        outfile.write('\tint nvar = {};\n\tmpfr_t v[nvar];\n'.format(VAR))
+        outfile.write('\tfor(i=0; i<nvar; i++) mpfr_init2(v[i], TIDES_PREC);\n')
+        for i in range(len(ics)):
+            outfile.write('\tmpfr_set_str(v[{}], "{}", 10, TIDES_RND);\n'.format(i, RR(ics[i]).str()))
+        outfile.write('\tmpfr_t tolrel, tolabs;\n')
+        outfile.write('\tmpfr_init2(tolrel, TIDES_PREC); \n')
+        outfile.write('\tmpfr_init2(tolabs, TIDES_PREC); \n')
+        outfile.write('\tmpfr_set_str(tolrel, "{}", 10, TIDES_RND);\n'.format(RR(tolrel).str()))
+        outfile.write('\tmpfr_set_str(tolabs, "{}", 10, TIDES_RND);\n'.format(RR(tolabs).str()))
 
-    outfile.write('\tmpfr_set_str(tini, "{}", 10, TIDES_RND);;\n'.format(RR(initial).str()))
-    outfile.write('\tmpfr_set_str(dt, "{}", 10, TIDES_RND);\n'.format(RR(delta).str()))
-    outfile.write('\tint nipt = {};\n'.format(floor((final-initial)/delta)))
-    outfile.write('\tFILE* fd = fopen("' + output + '", "w");\n')
-    outfile.write('\tmp_tides_delta(function_iteration, NULL, nvar, npar, nfun, v, p, tini, dt, nipt, tolrel, tolabs, NULL, fd);\n')
-    outfile.write('\tfclose(fd);\n\treturn 0;\n}')
-    outfile.close()
+        outfile.write('\tmpfr_t tini, dt; \n')
+        outfile.write('\tmpfr_init2(tini, TIDES_PREC); \n')
+        outfile.write('\tmpfr_init2(dt, TIDES_PREC); \n')
+
+        outfile.write('\tmpfr_set_str(tini, "{}", 10, TIDES_RND);;\n'.format(RR(initial).str()))
+        outfile.write('\tmpfr_set_str(dt, "{}", 10, TIDES_RND);\n'.format(RR(delta).str()))
+        outfile.write('\tint nipt = {};\n'.format(floor((final-initial)/delta)))
+        outfile.write('\tFILE* fd = fopen("' + output + '", "w");\n')
+        outfile.write('\tmp_tides_delta(function_iteration, NULL, nvar, npar, nfun, v, p, tini, dt, nipt, tolrel, tolabs, NULL, fd);\n')
+        outfile.write('\tfclose(fd);\n\treturn 0;\n}')

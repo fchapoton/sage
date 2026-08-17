@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-objects
 r"""
 Elements, Array and Lists With Clone Protocol
 
@@ -157,7 +156,7 @@ from sage.structure.richcmp cimport richcmp, rich_to_bool
 ############################################################################
 cdef class ClonableElement(Element):
     r"""
-    Abstract class for elements with clone protocol
+    Abstract class for elements with clone protocol.
 
     This class is a subclass of :class:`Element<sage.structure.element.Element>`
     and implements the "prototype" design pattern (see [Prototype_pattern]_, [GHJV1994]_). The role
@@ -179,7 +178,7 @@ cdef class ClonableElement(Element):
 
     Additionally, one can also implement
 
-    - ``obj._hash_()`` -- return the hash value of ``obj``.
+    - ``obj._hash_()`` -- return the hash value of ``obj``
 
     Then, given an instance ``obj`` of ``C``, the following sequences of
     instructions ensures that the invariants of ``new_obj`` are properly
@@ -295,7 +294,7 @@ cdef class ClonableElement(Element):
         """
         Check that ``self`` is mutable.
 
-        Raise a ``ValueError`` if ``self`` is immutable.
+        Raise a :exc:`ValueError` if ``self`` is immutable.
 
         TESTS::
 
@@ -422,8 +421,8 @@ cdef class ClonableElement(Element):
 
         INPUT:
 
-        - ``check`` -- a boolean indicating if ``self.check()`` must be called
-          after modifications.
+        - ``check`` -- boolean indicating if ``self.check()`` must be called
+          after modifications
 
         EXAMPLES::
 
@@ -441,7 +440,7 @@ cdef class ClonableElement(Element):
 
     def __enter__(self):
         """
-        Implement the self guarding clone protocol.
+        Implement the ``self`` guarding clone protocol.
 
         TESTS::
 
@@ -455,7 +454,7 @@ cdef class ClonableElement(Element):
 
     def __exit__(self, typ, value, tracback):
         """
-        Implement the self guarding clone protocol.
+        Implement the ``self`` guarding clone protocol.
 
         .. NOTE:: The input argument are required by the ``with`` protocol but
            are ignored.
@@ -489,7 +488,7 @@ cdef class ClonableElement(Element):
 ############################################################################
 cdef class ClonableArray(ClonableElement):
     """
-    Array with clone protocol
+    Array with clone protocol.
 
     The class of objects which are
     :class:`Element<sage.structure.element.Element>` behave as arrays
@@ -499,11 +498,11 @@ cdef class ClonableArray(ClonableElement):
     INPUT:
 
     - ``parent`` -- a :class:`Parent<sage.structure.parent.Parent>`
-    - ``lst``    -- a list
-    - ``check``  -- a boolean specifying if the invariant must be checked
-      using method :meth:`check`.
-    - ``immutable`` -- a boolean telling whether the created element is
-      immutable (defaults to ``True``)
+    - ``lst`` -- list
+    - ``check`` -- boolean specifying if the invariant must be checked
+      using method :meth:`check`
+    - ``immutable`` -- boolean (default: ``True``); whether the created element
+      is immutable
 
     .. SEEALSO:: :class:`~sage.structure.list_clone_demo.IncreasingArray` for
                  an example of usage.
@@ -526,7 +525,7 @@ cdef class ClonableArray(ClonableElement):
     """
     def __init__(self, Parent parent, lst, check=True, immutable=True):
         """
-        Initialize ``self``
+        Initialize ``self``.
 
         TESTS::
 
@@ -567,7 +566,7 @@ cdef class ClonableArray(ClonableElement):
 
     def __bool__(self):
         """
-        Tests if self is not empty.
+        Test if ``self`` is not empty.
 
         EXAMPLES::
 
@@ -614,7 +613,7 @@ cdef class ClonableArray(ClonableElement):
 
     def __len__(self):
         """
-        Return the len of ``self``
+        Return the ``len`` of ``self``.
 
         EXAMPLES::
 
@@ -626,7 +625,7 @@ cdef class ClonableArray(ClonableElement):
 
     def __getitem__(self, key):
         """
-        Return the ``key``-th element of ``self``
+        Return the ``key``-th element of ``self``.
 
         It also works with slice returning a python list in this case.
 
@@ -654,7 +653,7 @@ cdef class ClonableArray(ClonableElement):
 
     def __setitem__(self, int key, value):
         """
-        Set the ``i``-th element of ``self``
+        Set the ``i``-th element of ``self``.
 
         An exception is raised if ``self`` is immutable.
 
@@ -679,7 +678,7 @@ cdef class ClonableArray(ClonableElement):
 
     cpdef object _getitem(self, int key):
         """
-        Same as :meth:`__getitem__`
+        Same as :meth:`__getitem__`.
 
         This is much faster when used with Cython and ``key`` is known to be
         an ``int``.
@@ -698,7 +697,7 @@ cdef class ClonableArray(ClonableElement):
 
     cpdef _setitem(self, int key, value):
         """
-        Same as :meth:`__setitem__`
+        Same as :meth:`__setitem__`.
 
         This is much faster when used with Cython and ``key`` is known to be
         an ``int``.
@@ -774,14 +773,13 @@ cdef class ClonableArray(ClonableElement):
             sage: c.index(5)
             Traceback (most recent call last):
             ...
-            ValueError: 5 is not in list
+            ValueError: ...not in list
         """
         if start is None:
             return self._list.index(x)
-        elif stop is None:
+        if stop is None:
             return self._list.index(x, start)
-        else:
-            return self._list.index(x, start, stop)
+        return self._list.index(x, start, stop)
 
     cpdef int count(self, key) except -1:
         """
@@ -848,7 +846,7 @@ cdef class ClonableArray(ClonableElement):
 
     cpdef ClonableArray __copy__(self):
         """
-        Return a copy of ``self``
+        Return a copy of ``self``.
 
         TESTS::
 
@@ -892,7 +890,7 @@ cdef class ClonableArray(ClonableElement):
 
     cpdef check(self):
         """
-        Check that ``self`` fulfill the invariants
+        Check that ``self`` fulfill the invariants.
 
         This is an abstract method. Subclasses are supposed to overload
         ``check``.
@@ -909,7 +907,7 @@ cdef class ClonableArray(ClonableElement):
         """
         raise NotImplementedError("this should never be called, please overload the check method")
 
-    cpdef long _hash_(self) except? -1:
+    cpdef Py_hash_t _hash_(self) except? -1:
         """
         Return the hash value of ``self``.
 
@@ -933,7 +931,7 @@ cdef class ClonableArray(ClonableElement):
             sage: loads(dumps(el))
             [1, 2, 4]
             sage: t = el.__reduce__(); t
-            (<built-in function _make_array_clone>,
+            (<cyfunction _make_array_clone at ...>,
              (<class 'sage.structure.list_clone_demo.IncreasingArray'>,
               <sage.structure.list_clone_demo.IncreasingArrays_with_category object at ...>,
               [1, 2, 4],
@@ -954,9 +952,9 @@ cdef class ClonableArray(ClonableElement):
 
 
 ##### Needed for unpickling #####
-def _make_array_clone(clas, parent, list, needs_check, is_immutable, dic):
+def _make_array_clone(clas, parent, list, needs_check, immutable, dic):
     """
-    Helpler to unpickle :class:`list_clone` instances.
+    Helper to unpickle :class:`list_clone` instances.
 
     TESTS::
 
@@ -986,7 +984,7 @@ def _make_array_clone(clas, parent, list, needs_check, is_immutable, dic):
     res._parent = parent
     res._list = list
     res._needs_check = needs_check
-    res._is_immutable = is_immutable
+    res._is_immutable = immutable
     if dic is not None:
         res.__dict__ = dic
     return res
@@ -997,7 +995,7 @@ def _make_array_clone(clas, parent, list, needs_check, is_immutable, dic):
 ############################################################################
 cdef class ClonableList(ClonableArray):
     """
-    List with clone protocol
+    List with clone protocol.
 
     The class of objects which are
     :class:`Element<sage.structure.element.Element>` behave as lists and
@@ -1009,9 +1007,11 @@ cdef class ClonableList(ClonableArray):
     """
     cpdef append(self, el):
         """
-        Appends ``el`` to ``self``
+        Appends ``el`` to ``self``.
 
-        INPUT: ``el`` -- any object
+        INPUT:
+
+        - ``el`` -- any object
 
         EXAMPLES::
 
@@ -1038,9 +1038,11 @@ cdef class ClonableList(ClonableArray):
 
     cpdef extend(self, it):
         """
-        Extends ``self`` by the content of the iterable ``it``
+        Extend ``self`` by the content of the iterable ``it``.
 
-        INPUT: ``it`` -- any iterable
+        INPUT:
+
+        - ``it`` -- any iterable
 
         EXAMPLES::
 
@@ -1073,12 +1075,12 @@ cdef class ClonableList(ClonableArray):
 
     cpdef insert(self, int index, el):
         """
-        Inserts ``el`` in ``self`` at position ``index``
+        Inserts ``el`` in ``self`` at position ``index``.
 
         INPUT:
 
-         - ``el`` -- any object
-         - ``index`` -- any int
+        - ``el`` -- any object
+        - ``index`` -- any int
 
         EXAMPLES::
 
@@ -1103,9 +1105,11 @@ cdef class ClonableList(ClonableArray):
 
     cpdef pop(self, int index=-1):
         """
-        Remove ``self[index]`` from ``self`` and returns it
+        Remove ``self[index]`` from ``self`` and returns it.
 
-        INPUT: ``index`` -- any int, default to -1
+        INPUT:
+
+        - ``index`` -- integer (default: -1)
 
         EXAMPLES::
 
@@ -1131,9 +1135,11 @@ cdef class ClonableList(ClonableArray):
 
     cpdef remove(self, el):
         """
-        Remove the first occurrence of ``el`` from ``self``
+        Remove the first occurrence of ``el`` from ``self``.
 
-        INPUT: ``el`` -- any object
+        INPUT:
+
+        - ``el`` -- any object
 
         EXAMPLES::
 
@@ -1158,7 +1164,7 @@ cdef class ClonableList(ClonableArray):
 
     def __setitem__(self, key, value):
         """
-        Set the ith element of ``self``
+        Set the i-th element of ``self``.
 
         An exception is raised if ``self`` is immutable.
 
@@ -1186,7 +1192,7 @@ cdef class ClonableList(ClonableArray):
 
     def __delitem__(self, key):
         """
-        Remove the ith element of ``self``
+        Remove the i-th element of ``self``.
 
         An exception is raised if ``self`` is immutable.
 
@@ -1216,7 +1222,7 @@ cdef class ClonableList(ClonableArray):
 ############################################################################
 cdef class ClonableIntArray(ClonableElement):
     """
-    Array of int with clone protocol
+    Array of integers with clone protocol.
 
     The class of objects which are
     :class:`Element<sage.structure.element.Element>` behave as list of int and
@@ -1227,11 +1233,11 @@ cdef class ClonableIntArray(ClonableElement):
     INPUT:
 
     - ``parent`` -- a :class:`Parent<sage.structure.parent.Parent>`
-    - ``lst``      -- a list
-    - ``check`` -- a boolean specifying if the invariant must be checked
+    - ``lst`` -- list
+    - ``check`` -- boolean specifying if the invariant must be checked
       using method :meth:`check`
-    - ``immutable`` -- a boolean telling whether the created element is
-      immutable (defaults to ``True``)
+    - ``immutable`` -- boolean (default: ``True``); whether the created element
+      is immutable
 
     .. SEEALSO:: :class:`~sage.structure.list_clone_demo.IncreasingIntArray`
                  for an example of usage.
@@ -1242,7 +1248,7 @@ cdef class ClonableIntArray(ClonableElement):
 
     def __init__(self, Parent parent, lst, check=True, immutable=True):
         """
-        Initialize ``self``
+        Initialize ``self``.
 
         TESTS::
 
@@ -1288,11 +1294,13 @@ cdef class ClonableIntArray(ClonableElement):
 
     cpdef _alloc_(self, int size):
         """
-        Allocate the array part of ``self`` for a given size
+        Allocate the array part of ``self`` for a given size.
 
         This can be used to initialize ``self`` without passing a list
 
-        INPUT: ``size`` -- an int
+        INPUT:
+
+        - ``size`` -- integer
 
         EXAMPLES::
 
@@ -1347,7 +1355,7 @@ cdef class ClonableIntArray(ClonableElement):
 
     def __len__(self):
         """
-        Return the len of ``self``
+        Return the len of ``self``.
 
         EXAMPLES::
 
@@ -1359,7 +1367,7 @@ cdef class ClonableIntArray(ClonableElement):
 
     def __iter__(self):
         """
-        Iterate over the items of self.
+        Iterate over the items of ``self``.
 
         EXAMPLES::
 
@@ -1374,7 +1382,7 @@ cdef class ClonableIntArray(ClonableElement):
 
     cpdef list list(self):
         """
-        Convert self into a Python list.
+        Convert ``self`` into a Python list.
 
         EXAMPLES::
 
@@ -1399,7 +1407,7 @@ cdef class ClonableIntArray(ClonableElement):
 
     def __getitem__(self, key):
         """
-        Return the ith element of ``self``
+        Return the i-th element of ``self``.
 
         EXAMPLES::
 
@@ -1448,7 +1456,7 @@ cdef class ClonableIntArray(ClonableElement):
 
     def __setitem__(self, int key, value):
         """
-        Set the ith element of ``self``
+        Set the i-th element of ``self``.
 
         An exception is raised if ``self`` is immutable.
 
@@ -1472,7 +1480,7 @@ cdef class ClonableIntArray(ClonableElement):
 
     cpdef object _getitem(self, int key):
         """
-        Same as :meth:`__getitem__`
+        Same as :meth:`__getitem__`.
 
         This is much faster when used with Cython and the index is known to be
         an int.
@@ -1490,7 +1498,7 @@ cdef class ClonableIntArray(ClonableElement):
 
     cpdef _setitem(self, int key, value):
         """
-        Same as :meth:`__setitem__`
+        Same as :meth:`__setitem__`.
 
         This is much faster when used with Cython and the index is known to be
         an int.
@@ -1603,9 +1611,8 @@ cdef class ClonableIntArray(ClonableElement):
         if left._list is NULL:
             if rgt._list is NULL:
                 return rich_to_bool(op, 0)
-            else:
-                return rich_to_bool(op, -1)
-        elif rgt._list is NULL:
+            return rich_to_bool(op, -1)
+        if rgt._list is NULL:
             return rich_to_bool(op, 1)
         if left._len < rgt._len:
             minlen = left._len
@@ -1620,13 +1627,12 @@ cdef class ClonableIntArray(ClonableElement):
             if left._list[i] != rgt._list[i]:
                 if left._list[i] < rgt._list[i]:
                     return rich_to_bool(op, -1)
-                else:
-                    return rich_to_bool(op, 1)
+                return rich_to_bool(op, 1)
         return rich_to_bool(op, reslen)
 
     cpdef ClonableIntArray __copy__(self):
         """
-        Return a copy of ``self``
+        Return a copy of ``self``.
 
         TESTS::
 
@@ -1673,7 +1679,7 @@ cdef class ClonableIntArray(ClonableElement):
 
     cpdef check(self):
         """
-        Check that ``self`` fulfill the invariants
+        Check that ``self`` fulfill the invariants.
 
         This is an abstract method. Subclasses are supposed to overload
         ``check``.
@@ -1690,7 +1696,7 @@ cdef class ClonableIntArray(ClonableElement):
         """
         raise NotImplementedError("this should never be called, please overload the check method")
 
-    cpdef long _hash_(self) except? -1:
+    cpdef Py_hash_t _hash_(self) except? -1:
         """
         Return the hash value of ``self``.
 
@@ -1703,7 +1709,7 @@ cdef class ClonableIntArray(ClonableElement):
             sage: type(el._hash_()) == int
             True
         """
-        cdef long hv
+        cdef Py_hash_t hv
         if self._list == NULL:
             hv = hash(None)
         else:
@@ -1719,7 +1725,7 @@ cdef class ClonableIntArray(ClonableElement):
             sage: loads(dumps(el))
             [1, 2, 4]
             sage: t = el.__reduce__(); t
-            (<built-in function _make_int_array_clone>,
+            (<cyfunction _make_int_array_clone at ...>,
              (<class 'sage.structure.list_clone_demo.IncreasingIntArray'>,
               <sage.structure.list_clone_demo.IncreasingIntArrays_with_category object at ...>,
               [1, 2, 4],
@@ -1740,9 +1746,9 @@ cdef class ClonableIntArray(ClonableElement):
 
 
 ##### Needed for unpickling #####
-def _make_int_array_clone(clas, parent, lst, needs_check, is_immutable, dic):
+def _make_int_array_clone(clas, parent, lst, needs_check, immutable, dic):
     """
-    Helpler to unpickle :class:`list_clone` instances.
+    Helper to unpickle :class:`list_clone` instances.
 
     TESTS::
 
@@ -1769,7 +1775,7 @@ def _make_int_array_clone(clas, parent, lst, needs_check, is_immutable, dic):
     """
     cdef ClonableIntArray res
     res = <ClonableIntArray> clas.__new__(clas)
-    ClonableIntArray.__init__(res, parent, lst, needs_check, is_immutable)
+    ClonableIntArray.__init__(res, parent, lst, needs_check, immutable)
     if dic is not None:
         res.__dict__ = dic
     return res
@@ -1777,7 +1783,7 @@ def _make_int_array_clone(clas, parent, lst, needs_check, is_immutable, dic):
 
 cdef class NormalizedClonableList(ClonableList):
     """
-    List with clone protocol and normal form
+    List with clone protocol and normal form.
 
     This is a subclass of :class:`ClonableList` which call a method
     :meth:`normalize` at creation and after any modification of its instance.
@@ -1834,7 +1840,7 @@ cdef class NormalizedClonableList(ClonableList):
 
     cpdef normalize(self):
         """
-        Normalize ``self``
+        Normalize ``self``.
 
         This is an abstract method. Subclasses are supposed to overload
         :meth:`normalize`. The call ``self.normalize()`` is supposed to

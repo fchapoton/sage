@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-categories
 r"""
 Noetherian rings
 
@@ -30,7 +29,7 @@ from sage.categories.commutative_rings import CommutativeRings
 
 class NoetherianRings(Category):
     """
-    The category of Noetherian rings
+    The category of Noetherian rings.
 
     A Noetherian ring is a commutative ring in which
     every ideal is finitely generated.

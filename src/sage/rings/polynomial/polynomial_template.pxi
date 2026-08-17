@@ -2,7 +2,7 @@
 Polynomial Template for C/C++ Library Interfaces
 """
 
-#*****************************************************************************
+# ***************************************************************************
 #       Copyright (C) 2008 Martin Albrecht <M.R.Albrecht@rhul.ac.uk>
 #       Copyright (C) 2008 Robert Bradshaw
 #
@@ -10,8 +10,8 @@ Polynomial Template for C/C++ Library Interfaces
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ***************************************************************************
 
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
@@ -20,19 +20,21 @@ from sage.structure.element import coerce_binop
 from sage.structure.richcmp cimport rich_to_bool
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.integer cimport Integer
-from sage.libs.pari.all import pari_gen
+from cypari2.gen cimport Gen as pari_gen
 
 import operator
+
 
 def make_element(parent, args):
     return parent(*args)
 
+
 cdef inline Polynomial_template element_shift(self, int n):
      if not isinstance(self, Polynomial_template):
          if n > 0:
-             error_msg = "Cannot shift %s << %n."%(self, n)
+             error_msg = "Cannot shift %s << %n." % (self, n)
          else:
-             error_msg = "Cannot shift %s >> %n."%(self, n)
+             error_msg = "Cannot shift %s >> %n." % (self, n)
          raise TypeError(error_msg)
 
      if n == 0:
@@ -67,7 +69,7 @@ cdef class Polynomial_template(Polynomial):
     This file implements a simple templating engine for linking univariate
     polynomials to their C/C++ library implementations. It requires a
     'linkage' file which implements the ``celement_`` functions (see
-    :mod:`sage.libs.ntl.ntl_GF2X_linkage` for an example). Both parts are
+    ``sage.libs.ntl.ntl_GF2X_linkage`` for an example). Both parts are
     then plugged together by inclusion of the linkage file when inheriting from
     this class. See :mod:`sage.rings.polynomial.polynomial_gf2x` for an
     example.
@@ -75,10 +77,10 @@ cdef class Polynomial_template(Polynomial):
     We illustrate the generic glueing using univariate polynomials over
     `\mathop{\mathrm{GF}}(2)`.
 
-    .. note::
+    .. NOTE::
 
         Implementations using this template MUST implement coercion from base
-        ring elements and :meth:`get_unsafe`. See
+        ring elements and ``get_unsafe``. See
         :class:`~sage.rings.polynomial.polynomial_gf2x.Polynomial_GF2X` for an
         example.
     """
@@ -115,16 +117,16 @@ cdef class Polynomial_template(Polynomial):
                 celement_construct(&self.x, (<Polynomial_template>self)._cparent)
                 celement_set(&self.x, &(<Polynomial_template>x).x, (<Polynomial_template>self)._cparent)
             except NotImplementedError:
-                raise TypeError("%s not understood."%x)
+                raise TypeError("%s not understood" % x)
 
-        elif isinstance(x, int) or isinstance(x, Integer):
+        elif isinstance(x, (int, Integer)):
             try:
                 celement_construct(&self.x, (<Polynomial_template>self)._cparent)
                 celement_set_si(&self.x, int(x), (<Polynomial_template>self)._cparent)
             except NotImplementedError:
-                raise TypeError("%s not understood."%x)
+                raise TypeError("%s not understood" % x)
 
-        elif isinstance(x, list) or isinstance(x, tuple):
+        elif isinstance(x, (list, tuple)):
             celement_construct(&self.x, (<Polynomial_template>self)._cparent)
             gen = celement_new((<Polynomial_template>self)._cparent)
             monomial = celement_new((<Polynomial_template>self)._cparent)
@@ -151,7 +153,7 @@ cdef class Polynomial_template(Polynomial):
             celement_set_si(&self.x, 0, (<Polynomial_template>self)._cparent)
             celement_gen(gen, 0, (<Polynomial_template>self)._cparent)
 
-            for deg, coef in x.iteritems():
+            for deg, coef in x.items():
                 celement_pow(monomial, gen, deg, NULL, (<Polynomial_template>self)._cparent)
                 celement_mul(monomial, &(<Polynomial_template>self.__class__(parent, coef)).x, monomial, (<Polynomial_template>self)._cparent)
                 celement_add(&self.x, &self.x, monomial, (<Polynomial_template>self)._cparent)
@@ -212,7 +214,6 @@ cdef class Polynomial_template(Polynomial):
         The following has been a problem in a preliminary version of
         :issue:`12313`::
 
-            sage: # needs sage.rings.finite_rings
             sage: K.<z> = GF(4)
             sage: P.<x> = K[]
             sage: del P
@@ -340,7 +341,7 @@ cdef class Polynomial_template(Polynomial):
     @coerce_binop
     def gcd(self, Polynomial_template other):
         """
-        Return the greatest common divisor of self and other.
+        Return the greatest common divisor of ``self`` and ``other``.
 
         EXAMPLES::
 
@@ -369,7 +370,7 @@ cdef class Polynomial_template(Polynomial):
             sage: f.gcd(g)
             Traceback (most recent call last):
             ...
-            ValueError: non-invertible elements encountered during GCD
+            RuntimeError: FLINT gcd calculation failed
         """
         if celement_is_zero(&self.x, (<Polynomial_template>self)._cparent):
             return other
@@ -392,7 +393,7 @@ cdef class Polynomial_template(Polynomial):
     @coerce_binop
     def xgcd(self, Polynomial_template other):
         """
-        Computes extended gcd of self and other.
+        Compute extended gcd of ``self`` and ``other``.
 
         EXAMPLES::
 
@@ -586,7 +587,6 @@ cdef class Polynomial_template(Polynomial):
             return -2
         return result
 
-
     def __pow__(self, ee, modulus):
         """
         EXAMPLES::
@@ -628,7 +628,7 @@ cdef class Polynomial_template(Polynomial):
             0
         """
         if not isinstance(self, Polynomial_template):
-            raise NotImplementedError("%s^%s not defined."%(ee,self))
+            raise NotImplementedError("%s^%s not defined." % (ee, self))
         cdef bint recip = 0, do_sig
 
         cdef long e
@@ -667,8 +667,7 @@ cdef class Polynomial_template(Polynomial):
         #assert(r._parent(pari(self)**ee) == r)
         if recip:
             return ~r
-        else:
-            return r
+        return r
 
     def __copy__(self):
         """
@@ -780,7 +779,7 @@ cdef class Polynomial_template(Polynomial):
 
     cpdef Polynomial truncate(self, long n):
         r"""
-        Returns this polynomial mod `x^n`.
+        Return this polynomial mod `x^n`.
 
         EXAMPLES::
 
@@ -816,7 +815,7 @@ cdef class Polynomial_template(Polynomial):
 
     def _singular_(self, singular=None):
         r"""
-        Return Singular representation of this polynomial
+        Return Singular representation of this polynomial.
 
         INPUT:
 

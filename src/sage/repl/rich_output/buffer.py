@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-repl
 r"""
 Output Buffer
 
@@ -39,7 +38,7 @@ class OutputBuffer(SageObject):
 
     def __init__(self, data):
         """
-        Data stored either in memory or as a file
+        Data stored either in memory or as a file.
 
         This class is an abstraction for "files", in that they can
         either be defined by a bytes array (Python 3) or string
@@ -47,7 +46,7 @@ class OutputBuffer(SageObject):
 
         INPUT:
 
-        - ``data`` -- bytes. The data that is stored in the buffer.
+        - ``data`` -- bytes; the data that is stored in the buffer
 
         EXAMPLES::
 
@@ -87,12 +86,10 @@ class OutputBuffer(SageObject):
 
         INPUT:
 
-        - ``filename`` -- string. The filename under which the data is
-          stored.
+        - ``filename`` -- string; the filename under which the data is
+          stored
 
-        OUTPUT:
-
-        String containing the buffer data.
+        OUTPUT: string containing the buffer data
 
         EXAMPLES::
 
@@ -117,11 +114,11 @@ class OutputBuffer(SageObject):
     @classmethod
     def _chmod_readonly(cls, filename):
         """
-        Make file readonly
+        Make file readonly.
 
         INPUT:
 
-        - ``filename`` -- string. Name of an already-existing file.
+        - ``filename`` -- string; name of an already-existing file
 
         EXAMPLES::
 
@@ -149,13 +146,11 @@ class OutputBuffer(SageObject):
         except PermissionError:
             pass
 
-    def _repr_(self):
+    def _repr_(self) -> str:
         """
-        Return a string representation
+        Return a string representation.
 
-        OUTPUT:
-
-        String
+        OUTPUT: string
 
         EXAMPLES::
 
@@ -163,15 +158,13 @@ class OutputBuffer(SageObject):
             sage: OutputBuffer('test1234')
             buffer containing 8 bytes
         """
-        return 'buffer containing {0} bytes'.format(len(self.get()))
+        return f'buffer containing {len(self.get())} bytes'
 
     def get(self):
         """
-        Return the buffer content
+        Return the buffer content.
 
-        OUTPUT:
-
-        Bytes. A string in Python 2.x.
+        OUTPUT: bytes
 
         EXAMPLES::
 
@@ -189,39 +182,17 @@ class OutputBuffer(SageObject):
                 self._data = f.read()
         return self._data
 
-    def get_unicode(self):
+    def get_str(self) -> str:
         """
-        Return the buffer content as string
+        Return the buffer content as a ``str`` object.
 
-        OUTPUT:
+        This returns a unicode ``str`` with the buffer content
+        decoded from UTF-8.
 
-        String. Unicode in Python 2.x. Raises a ``UnicodeEncodeError``
-        if the data is not valid utf-8.
+        This raises a :exc:`UnicodeEncodeError` if the data is not
+        valid UTF-8.
 
-        EXAMPLES::
-
-            sage: from sage.repl.rich_output.buffer import OutputBuffer
-            sage: OutputBuffer('test1234').get().decode('ascii')
-            'test1234'
-            sage: OutputBuffer('test1234').get_unicode()
-            'test1234'
-        """
-        return self.get().decode('utf-8')
-
-    def get_str(self):
-        """
-        Return the buffer content as a ``str`` object for the current Python
-        version.
-
-        That is, returns a Python 2-style encoding-agnostic ``str`` on Python
-        2, and returns a unicode ``str`` on Python 3 with the buffer content
-        decoded from UTF-8.  In other words, this is equivalent to
-        ``OutputBuffer.get`` on Python 2 and ``OutputBuffer.get_unicode`` on
-        Python 3.  This is useful in some cases for cross-compatible code.
-
-        OUTPUT:
-
-        A ``str`` object.
+        OUTPUT: a ``str`` object
 
         EXAMPLES::
 
@@ -233,8 +204,18 @@ class OutputBuffer(SageObject):
             sage: c = OutputBuffer('été').get_str()
             sage: type(c) is str
             True
+
+        TESTS::
+
+            sage: from sage.repl.rich_output.buffer import OutputBuffer
+            sage: OutputBuffer('test1234').get().decode('ascii')
+            'test1234'
+            sage: OutputBuffer('test1234').get_unicode()
+            'test1234'
         """
-        return self.get_unicode()
+        return self.get().decode('utf-8')
+
+    get_unicode = get_str
 
     def filename(self, ext=None):
         """
@@ -242,7 +223,7 @@ class OutputBuffer(SageObject):
 
         INPUT:
 
-        - ``ext`` -- string. The file extension.
+        - ``ext`` -- string; the file extension
 
         OUTPUT:
 
@@ -301,7 +282,7 @@ class OutputBuffer(SageObject):
 
         INPUT:
 
-        - ``filename`` -- string. The file name to save under.
+        - ``filename`` -- string; the file name to save under
 
         EXAMPLES::
 

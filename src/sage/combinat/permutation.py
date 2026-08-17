@@ -10,7 +10,7 @@ the combinatorial class of permutations.
    This file defined :class:`Permutation` which depends upon
    :class:`CombinatorialElement` despite it being deprecated (see
    :issue:`13742`). This is dangerous. In particular, the
-   :meth:`Permutation._left_to_right_multiply_on_right` method (which can
+   ``Permutation._left_to_right_multiply_on_right`` method (which can
    be called through multiplication) disables the input checks (see
    :meth:`Permutation`). This should not happen. Do not trust the results.
 
@@ -32,110 +32,110 @@ Below are listed all methods and classes defined in this file.
     :widths: 30, 70
     :delim: |
 
-    :meth:`~sage.combinat.permutation.Permutation.left_action_product` | Returns the product of ``self`` with another permutation, in which the other permutation is applied first.
-    :meth:`~sage.combinat.permutation.Permutation.right_action_product` | Returns the product of ``self`` with another permutation, in which ``self`` is applied first.
-    :meth:`~sage.combinat.permutation.Permutation.size` | Returns the size of the permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.cycle_string` | Returns the disjoint-cycles representation of ``self`` as string.
-    :meth:`~sage.combinat.permutation.Permutation.next` | Returns the permutation that follows ``self`` in lexicographic order (in the same symmetric group as ``self``).
-    :meth:`~sage.combinat.permutation.Permutation.prev` | Returns the permutation that comes directly before ``self`` in lexicographic order (in the same symmetric group as ``self``).
-    :meth:`~sage.combinat.permutation.Permutation.to_tableau_by_shape` | Returns a tableau of shape ``shape`` with the entries in ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.to_cycles` | Returns the permutation ``self`` as a list of disjoint cycles.
+    :meth:`~sage.combinat.permutation.Permutation.left_action_product` | Return the product of ``self`` with another permutation, in which the other permutation is applied first.
+    :meth:`~sage.combinat.permutation.Permutation.right_action_product` | Return the product of ``self`` with another permutation, in which ``self`` is applied first.
+    :meth:`~sage.combinat.permutation.Permutation.size` | Return the size of the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.cycle_string` | Return the disjoint-cycles representation of ``self`` as string.
+    :meth:`~sage.combinat.permutation.Permutation.next` | Return the permutation that follows ``self`` in lexicographic order (in the same symmetric group as ``self``).
+    :meth:`~sage.combinat.permutation.Permutation.prev` | Return the permutation that comes directly before ``self`` in lexicographic order (in the same symmetric group as ``self``).
+    :meth:`~sage.combinat.permutation.Permutation.to_tableau_by_shape` | Return a tableau of shape ``shape`` with the entries in ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.to_cycles` | Return the permutation ``self`` as a list of disjoint cycles.
     :meth:`~sage.combinat.permutation.Permutation.forget_cycles` | Return ``self`` under the forget cycle map.
-    :meth:`~sage.combinat.permutation.Permutation.to_permutation_group_element` | Returns a ``PermutationGroupElement`` equal to ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.signature` | Returns the signature of the permutation ``sef``.
-    :meth:`~sage.combinat.permutation.Permutation.is_even` | Returns ``True`` if the permutation ``self`` is even, and ``False`` otherwise.
-    :meth:`~sage.combinat.permutation.Permutation.to_matrix` | Returns a matrix representing the permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.rank` | Returns the rank of ``self`` in lexicographic ordering (on the symmetric group containing ``self``).
-    :meth:`~sage.combinat.permutation.Permutation.to_inversion_vector` | Returns the inversion vector of a permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.inversions` | Returns a list of the inversions of permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.stack_sort` | Returns the permutation obtained by sorting ``self`` through one stack.
+    :meth:`~sage.combinat.permutation.Permutation.to_permutation_group_element` | Return a ``PermutationGroupElement`` equal to ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.signature` | Return the signature of the permutation ``sef``.
+    :meth:`~sage.combinat.permutation.Permutation.is_even` | Return ``True`` if the permutation ``self`` is even, and ``False`` otherwise.
+    :meth:`~sage.combinat.permutation.Permutation.to_matrix` | Return a matrix representing the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.rank` | Return the rank of ``self`` in lexicographic ordering (on the symmetric group containing ``self``).
+    :meth:`~sage.combinat.permutation.Permutation.to_inversion_vector` | Return the inversion vector of a permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.inversions` | Return a list of the inversions of permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.stack_sort` | Return the permutation obtained by sorting ``self`` through one stack.
     :meth:`~sage.combinat.permutation.Permutation.to_digraph` | Return a digraph representation of ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.show` | Displays the permutation as a drawing.
-    :meth:`~sage.combinat.permutation.Permutation.number_of_inversions` | Returns the number of inversions in the permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.noninversions` | Returns the ``k``-noninversions in the permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.number_of_noninversions` | Returns the number of ``k``-noninversions in the permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.length` | Returns the Coxeter length of a permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.inverse` | Returns the inverse of a permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.ishift` | Returns the ``i``-shift of ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.iswitch` | Returns the ``i``-switch of ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.runs` | Returns a list of the runs in the permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.longest_increasing_subsequence_length` | Returns the length of the longest increasing subsequences of ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.longest_increasing_subsequences` | Returns the list of the longest increasing subsequences of ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.longest_increasing_subsequences_number` | Returns the number of longest increasing subsequences
-    :meth:`~sage.combinat.permutation.Permutation.cycle_type` | Returns the cycle type of ``self`` as a partition of ``len(self)``.
-    :meth:`~sage.combinat.permutation.Permutation.foata_bijection` | Returns the image of the permutation ``self`` under the Foata bijection `\phi`.
-    :meth:`~sage.combinat.permutation.Permutation.foata_bijection_inverse` | Returns the image of the permutation ``self`` under the inverse of the Foata bijection `\phi`.
-    :meth:`~sage.combinat.permutation.Permutation.fundamental_transformation` | Returns the image of the permutation ``self`` under the Renyi-Foata-Schuetzenberger fundamental transformation.
-    :meth:`~sage.combinat.permutation.Permutation.fundamental_transformation_inverse` | Returns the image of the permutation ``self`` under the inverse of the Renyi-Foata-Schuetzenberger fundamental transformation.
+    :meth:`~sage.combinat.permutation.Permutation.show` | Display the permutation as a drawing.
+    :meth:`~sage.combinat.permutation.Permutation.number_of_inversions` | Return the number of inversions in the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.noninversions` | Return the ``k``-noninversions in the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.number_of_noninversions` | Return the number of ``k``-noninversions in the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.length` | Return the Coxeter length of a permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.inverse` | Return the inverse of a permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.ishift` | Return the ``i``-shift of ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.iswitch` | Return the ``i``-switch of ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.runs` | Return a list of the runs in the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.longest_increasing_subsequence_length` | Return the length of the longest increasing subsequences of ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.longest_increasing_subsequences` | Return the list of the longest increasing subsequences of ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.number_of_longest_increasing_subsequences` | Return the number of longest increasing subsequences
+    :meth:`~sage.combinat.permutation.Permutation.cycle_type` | Return the cycle type of ``self`` as a partition of ``len(self)``.
+    :meth:`~sage.combinat.permutation.Permutation.foata_bijection` | Return the image of the permutation ``self`` under the Foata bijection `\phi`.
+    :meth:`~sage.combinat.permutation.Permutation.foata_bijection_inverse` | Return the image of the permutation ``self`` under the inverse of the Foata bijection `\phi`.
+    :meth:`~sage.combinat.permutation.Permutation.fundamental_transformation` | Return the image of the permutation ``self`` under the Renyi-Foata-Schuetzenberger fundamental transformation.
+    :meth:`~sage.combinat.permutation.Permutation.fundamental_transformation_inverse` | Return the image of the permutation ``self`` under the inverse of the Renyi-Foata-Schuetzenberger fundamental transformation.
     :meth:`~sage.combinat.permutation.Permutation.destandardize` |  Return destandardization of ``self`` with respect to ``weight`` and ``ordered_alphabet``.
-    :meth:`~sage.combinat.permutation.Permutation.to_lehmer_code` | Returns the Lehmer code of the permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.to_lehmer_cocode` | Returns the Lehmer cocode of ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.reduced_word` | Returns the reduced word of the permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.reduced_words` | Returns a list of the reduced words of the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.to_lehmer_code` | Return the Lehmer code of the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.to_lehmer_cocode` | Return the Lehmer cocode of ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.reduced_word` | Return the reduced word of the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.reduced_words` | Return a list of the reduced words of the permutation ``self``.
     :meth:`~sage.combinat.permutation.Permutation.reduced_words_iterator` | An iterator for the reduced words of the permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.reduced_word_lexmin` | Returns a lexicographically minimal reduced word of a permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.fixed_points` | Returns a list of the fixed points of the permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.is_derangement` | Returns ``True`` if the permutation ``self`` is a derangement, and ``False`` otherwise.
-    :meth:`~sage.combinat.permutation.Permutation.is_simple` | Returns ``True`` if the permutation ``self`` is simple, and ``False`` otherwise.
-    :meth:`~sage.combinat.permutation.Permutation.number_of_fixed_points` | Returns the number of fixed points of the permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.recoils` | Returns the list of the positions of the recoils of the permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.number_of_recoils` | Returns the number of recoils of the permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.recoils_composition` | Returns the composition corresponding to the recoils of ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.descents` | Returns the list of the descents of the permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.idescents` | Returns a list of the idescents of ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.idescents_signature` | Returns the list obtained by mapping each position in ``self`` to `-1` if it is an idescent and `1` if it is not an idescent.
-    :meth:`~sage.combinat.permutation.Permutation.number_of_descents` | Returns the number of descents of the permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.number_of_idescents` | Returns the number of idescents of the permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.descents_composition` | Returns the composition corresponding to the descents of ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.descent_polynomial` | Returns the descent polynomial of the permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.major_index` | Returns the major index of the permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.imajor_index` | Returns the inverse major index of the permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.to_major_code` | Returns the major code of the permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.peaks` | Returns a list of the peaks of the permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.number_of_peaks` | Returns the number of peaks of the permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.saliances` | Returns a list of the saliances of the permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.number_of_saliances` | Returns the number of saliances of the permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.bruhat_lequal` | Returns ``True`` if self is less or equal to ``p2`` in the Bruhat order.
-    :meth:`~sage.combinat.permutation.Permutation.weak_excedences` | Returns all the numbers ``self[i]`` such that ``self[i] >= i+1``.
-    :meth:`~sage.combinat.permutation.Permutation.bruhat_inversions` | Returns the list of inversions of ``self`` such that the application of this inversion to ``self`` decrements its number of inversions.
-    :meth:`~sage.combinat.permutation.Permutation.bruhat_inversions_iterator` | Returns an iterator over Bruhat inversions of ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.bruhat_succ` | Returns a list of the permutations covering ``self`` in the Bruhat order.
+    :meth:`~sage.combinat.permutation.Permutation.reduced_word_lexmin` | Return a lexicographically minimal reduced word of a permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.fixed_points` | Return a list of the fixed points of the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.is_derangement` | Return ``True`` if the permutation ``self`` is a derangement, and ``False`` otherwise.
+    :meth:`~sage.combinat.permutation.Permutation.is_simple` | Return ``True`` if the permutation ``self`` is simple, and ``False`` otherwise.
+    :meth:`~sage.combinat.permutation.Permutation.number_of_fixed_points` | Return the number of fixed points of the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.recoils` | Return the list of the positions of the recoils of the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.number_of_recoils` | Return the number of recoils of the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.recoils_composition` | Return the composition corresponding to the recoils of ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.descents` | Return the list of the descents of the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.idescents` | Return a list of the idescents of ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.idescents_signature` | Return the list obtained by mapping each position in ``self`` to `-1` if it is an idescent and `1` if it is not an idescent.
+    :meth:`~sage.combinat.permutation.Permutation.number_of_descents` | Return the number of descents of the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.number_of_idescents` | Return the number of idescents of the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.descents_composition` | Return the composition corresponding to the descents of ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.descent_polynomial` | Return the descent polynomial of the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.major_index` | Return the major index of the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.imajor_index` | Return the inverse major index of the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.to_major_code` | Return the major code of the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.peaks` | Return a list of the peaks of the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.number_of_peaks` | Return the number of peaks of the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.saliances` | Return a list of the saliances of the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.number_of_saliances` | Return the number of saliances of the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.bruhat_lequal` | Return ``True`` if ``self`` is less or equal to ``p2`` in the Bruhat order.
+    :meth:`~sage.combinat.permutation.Permutation.weak_excedences` | Return all the numbers ``self[i]`` such that ``self[i] >= i+1``.
+    :meth:`~sage.combinat.permutation.Permutation.bruhat_inversions` | Return the list of inversions of ``self`` such that the application of this inversion to ``self`` decrements its number of inversions.
+    :meth:`~sage.combinat.permutation.Permutation.bruhat_inversions_iterator` | Return an iterator over Bruhat inversions of ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.bruhat_succ` | Return a list of the permutations covering ``self`` in the Bruhat order.
     :meth:`~sage.combinat.permutation.Permutation.bruhat_succ_iterator` | An iterator for the permutations covering ``self`` in the Bruhat order.
-    :meth:`~sage.combinat.permutation.Permutation.bruhat_pred` | Returns a list of the permutations covered by ``self`` in the Bruhat order.
+    :meth:`~sage.combinat.permutation.Permutation.bruhat_pred` | Return a list of the permutations covered by ``self`` in the Bruhat order.
     :meth:`~sage.combinat.permutation.Permutation.bruhat_pred_iterator` | An iterator for the permutations covered by ``self`` in the Bruhat order.
-    :meth:`~sage.combinat.permutation.Permutation.bruhat_smaller` | Returns the combinatorial class of permutations smaller than or equal to ``self`` in the Bruhat order.
-    :meth:`~sage.combinat.permutation.Permutation.bruhat_greater` | Returns the combinatorial class of permutations greater than or equal to ``self`` in the Bruhat order.
-    :meth:`~sage.combinat.permutation.Permutation.permutohedron_lequal` | Returns ``True`` if ``self`` is less or equal to ``p2`` in the permutohedron order.
-    :meth:`~sage.combinat.permutation.Permutation.permutohedron_succ` | Returns a list of the permutations covering ``self`` in the permutohedron order.
-    :meth:`~sage.combinat.permutation.Permutation.permutohedron_pred` | Returns a list of the permutations covered by ``self`` in the permutohedron order.
-    :meth:`~sage.combinat.permutation.Permutation.permutohedron_smaller` | Returns a list of permutations smaller than or equal to ``self`` in the permutohedron order.
-    :meth:`~sage.combinat.permutation.Permutation.permutohedron_greater` | Returns a list of permutations greater than or equal to ``self`` in the permutohedron order.
-    :meth:`~sage.combinat.permutation.Permutation.right_permutohedron_interval_iterator` | Returns an iterator over permutations in an interval of the permutohedron order.
-    :meth:`~sage.combinat.permutation.Permutation.right_permutohedron_interval` | Returns a list of permutations in an interval of the permutohedron order.
-    :meth:`~sage.combinat.permutation.Permutation.has_pattern` | Tests whether the permutation ``self`` matches the pattern.
-    :meth:`~sage.combinat.permutation.Permutation.avoids` | Tests whether the permutation ``self`` avoids the pattern.
-    :meth:`~sage.combinat.permutation.Permutation.pattern_positions` | Returns the list of positions where the pattern ``patt`` appears in ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.reverse` | Returns the permutation obtained by reversing the 1-line notation of ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.complement` | Returns the complement of the permutation which is obtained by replacing each value `x` in the 1-line notation of ``self`` with `n - x + 1`.
-    :meth:`~sage.combinat.permutation.Permutation.permutation_poset` | Returns the permutation poset of ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.dict` | Returns a dictionary corresponding to the permutation ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.action` | Returns the action of the permutation ``self`` on a list.
-    :meth:`~sage.combinat.permutation.Permutation.robinson_schensted` | Returns the pair of standard tableaux obtained by running the Robinson-Schensted Algorithm on ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.left_tableau` | Returns the left standard tableau after performing the RSK algorithm.
-    :meth:`~sage.combinat.permutation.Permutation.right_tableau` | Returns the right standard tableau after performing the RSK algorithm.
-    :meth:`~sage.combinat.permutation.Permutation.increasing_tree` | Returns the increasing tree of ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.increasing_tree_shape` | Returns the shape of the increasing tree of ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.binary_search_tree` | Returns the binary search tree of ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.sylvester_class` | Iterates over the equivalence class of ``self`` under sylvester congruence
-    :meth:`~sage.combinat.permutation.Permutation.RS_partition` | Returns the shape of the tableaux obtained by the RSK algorithm.
-    :meth:`~sage.combinat.permutation.Permutation.remove_extra_fixed_points` | Returns the permutation obtained by removing any fixed points at the end of ``self``.
-    :meth:`~sage.combinat.permutation.Permutation.retract_plain` | Returns the plain retract of ``self`` to a smaller symmetric group `S_m`.
-    :meth:`~sage.combinat.permutation.Permutation.retract_direct_product` | Returns the direct-product retract of ``self`` to a smaller symmetric group `S_m`.
-    :meth:`~sage.combinat.permutation.Permutation.retract_okounkov_vershik` | Returns the Okounkov-Vershik retract of ``self`` to a smaller symmetric group `S_m`.
-    :meth:`~sage.combinat.permutation.Permutation.hyperoctahedral_double_coset_type` | Returns the coset-type of ``self`` as a partition.
-    :meth:`~sage.combinat.permutation.Permutation.binary_search_tree_shape` | Returns the shape of the binary search tree of ``self`` (a non labelled binary tree).
-    :meth:`~sage.combinat.permutation.Permutation.shifted_concatenation` | Returns the right (or left) shifted concatenation of ``self`` with a permutation ``other``.
-    :meth:`~sage.combinat.permutation.Permutation.shifted_shuffle` | Returns the shifted shuffle of ``self`` with a permutation ``other``.
+    :meth:`~sage.combinat.permutation.Permutation.bruhat_smaller` | Return the combinatorial class of permutations smaller than or equal to ``self`` in the Bruhat order.
+    :meth:`~sage.combinat.permutation.Permutation.bruhat_greater` | Return the combinatorial class of permutations greater than or equal to ``self`` in the Bruhat order.
+    :meth:`~sage.combinat.permutation.Permutation.permutohedron_lequal` | Return ``True`` if ``self`` is less or equal to ``p2`` in the permutohedron order.
+    :meth:`~sage.combinat.permutation.Permutation.permutohedron_succ` | Return a list of the permutations covering ``self`` in the permutohedron order.
+    :meth:`~sage.combinat.permutation.Permutation.permutohedron_pred` | Return a list of the permutations covered by ``self`` in the permutohedron order.
+    :meth:`~sage.combinat.permutation.Permutation.permutohedron_smaller` | Return a list of permutations smaller than or equal to ``self`` in the permutohedron order.
+    :meth:`~sage.combinat.permutation.Permutation.permutohedron_greater` | Return a list of permutations greater than or equal to ``self`` in the permutohedron order.
+    :meth:`~sage.combinat.permutation.Permutation.right_permutohedron_interval_iterator` | Return an iterator over permutations in an interval of the permutohedron order.
+    :meth:`~sage.combinat.permutation.Permutation.right_permutohedron_interval` | Return a list of permutations in an interval of the permutohedron order.
+    :meth:`~sage.combinat.permutation.Permutation.has_pattern` | Test whether the permutation ``self`` matches the pattern.
+    :meth:`~sage.combinat.permutation.Permutation.avoids` | Test whether the permutation ``self`` avoids the pattern.
+    :meth:`~sage.combinat.permutation.Permutation.pattern_positions` | Return the list of positions where the pattern ``patt`` appears in ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.reverse` | Return the permutation obtained by reversing the 1-line notation of ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.complement` | Return the complement of the permutation which is obtained by replacing each value `x` in the 1-line notation of ``self`` with `n - x + 1`.
+    :meth:`~sage.combinat.permutation.Permutation.permutation_poset` | Return the permutation poset of ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.dict` | Return a dictionary corresponding to the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.action` | Return the action of the permutation ``self`` on a list.
+    :meth:`~sage.combinat.permutation.Permutation.robinson_schensted` | Return the pair of standard tableaux obtained by running the Robinson-Schensted Algorithm on ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.left_tableau` | Return the left standard tableau after performing the RSK algorithm.
+    :meth:`~sage.combinat.permutation.Permutation.right_tableau` | Return the right standard tableau after performing the RSK algorithm.
+    :meth:`~sage.combinat.permutation.Permutation.increasing_tree` | Return the increasing tree of ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.increasing_tree_shape` | Return the shape of the increasing tree of ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.binary_search_tree` | Return the binary search tree of ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.sylvester_class` | Iterate over the equivalence class of ``self`` under sylvester congruence
+    :meth:`~sage.combinat.permutation.Permutation.RS_partition` | Return the shape of the tableaux obtained by the RSK algorithm.
+    :meth:`~sage.combinat.permutation.Permutation.remove_extra_fixed_points` | Return the permutation obtained by removing any fixed points at the end of ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.retract_plain` | Return the plain retract of ``self`` to a smaller symmetric group `S_m`.
+    :meth:`~sage.combinat.permutation.Permutation.retract_direct_product` | Return the direct-product retract of ``self`` to a smaller symmetric group `S_m`.
+    :meth:`~sage.combinat.permutation.Permutation.retract_okounkov_vershik` | Return the Okounkov-Vershik retract of ``self`` to a smaller symmetric group `S_m`.
+    :meth:`~sage.combinat.permutation.Permutation.hyperoctahedral_double_coset_type` | Return the coset-type of ``self`` as a partition.
+    :meth:`~sage.combinat.permutation.Permutation.binary_search_tree_shape` | Return the shape of the binary search tree of ``self`` (a non labelled binary tree).
+    :meth:`~sage.combinat.permutation.Permutation.shifted_concatenation` | Return the right (or left) shifted concatenation of ``self`` with a permutation ``other``.
+    :meth:`~sage.combinat.permutation.Permutation.shifted_shuffle` | Return the shifted shuffle of ``self`` with a permutation ``other``.
 
 **Other classes defined in this file**
 
@@ -182,21 +182,21 @@ Below are listed all methods and classes defined in this file.
     :widths: 30, 70
     :delim: |
 
-    :meth:`from_major_code` | Returns the permutation corresponding to major code ``mc``.
-    :meth:`from_permutation_group_element` | Returns a Permutation give a ``PermutationGroupElement`` ``pge``.
-    :meth:`from_rank` | Returns the permutation with the specified lexicographic rank.
-    :meth:`from_inversion_vector` | Returns the permutation corresponding to inversion vector ``iv``.
-    :meth:`from_cycles` | Returns the permutation with given disjoint-cycle representation ``cycles``.
-    :meth:`from_lehmer_code` | Returns the permutation with Lehmer code ``lehmer``.
-    :meth:`from_reduced_word` | Returns the permutation corresponding to the reduced word ``rw``.
-    :meth:`bistochastic_as_sum_of_permutations` | Returns a given bistochastic matrix as a nonnegative linear combination of permutations.
-    :meth:`bounded_affine_permutation` | Returns a partial permutation representing the bounded affine permutation of a matrix.
-    :meth:`descents_composition_list` | Returns a list of all the permutations in a given descent class (i. e., having a given descents composition).
-    :meth:`descents_composition_first` | Returns the smallest element of a descent class.
-    :meth:`descents_composition_last` | Returns the largest element of a descent class.
-    :meth:`bruhat_lequal` | Returns ``True`` if ``p1`` is less or equal to ``p2`` in the Bruhat order.
-    :meth:`permutohedron_lequal` | Returns ``True`` if ``p1`` is less or equal to ``p2`` in the permutohedron order.
-    :meth:`to_standard` | Returns a standard permutation corresponding to the permutation ``self``.
+    :meth:`from_major_code` | Return the permutation corresponding to major code ``mc``.
+    :meth:`from_permutation_group_element` | Return a Permutation give a ``PermutationGroupElement`` ``pge``.
+    :meth:`from_rank` | Return the permutation with the specified lexicographic rank.
+    :meth:`from_inversion_vector` | Return the permutation corresponding to inversion vector ``iv``.
+    :meth:`from_cycles` | Return the permutation with given disjoint-cycle representation ``cycles``.
+    :meth:`from_lehmer_code` | Return the permutation with Lehmer code ``lehmer``.
+    :meth:`from_reduced_word` | Return the permutation corresponding to the reduced word ``rw``.
+    :meth:`bistochastic_as_sum_of_permutations` | Return a given bistochastic matrix as a nonnegative linear combination of permutations.
+    :meth:`bounded_affine_permutation` | Return a partial permutation representing the bounded affine permutation of a matrix.
+    :meth:`descents_composition_list` | Return a list of all the permutations in a given descent class (i. e., having a given descents composition).
+    :meth:`descents_composition_first` | Return the smallest element of a descent class.
+    :meth:`descents_composition_last` | Return the largest element of a descent class.
+    :meth:`bruhat_lequal` | Return ``True`` if ``p1`` is less or equal to ``p2`` in the Bruhat order.
+    :meth:`permutohedron_lequal` | Return ``True`` if ``p1`` is less or equal to ``p2`` in the permutohedron order.
+    :meth:`to_standard` | Return a standard permutation corresponding to the permutation ``self``.
 
 AUTHORS:
 
@@ -217,7 +217,7 @@ AUTHORS:
 - Travis Scrimshaw (2014-02-05): Made :class:`StandardPermutations_n` a
   finite Weyl group to make it more uniform with :class:`SymmetricGroup`.
   Added ability to compute the conjugacy classes.
-- Trevor K. Karn (2022-08-05): Add :meth:`Permutation.n_reduced_words`
+- Trevor K. Karn (2022-08-05): Add reduced-word counting
 - Amrutha P, Shriya M, Divya Aggarwal (2022-08-16): Added Multimajor Index.
 
 Classes and methods
@@ -239,24 +239,30 @@ Classes and methods
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import annotations
-from collections.abc import Iterator
+
 import itertools
 import operator
+from typing import TYPE_CHECKING
 
-from sage.arith.misc import factorial, multinomial
+from sage.arith.misc import factorial, falling_factorial, multinomial
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.finite_permutation_groups import FinitePermutationGroups
 from sage.categories.finite_weyl_groups import FiniteWeylGroups
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_with_grading import SetsWithGrading
 from sage.combinat.backtrack import GenericBacktracker
-from sage.combinat.SJT import SJT
 from sage.combinat.combinat import CombinatorialElement, catalan_number
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.composition import Composition
-from sage.combinat.permutation_cython import (left_action_product, right_action_product,
-                                              left_action_same_n, right_action_same_n,
-                                              map_to_list, next_perm)
+from sage.combinat.permutation_cython import (
+    left_action_product,
+    left_action_same_n,
+    map_to_list,
+    next_perm,
+    right_action_product,
+    right_action_same_n,
+)
+from sage.combinat.SJT import SJT
 from sage.combinat.tools import transitive_ideal
 from sage.misc.cachefunc import cached_method
 from sage.misc.decorators import rename_keyword
@@ -264,11 +270,14 @@ from sage.misc.lazy_import import lazy_import
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.structure.element import Element, get_coercion_model
 from sage.structure.global_options import GlobalOptions
 from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
-from sage.structure.element import Element, get_coercion_model
 from sage.structure.unique_representation import UniqueRepresentation
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Iterator
 
 lazy_import('sage.combinat.rsk', ['RSK', 'RSK_inverse'])
 lazy_import('sage.combinat.tableau', 'Tableau')
@@ -290,7 +299,7 @@ class Permutation(CombinatorialElement):
 
     INPUT:
 
-    - ``l`` -- Can be any one of the following:
+    - ``l`` -- can be any one of the following:
 
       - an instance of :class:`Permutation`,
 
@@ -303,22 +312,21 @@ class Permutation(CombinatorialElement):
       - list of tuples of integers, expressing the permutation in cycle
         notation.
 
-      - a :class:`PermutationGroupElement`
+      - a :class:`~sage.groups.perm_gps.permgroup_element.PermutationGroupElement`
 
       - a pair of two standard tableaux of the same shape. This yields
         the permutation obtained from the pair using the inverse of the
         Robinson-Schensted algorithm.
 
     - ``check`` -- boolean (default: ``True``); whether to check that input is
-      correct. Slows the function down, but ensures that nothing bad happens.
-      This is set to ``True`` by default.
+      correct; slows the function down, but ensures that nothing bad happens
 
-    - ``algorithm`` -- string (default: ``lex``); the algorithm used to generate
-      the permutations. Supported algorithms are:
+    - ``algorithm`` -- string (default: ``'lex'``); the algorithm used to
+      generate the permutations. Supported algorithms are:
 
-      - ``lex``: lexicographic order generation, this is the default algorithm.
+      - ``'lex'``: lexicographic order generation, this is the default algorithm
 
-      - ``sjt``: Steinhaus-Johnson-Trotter algorithm to generate permutations
+      - ``'sjt'``: Steinhaus-Johnson-Trotter algorithm to generate permutations
         using only transposition of two elements in the list. It is highly
         recommended to set ``check=True`` (default value).
 
@@ -350,7 +358,8 @@ class Permutation(CombinatorialElement):
         :meth:`sage.combinat.permutation.Permutations.options`.
         It is best for code not to rely on this setting being set to a
         particular standard, but rather use the methods
-        :meth:`left_action_product` and :meth:`right_action_product` for
+        :meth:`~sage.combinat.permutation.Permutation.left_action_product`
+        and :meth:`~sage.combinat.permutation.Permutation.right_action_product` for
         multiplying permutations (these methods don't depend on the setting).
         See :issue:`14885` for more details.
 
@@ -428,7 +437,7 @@ class Permutation(CombinatorialElement):
         10
 
     We construct a :class:`Permutation` from a
-    :class:`PermutationGroupElement`::
+    :class:`~sage.groups.perm_gps.permgroup_element.PermutationGroupElement`::
 
         sage: g = PermutationGroupElement([2,1,3])                                      # needs sage.groups
         sage: Permutation(g)                                                            # needs sage.groups
@@ -489,7 +498,7 @@ class Permutation(CombinatorialElement):
         """
         if isinstance(l, Permutation):
             return l
-        elif isinstance(l, PermutationGroupElement):
+        if isinstance(l, PermutationGroupElement):
             l = l.domain()
         # if l is a string, then assume it is in cycle notation
         elif isinstance(l, str):
@@ -511,26 +520,23 @@ class Permutation(CombinatorialElement):
             return RSK_inverse(P, Q, 'permutation')
         # if it's a tuple or nonempty list of tuples, also assume cycle
         # notation
-        elif isinstance(l, tuple) or \
-             (isinstance(l, list) and l and
-              all(isinstance(x, tuple) for x in l)):
+        elif isinstance(l, tuple) or (isinstance(l, list) and l and
+                                      all(isinstance(x, tuple) for x in l)):
             if l and (isinstance(l[0], (int, Integer)) or len(l[0]) > 0):
                 if isinstance(l[0], tuple):
                     n = max(max(x) for x in l)
                     return from_cycles(n, [list(x) for x in l])
-                else:
-                    n = max(l)
-                    return from_cycles(n, [list(l)])
-            elif len(l) <= 1:
+                n = max(l)
+                return from_cycles(n, [list(l)])
+            if len(l) <= 1:
                 return Permutations()([])
-            else:
-                raise ValueError("cannot convert l (= %s) to a Permutation" % l)
+            raise ValueError("cannot convert l (= %s) to a Permutation" % l)
 
         # otherwise, it gets processed by CombinatorialElement's __init__.
         return Permutations()(l, algorithm, sjt, check)
 
     @rename_keyword(deprecation=35233, check_input='check')
-    def __init__(self, parent, l, algorithm='lex', sjt=None, check=True):
+    def __init__(self, parent, l, algorithm='lex', sjt=None, check=True) -> None:
         """
         Constructor. Checks that INPUT is not a mess, and calls
         :class:`CombinatorialElement`. It should not, because
@@ -538,19 +544,19 @@ class Permutation(CombinatorialElement):
 
         INPUT:
 
-        - ``l`` -- a list of ``int`` variables
+        - ``l`` -- list of ``int`` variables
 
         - ``check`` -- boolean (default: ``True``); whether to check that input
           is correct. Slows the function down, but ensures that nothing bad
           happens.
 
-        - ``algorithm`` -- string (default: ``lex``); the algorithm used to
+        - ``algorithm`` -- string (default: ``'lex'``); the algorithm used to
           generate the permutations. Supported algorithms are:
 
-          - ``lex``: lexicographic order generation, this is the default
-            algorithm.
+          - ``'lex'``: lexicographic order generation, this is the default
+            algorithm
 
-          - ``sjt``: Steinhaus-Johnson-Trotter algorithm to generate
+          - ``'sjt'``: Steinhaus-Johnson-Trotter algorithm to generate
             permutations using only transposition of two elements in the list.
             It is highly recommended to set ``check=True`` (default value).
 
@@ -597,7 +603,7 @@ class Permutation(CombinatorialElement):
             raise ValueError("unsupported algorithm %s; expected 'lex' or 'sjt'"
                              % self._algorithm)
 
-        if check and len(l) > 0:
+        if check and l:
             # Make a copy to sort later
             lst = list(l)
 
@@ -616,14 +622,14 @@ class Permutation(CombinatorialElement):
             # Is the maximum element of the permutation the length of input,
             # or is some integer missing ?
             if int(lst[-1]) != len(lst):
-                raise ValueError("the permutation has length "+str(len(lst)) +
-                                 " but its maximal element is " +
-                                 str(int(lst[-1])) + ". Some element may be " +
+                raise ValueError(f"the permutation has length {len(lst)} " +
+                                 f"but its maximal element is {int(lst[-1])}" +
+                                 ". Some element may be " +
                                  "repeated, or an element is missing, but " +
                                  "there is something wrong with its length.")
 
             # Do the elements appear only once ?
-            previous = lst[0]-1
+            previous = lst[0] - 1
 
             for i in lst:
                 if i == previous:
@@ -637,28 +643,18 @@ class Permutation(CombinatorialElement):
 
     def __setstate__(self, state):
         r"""
-        In order to maintain backwards compatibility and be able to unpickle a
-        old pickle from ``Permutation_class`` we have to override the default
-        ``__setstate__``.
+        Set state from pickling.
 
         EXAMPLES::
 
-            sage: loads(b'x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+H-\xca--I,\xc9\xcc\xcf\xe3\n@\xb0\xe3\x93s\x12\x8b\x8b\xb9\n\x195\x1b'
-            ....:       b'\x0b\x99j\x0b\x995BY\xe33\x12\x8b3\nY\xfc\x80\xac\x9c\xcc\xe2\x92B\xd6\xd8B6\r\x88iE\x99y\xe9\xc5z\x99y%\xa9\xe9'
-            ....:       b'\xa9E\\\xb9\x89\xd9\xa9\xf10N!{(\xa3qkP!G\x06\x90a\x04dp\x82\x18\x86@\x06Wji\x92\x1e\x00i\x8d0q')
-            [3, 2, 1]
             sage: loads(dumps( Permutation([3,2,1]) )) # indirect doctest
             [3, 2, 1]
         """
-        if isinstance(state, dict):   # for old pickles from Permutation_class
-            self._set_parent(Permutations())
-            self.__dict__ = state
-        else:
-            self._set_parent(state[0])
-            self.__dict__ = state[1]
+        self._set_parent(state[0])
+        self.__dict__ = state[1]
 
     @cached_method
-    def __hash__(self):
+    def __hash__(self) -> int:
         """
         TESTS::
 
@@ -712,15 +708,15 @@ class Permutation(CombinatorialElement):
         display = self.parent().options.display
         if display == 'list':
             return repr(self._list)
-        elif display == 'cycle':
+        if display == 'cycle':
             return self.cycle_string()
-        elif display == 'singleton':
+        if display == 'singleton':
             return self.cycle_string(singletons=True)
-        elif display == 'reduced_word':
+        if display == 'reduced_word':
             return repr(self.reduced_word())
         raise ValueError('unknown display option')
 
-    def _latex_(self):
+    def _latex_(self) -> str:
         r"""
         Return a `\LaTeX` representation of ``self``.
 
@@ -830,8 +826,7 @@ class Permutation(CombinatorialElement):
         cycles = self.to_cycles(singletons=singletons)
         if not cycles:
             return "()"
-        else:
-            return "".join("("+",".join(str(l) for l in x)+")" for x in cycles)
+        return "".join("("+",".join(str(l) for l in x)+")" for x in cycles)
 
     def __next__(self):
         r"""
@@ -1001,11 +996,12 @@ class Permutation(CombinatorialElement):
 
     def to_tableau_by_shape(self, shape):
         """
-        Return a tableau of shape ``shape`` with the entries
-        in ``self``. The tableau is such that the reading word (i. e.,
-        the word obtained by reading the tableau row by row, starting
-        from the top row in English notation, with each row being
-        read from left to right) is ``self``.
+        Return a tableau of shape ``shape`` with the entries in ``self``.
+
+        The tableau is such that the reading word (i. e., the word
+        obtained by reading the tableau row by row, starting from the
+        top row in English notation, with each row being read from
+        left to right) is ``self``.
 
         EXAMPLES::
 
@@ -1017,14 +1013,14 @@ class Permutation(CombinatorialElement):
         if sum(shape) != len(self):
             raise ValueError("the size of the partition must be the size of self")
 
-        t = []
+        t: list[list] = []
         w = list(self)
         for i in reversed(shape):
             t = [w[:i]] + t
             w = w[i:]
         return Tableau(t)
 
-    def to_cycles(self, singletons=True, use_min=True):
+    def to_cycles(self, singletons=True, use_min=True) -> list:
         """
         Return the permutation ``self`` as a list of disjoint cycles.
 
@@ -1106,6 +1102,7 @@ class Permutation(CombinatorialElement):
 
         l = self[:]
 
+        groundset: Iterable
         if use_min:
             groundset = range(len(l))
         else:
@@ -1128,7 +1125,7 @@ class Permutation(CombinatorialElement):
 
     cycle_tuples = to_cycles
 
-    def _to_cycles_orig(self, singletons=True):
+    def _to_cycles_orig(self, singletons=True) -> list:
         r"""
         Return the permutation ``self`` as a list of disjoint cycles.
 
@@ -1157,9 +1154,8 @@ class Permutation(CombinatorialElement):
                 if singletons:
                     if cycle:
                         cycles.append(tuple(cycle))
-                else:
-                    if len(cycle) > 1:
-                        cycles.append(tuple(cycle))
+                elif len(cycle) > 1:
+                    cycles.append(tuple(cycle))
                 # Start with the first element in the list
                 toConsider = l[0]
                 l.remove(toConsider)
@@ -1183,12 +1179,11 @@ class Permutation(CombinatorialElement):
         if singletons:
             if cycle:
                 cycles.append(tuple(cycle))
-        else:
-            if len(cycle) > 1:
-                cycles.append(tuple(cycle))
+        elif len(cycle) > 1:
+            cycles.append(tuple(cycle))
         return cycles
 
-    def _to_cycles_set(self, singletons=True):
+    def _to_cycles_set(self, singletons=True) -> list:
         r"""
         Return the permutation ``self`` as a list of disjoint cycles.
 
@@ -1229,7 +1224,7 @@ class Permutation(CombinatorialElement):
 
         return cycles
 
-    def _to_cycles_list(self, singletons=True):
+    def _to_cycles_list(self, singletons=True) -> list:
         r"""
         Return the permutation ``self`` as a list of disjoint cycles.
 
@@ -1306,7 +1301,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([]).sign()
             1
         """
-        return (-1)**(len(self) - len(self.to_cycles()))
+        return Integer((-1)**(len(self) - len(self.to_cycles())))
 
     # one can also use sign as an alias for signature
     sign = signature
@@ -1424,10 +1419,9 @@ class Permutation(CombinatorialElement):
         """
         if self.parent().options.mult == 'l2r':
             return self._left_to_right_multiply_on_right(rp)
-        else:
-            return self._left_to_right_multiply_on_left(rp)
+        return self._left_to_right_multiply_on_left(rp)
 
-    def __rmul__(self, lp) -> Permutation:
+    def __rmul__(self, lp):
         """
         TESTS::
 
@@ -1449,8 +1443,7 @@ class Permutation(CombinatorialElement):
             return get_coercion_model().bin_op(lp, self, operator.mul)
         if self.parent().options.mult == 'l2r':
             return self._left_to_right_multiply_on_left(lp)
-        else:
-            return self._left_to_right_multiply_on_right(lp)
+        return self._left_to_right_multiply_on_right(lp)
 
     def left_action_product(self, lp):
         r"""
@@ -1578,7 +1571,7 @@ class Permutation(CombinatorialElement):
     # Inversions #
     ##############
 
-    def to_inversion_vector(self):
+    def to_inversion_vector(self) -> list:
         r"""
         Return the inversion vector of ``self``.
 
@@ -1616,27 +1609,29 @@ class Permutation(CombinatorialElement):
         l = len(p)
         # lightning fast if the length is less than 3
         # (is it really useful?)
+        zero = Integer(0)
+        one = Integer(1)
         if l < 4:
             if l == 0:
                 return []
             if l == 1:
-                return [0]
+                return [zero]
             if l == 2:
-                return [p[0] - 1, 0]
+                return [Integer(p[0] - 1), zero]
             if l == 3:
                 if p[0] == 1:
-                    return [0, p[1] - 2, 0]
+                    return [zero, Integer(p[1] - 2), zero]
                 if p[0] == 2:
                     if p[1] == 1:
-                        return [1, 0, 0]
-                    return [2, 0, 0]
-                return [p[1], 1, 0]
+                        return [one, zero, zero]
+                    return [Integer(2), zero, zero]
+                return [Integer(p[1]), one, zero]
         # choose the best one
         if l < 411:
             return self._to_inversion_vector_small()
         return self._to_inversion_vector_divide_and_conquer()
 
-    def _to_inversion_vector_orig(self):
+    def _to_inversion_vector_orig(self) -> list:
         r"""
         Return the inversion vector of ``self``.
 
@@ -1654,16 +1649,16 @@ class Permutation(CombinatorialElement):
             [2, 3, 6, 4, 0, 2, 2, 1, 0]
         """
         p = self._list
-        iv = [0]*len(p)
+        iv = [0] * len(p)
         for i in range(len(p)):
             for pj in p:
-                if pj > i+1:
+                if pj > i + 1:
                     iv[i] += 1
-                elif pj == i+1:
+                elif pj == i + 1:
                     break
         return iv
 
-    def _to_inversion_vector_small(self):
+    def _to_inversion_vector_small(self) -> list:
         r"""
         Return the inversion vector of ``self``.
 
@@ -1682,15 +1677,15 @@ class Permutation(CombinatorialElement):
             [2, 3, 6, 4, 0, 2, 2, 1, 0]
         """
         p = self._list
-        l = len(p)+1
-        iv = [0]*l
-        checked = [1]*l
+        l = len(p) + 1
+        iv = [0] * l
+        checked = [1] * l
         for pi in reversed(p):
             checked[pi] = 0
             iv[pi] = sum(checked[pi:])
-        return iv[1:]
+        return [Integer(a) for a in iv[1:]]
 
-    def _to_inversion_vector_divide_and_conquer(self):
+    def _to_inversion_vector_divide_and_conquer(self) -> list:
         r"""
         Return the inversion vector of a permutation ``self``.
 
@@ -1713,8 +1708,8 @@ class Permutation(CombinatorialElement):
         # it's a merge sort, plus counting inversions
         def merge_and_countv(ivA_A, ivB_B):
             # iv* is the inversion vector of *
-            (ivA, A) = ivA_A
-            (ivB, B) = ivB_B
+            ivA, A = ivA_A
+            ivB, B = ivB_B
             C = []
             i, j = 0, 0
             ivC = []
@@ -1739,8 +1734,8 @@ class Permutation(CombinatorialElement):
         def base_case(L):
             s = sorted(L)
             d = {j: i for i, j in enumerate(s)}
-            iv = [0]*len(L)
-            checked = [1]*len(L)
+            iv = [0] * len(L)
+            checked = [1] * len(L)
             for pi in reversed(L):
                 dpi = d[pi]
                 checked[dpi] = 0
@@ -1754,7 +1749,7 @@ class Permutation(CombinatorialElement):
             return merge_and_countv(sort_and_countv(L[:l]),
                                     sort_and_countv(L[l:]))
 
-        return sort_and_countv(self._list)[0]
+        return [Integer(a) for a in sort_and_countv(self._list)[0]]
 
     def inversions(self) -> list:
         r"""
@@ -1840,7 +1835,7 @@ class Permutation(CombinatorialElement):
         return DiGraph([self, enumerate(self, start=1)],
                        format='vertices_and_edges', loops=True)
 
-    def show(self, representation="cycles", orientation="landscape", **args):
+    def show(self, representation='cycles', orientation='landscape', **args):
         r"""
         Display the permutation as a drawing.
 
@@ -1848,33 +1843,33 @@ class Permutation(CombinatorialElement):
 
         - ``representation`` -- different kinds of drawings are available
 
-          - ``"cycles"`` (default) -- the permutation is displayed as a
+          - ``'cycles'`` -- default; the permutation is displayed as a
             collection of directed cycles
 
-          - ``"braid"`` -- the permutation is displayed as segments linking
-            each element `1, ..., n` to its image on a parallel line.
+          - ``'braid'`` -- the permutation is displayed as segments linking
+            each element `1, ..., n` to its image on a parallel line
 
             When using this drawing, it is also possible to display the
             permutation horizontally (``orientation = "landscape"``, default
             option) or vertically (``orientation = "portrait"``).
 
-          - ``"chord-diagram"`` -- the permutation is displayed as a directed
-            graph, all of its vertices being located on a circle.
+          - ``'chord-diagram'`` -- the permutation is displayed as a directed
+            graph, all of its vertices being located on a circle
 
         All additional arguments are forwarded to the ``show`` subcalls.
 
         EXAMPLES::
 
             sage: P20 = Permutations(20)
-            sage: P20.random_element().show(representation="cycles")                    # needs sage.graphs sage.plot
-            sage: P20.random_element().show(representation="chord-diagram")             # needs sage.graphs sage.plot
-            sage: P20.random_element().show(representation="braid")                     # needs sage.plot
-            sage: P20.random_element().show(representation="braid",                     # needs sage.plot
+            sage: P20.random_element().show(representation='cycles')                    # needs sage.graphs sage.plot
+            sage: P20.random_element().show(representation='chord-diagram')             # needs sage.graphs sage.plot
+            sage: P20.random_element().show(representation='braid')                     # needs sage.plot
+            sage: P20.random_element().show(representation='braid',                     # needs sage.plot
             ....:                           orientation='portrait')
 
         TESTS::
 
-            sage: P20.random_element().show(representation="modern_art")
+            sage: P20.random_element().show(representation='modern_art')
             Traceback (most recent call last):
             ...
             ValueError: The value of 'representation' must be equal to 'cycles', 'chord-diagram' or 'braid'
@@ -1885,7 +1880,7 @@ class Permutation(CombinatorialElement):
             if representation == "cycles":
                 d.show(**args)
             else:
-                d.show(layout="circular", **args)
+                d.show(layout='circular', **args)
 
         elif representation == "braid":
             from sage.plot.line import line
@@ -1903,7 +1898,7 @@ class Permutation(CombinatorialElement):
 
             L = line([r(1, 1)])
             for i in range(len(p)):
-                L += line([r(i, 1.0), r(p[i]-1, 0)])
+                L += line([r(i, 1.0), r(p[i] - 1, 0)])
                 L += text(str(i), r(i, 1.05)) + text(str(i), r(p[i]-1, -.05))
 
             return L.show(axes=False, **args)
@@ -1932,7 +1927,7 @@ class Permutation(CombinatorialElement):
         """
         return sum(self.to_inversion_vector())
 
-    def noninversions(self, k) -> list:
+    def noninversions(self, k) -> list[list]:
         r"""
         Return the list of all ``k``-noninversions in ``self``.
 
@@ -2024,8 +2019,8 @@ class Permutation(CombinatorialElement):
         """
         if k > len(self):
             return 0
-        return sum(1 for pos in itertools.combinations(self, k)
-                   if all(pos[i] < pos[i + 1] for i in range(k - 1)))
+        return Integer(sum(1 for pos in itertools.combinations(self, k)
+                           if all(pos[i] < pos[i + 1] for i in range(k - 1))))
 
     def length(self) -> Integer:
         r"""
@@ -2075,12 +2070,12 @@ class Permutation(CombinatorialElement):
         """
         w = list(range(len(self)))
         for i, j in enumerate(self, start=1):
-            w[j - 1] = i
+            w[j - 1] = Integer(i)
         return Permutations()(w)
 
     __invert__ = inverse
 
-    def _icondition(self, i):
+    def _icondition(self, i) -> tuple[str | None, int, int, int]:
         """
         Return a string which shows the relative positions of `i-1,i,i+1` in
         ``self``, along with the actual positions of these three letters in
@@ -2123,13 +2118,13 @@ class Permutation(CombinatorialElement):
         pos_ip1 = self.index(i + 1)
         pos_im1 = self.index(i - 1)
 
-        if pos_i < pos_im1 and pos_im1 < pos_ip1:
+        if pos_i < pos_im1 < pos_ip1:
             state = '213'
-        elif pos_im1 < pos_ip1 and pos_ip1 < pos_i:
+        elif pos_im1 < pos_ip1 < pos_i:
             state = '132'
-        elif pos_i < pos_ip1 and pos_ip1 < pos_im1:
+        elif pos_i < pos_ip1 < pos_im1:
             state = '231'
-        elif pos_ip1 < pos_im1 and pos_im1 < pos_i:
+        elif pos_ip1 < pos_im1 < pos_i:
             state = '312'
         else:
             state = None
@@ -2141,7 +2136,7 @@ class Permutation(CombinatorialElement):
         Return the ``i``-shift of ``self``. If an ``i``-shift of ``self``
         can't be performed, then ``self`` is returned.
 
-        An `i`-shift can be applied when `i` is not inbetween `i-1` and
+        An `i`-shift can be applied when `i` is not between `i-1` and
         `i+1`. The `i`-shift moves `i` to the other side, and leaves the
         relative positions of `i-1` and `i+1` in place. All other entries
         of the permutations are also left in place.
@@ -2166,11 +2161,11 @@ class Permutation(CombinatorialElement):
             sage: Permutation([1,2,3]).ishift(2)
             [1, 2, 3]
         """
-        state = self._icondition(i)
-        if state[0] is None:
+        full_state = self._icondition(i)
+        if full_state[0] is None:
             return self
 
-        state, pos_im1, pos_i, pos_ip1 = state
+        state, pos_im1, pos_i, pos_ip1 = full_state
         l = list(self)
 
         if state == '213':   # goes to 132
@@ -2229,11 +2224,11 @@ class Permutation(CombinatorialElement):
         if i not in range(2, len(self)):
             raise ValueError("i (= %s) must between 2 and n-1" % i)
 
-        state = self._icondition(i)
-        if state[0] is None:
+        full_state = self._icondition(i)
+        if full_state[0] is None:
             return self
 
-        state, pos_im1, pos_i, pos_ip1 = state
+        state, pos_im1, pos_i, pos_ip1 = full_state
         l = list(self)
 
         if state == '213':    # goes to 312
@@ -2254,7 +2249,7 @@ class Permutation(CombinatorialElement):
 
         return Permutations()(l)
 
-    def runs(self, as_tuple=False):
+    def runs(self, as_tuple=False) -> list | tuple:
         r"""
         Return a list of the runs in the nonempty permutation
         ``self``.
@@ -2269,12 +2264,10 @@ class Permutation(CombinatorialElement):
 
         INPUT:
 
-        - ``as_tuple`` -- boolean (default: ``False``) choice of
+        - ``as_tuple`` -- boolean (default: ``False``); choice of
           output format
 
-        OUTPUT:
-
-        a list of lists or a tuple of tuples
+        OUTPUT: list of lists or a tuple of tuples
 
         REFERENCES:
 
@@ -2324,18 +2317,16 @@ class Permutation(CombinatorialElement):
 
         return runs
 
-    def decreasing_runs(self, as_tuple=False):
+    def decreasing_runs(self, as_tuple=False) -> list | tuple:
         """
         Decreasing runs of the permutation.
 
         INPUT:
 
-        - ``as_tuple`` -- boolean (default: ``False``) choice of output
+        - ``as_tuple`` -- boolean (default: ``False``); choice of output
           format
 
-        OUTPUT:
-
-        a list of lists or a tuple of tuples
+        OUTPUT: list of lists or a tuple of tuples
 
         .. SEEALSO::
 
@@ -2380,9 +2371,9 @@ class Permutation(CombinatorialElement):
             else:
                 # We replace y by x
                 r[idx] = x
-        return len(r)
+        return Integer(len(r))
 
-    def longest_increasing_subsequences(self):
+    def longest_increasing_subsequences(self) -> list:
         r"""
         Return the list of the longest increasing subsequences of ``self``.
 
@@ -2410,7 +2401,7 @@ class Permutation(CombinatorialElement):
         if n == 0:
             return [[]]
 
-        from bisect import insort, bisect
+        from bisect import bisect, insort
 
         # getting the column in which each element is inserted
         first_row_p_tableau = []
@@ -2438,11 +2429,11 @@ class Permutation(CombinatorialElement):
         for i in columns[0]:
             D.add_edge(0, i)  # 0 is source
         for i in columns[-1]:
-            D.add_edge(i, n+1)  # n+1 is sink
+            D.add_edge(i, n + 1)  # n+1 is sink
 
-        return sorted([p[1:-1] for p in D.all_paths(0, n+1)], reverse=True)
+        return sorted([p[1:-1] for p in D.all_paths(0, n + 1)], reverse=True)
 
-    def longest_increasing_subsequences_number(self):
+    def number_of_longest_increasing_subsequences(self):
         r"""
         Return the number of increasing subsequences of maximal length
         in ``self``.
@@ -2460,20 +2451,20 @@ class Permutation(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: sum(p.longest_increasing_subsequences_number()
+            sage: sum(p.number_of_longest_increasing_subsequences()
             ....:     for p in Permutations(8))
             120770
 
             sage: p = Permutations(50).random_element()
             sage: (len(p.longest_increasing_subsequences()) ==                          # needs sage.graphs
-            ....:  p.longest_increasing_subsequences_number())
+            ....:  p.number_of_longest_increasing_subsequences())
             True
         """
         n = self.size()
         if n == 0:
             return 1
 
-        from bisect import insort, bisect
+        from bisect import bisect, insort
 
         count: list[int] = [0] * (n + 1)
         first_row_p_tableau = []
@@ -2494,6 +2485,8 @@ class Permutation(CombinatorialElement):
                         break
                     count[x] += count[k]
         return sum(count[x] for x in columns[-1])
+
+    longest_increasing_subsequences_number = number_of_longest_increasing_subsequences
 
     def cycle_type(self):
         r"""
@@ -2664,7 +2657,7 @@ class Permutation(CombinatorialElement):
                 continue
 
             a = M[-1]
-            M_prime = [0]*(k + 1)
+            M_prime = [0] * (k + 1)
             # Locate the positions of the vertical lines.
             if a > e:
                 index_list = [-1] + [i for i, val in enumerate(M) if val > e]
@@ -2716,7 +2709,7 @@ class Permutation(CombinatorialElement):
             k = len(L)
             if k <= 1:
                 continue
-            L_prime = [0]*(k)
+            L_prime = [0] * (k)
             a = L[0]
             # Locate the positions of the vertical lines.
             if a > e:
@@ -2877,15 +2870,16 @@ class Permutation(CombinatorialElement):
 
     def destandardize(self, weight, ordered_alphabet=None):
         r"""
-        Return destandardization of ``self`` with respect to ``weight`` and ``ordered_alphabet``.
+        Return destandardization of ``self`` with respect to ``weight`` and
+        ``ordered_alphabet``.
 
         INPUT:
 
-        - ``weight`` -- list or tuple of nonnegative integers that sum to `n` if ``self``
-          is a permutation in `S_n`.
+        - ``weight`` -- list or tuple of nonnegative integers that sum to `n`
+          if ``self`` is a permutation in `S_n`
 
-        - ``ordered_alphabet`` -- (default: ``None``) a list or tuple specifying the ordered alphabet the
-          destandardized word is over
+        - ``ordered_alphabet`` -- (default: ``None``) a list or tuple
+          specifying the ordered alphabet the destandardized word is over
 
         OUTPUT: word over the ``ordered_alphabet`` which standardizes to ``self``
 
@@ -2924,14 +2918,13 @@ class Permutation(CombinatorialElement):
         if not set(ides).issubset(set(partial)):
             raise ValueError(f"Standardization with weight {weight} is not possible!")
         if ordered_alphabet is None:
-            ordered_alphabet = list(range(1,len(weight)+1))
-        else:
-            if len(weight) > len(ordered_alphabet):
-                raise ValueError("Not enough letters in the alphabet are specified compared to the weight")
+            ordered_alphabet = list(range(1, len(weight)+1))
+        elif len(weight) > len(ordered_alphabet):
+            raise ValueError("Not enough letters in the alphabet are specified compared to the weight")
         q = self.inverse()
-        s = [0]*len(self)
+        s = [0] * len(self)
         for i in range(len(partial)-1):
-            for j in range(partial[i],partial[i+1]):
+            for j in range(partial[i], partial[i+1]):
                 s[q[j]-1] = ordered_alphabet[i]
         from sage.combinat.words.word import Word
         return Word(s)
@@ -2970,16 +2963,14 @@ class Permutation(CombinatorialElement):
             sage: all(from_lehmer_code(p.to_lehmer_code()) == p
             ....:   for p in sample)
             True
-
         """
         l = len(self._list)
         # choose the best implementations
         if l < 577:
             return self._to_lehmer_code_small()
-        else:
-            return self.inverse().to_inversion_vector()
+        return self.inverse().to_inversion_vector()
 
-    def _to_lehmer_code_small(self) -> list:
+    def _to_lehmer_code_small(self) -> list[int]:
         r"""
         Return the Lehmer code of the permutation ``self``.
 
@@ -2998,13 +2989,13 @@ class Permutation(CombinatorialElement):
         p = self._list
         l = len(p)
         lehmer = []
-        checked = [1]*l
+        checked = [1] * l
         for pi in p:
-            checked[pi-1] = 0
+            checked[pi - 1] = 0
             lehmer.append(sum(checked[:pi]))
         return lehmer
 
-    def to_lehmer_cocode(self) -> list:
+    def to_lehmer_cocode(self) -> list[int]:
         r"""
         Return the Lehmer cocode of the permutation ``self``.
 
@@ -3034,11 +3025,12 @@ class Permutation(CombinatorialElement):
     # Reduced Words #
     #################
 
-    def reduced_word(self):
+    def reduced_word(self) -> list[int]:
         r"""
         Return a reduced word of the permutation ``self``.
 
-        See :meth:`reduced_words` for the definition of reduced words and
+        See :meth:`~sage.combinat.permutation.Permutation.reduced_words`
+        for the definition of reduced words and
         a way to compute them all.
 
         .. WARNING::
@@ -3058,7 +3050,7 @@ class Permutation(CombinatorialElement):
         code = self.to_lehmer_code()
         return [i + ci - j for i, ci in enumerate(code) for j in range(ci)]
 
-    def reduced_words_iterator(self):
+    def reduced_words_iterator(self) -> Iterator:
         r"""
         Return an iterator for the reduced words of ``self``.
 
@@ -3066,12 +3058,11 @@ class Permutation(CombinatorialElement):
 
             sage: next(Permutation([5,2,3,4,1]).reduced_words_iterator())
             [1, 2, 3, 4, 3, 2, 1]
-
         """
         def aux(p):
             is_identity = True
             for d in range(len(p)-1):
-                e = d+1
+                e = d + 1
                 if p[d] > p[e]:
                     is_identity = False
                     p[d], p[e] = p[e], p[d]
@@ -3086,7 +3077,7 @@ class Permutation(CombinatorialElement):
 
         return aux(self[:])
 
-    def reduced_words(self):
+    def reduced_words(self) -> list:
         r"""
         Return a list of the reduced words of ``self``.
 
@@ -3107,14 +3098,17 @@ class Permutation(CombinatorialElement):
         Note that the product of permutations is defined here in such
         a way that `(pq)(i) = p(q(i))` for all permutations `p` and `q`
         and each `i \in \{ 1, 2, \ldots, n \}` (this is the same
-        convention as in :meth:`left_action_product`, but not the
+        convention as in
+        :meth:`~sage.combinat.permutation.Permutation.left_action_product`,
+        but not the
         default semantics of the `*` operator on permutations in Sage).
         Thus, for instance, `s_2 s_1` is the permutation obtained by
         first transposing `1` with `2` and then transposing `2` with `3`.
 
         .. SEEALSO::
 
-            :meth:`reduced_word`, :meth:`reduced_word_lexmin`
+            :meth:`~sage.combinat.permutation.Permutation.reduced_word`,
+            :meth:`~sage.combinat.permutation.Permutation.reduced_word_lexmin`
 
         EXAMPLES::
 
@@ -3134,12 +3128,13 @@ class Permutation(CombinatorialElement):
         """
         return list(self.reduced_words_iterator())
 
-    def reduced_word_lexmin(self):
+    def reduced_word_lexmin(self) -> list[int]:
         r"""
         Return a lexicographically minimal reduced word of the permutation
         ``self``.
 
-        See :meth:`reduced_words` for the definition of reduced words and
+        See :meth:`~sage.combinat.permutation.Permutation.reduced_words`
+        for the definition of reduced words and
         a way to compute them all.
 
         EXAMPLES::
@@ -3156,11 +3151,29 @@ class Permutation(CombinatorialElement):
 
         rw = []
         for i in range(len(cocode)):
-            piece = [j + 1 for j in range(i-cocode[i], i)]
+            piece = [j + 1 for j in range(i - cocode[i], i)]
             piece.reverse()
             rw += piece
 
         return rw
+
+    def number_of_reduced_words(self):
+        r"""
+        Return the number of reduced words of ``self`` without explicitly
+        computing them all.
+
+        EXAMPLES::
+
+            sage: p = Permutation([6,4,2,5,1,8,3,7])
+            sage: len(p.reduced_words()) == p.number_of_reduced_words()                 # needs sage.combinat
+            True
+        """
+        Tx = self.rothe_diagram().peelable_tableaux()
+        return sum(map(_tableau_contribution, Tx))
+
+    ##################
+    # Rothe diagrams #
+    ##################
 
     def rothe_diagram(self):
         r"""
@@ -3180,26 +3193,106 @@ class Permutation(CombinatorialElement):
         from sage.combinat.diagram import RotheDiagram
         return RotheDiagram(self)
 
-    def number_of_reduced_words(self):
+    def rank_matrix(self):
         r"""
-        Return the number of reduced words of ``self`` without explicitly
-        computing them all.
+        Return the rank matrix of ``self``.
+
+        Let `P = [P_{ij}]_{i, j=1}^n` be the permutation matrix of `w \in S_n`.
+        The rank matrix is the `n \times n` matrix with entries
+
+        .. MATH::
+
+            r_w(i, j) = \sum_{a=1}^i \sum_{b=1}^j P_{ij}.
 
         EXAMPLES::
 
-            sage: p = Permutation([6,4,2,5,1,8,3,7])
-            sage: len(p.reduced_words()) == p.number_of_reduced_words()                 # needs sage.combinat
+            sage: w = Permutation([2, 1, 5, 4, 3])
+            sage: w.to_matrix()
+            [0 1 0 0 0]
+            [1 0 0 0 0]
+            [0 0 0 0 1]
+            [0 0 0 1 0]
+            [0 0 1 0 0]
+            sage: w.rank_matrix()
+            [0 1 1 1 1]
+            [1 2 2 2 2]
+            [1 2 2 2 3]
+            [1 2 2 3 4]
+            [1 2 3 4 5]
+        """
+        ret = self.to_matrix()
+        n = ret.nrows()
+        for j in range(1, n):
+            ret[0, j] += ret[0, j-1]
+        for i in range(1, n):
+            ret[i, 0] += ret[i-1, 0]
+            for j in range(1, n):
+                # Compute by inclusion-exclusion
+                ret[i, j] += ret[i-1, j] + ret[i, j-1] - ret[i-1, j-1]
+        return ret
+
+    def schubert_determinant_ideal(self):
+        r"""
+        Return the Schubert determinant ideal of ``self``.
+
+        From Lemma 3.10 [Ful1992]_, the matrix Schubert variety of
+        a permutation `w \in S_n` is defined by the ideal
+
+        .. MATH::
+
+            I_w = \sum_{(i, j)} I_{r_w(i, j)+1}(i, j),
+
+        where the sum is over the :meth:`essential set
+        <sage.combinat.diagram.Diagram.essential_set>`, `[r_w(i, j)]_{i, j}`
+        is the :meth:`rank_matrix` of `w`, and `I_k(i, j)` is the ideal
+        generated by the `k \times k` minors of the `i \times j`
+        matrix `[z_{ab}]_{a, b}`.
+
+        These ideals are known to be prime of codimension equal to `\ell(w)`
+        (the length of `w`) such that `R / I_w` is Cohen-Macaulay, where `R`
+        is the polynomial ring `\QQ[z_{ab} | 1 \leq a, b \leq n]` from
+        Prop. 3.10 of [Ful1992]_.
+
+        EXAMPLES::
+
+            sage: w = Permutation([3, 1, 4, 2])
+            sage: Iw = w.schubert_determinant_ideal()
+            sage: Iw.gens()
+            [z00, z01, -z01*z10 + z00*z11, -z01*z20 + z00*z21, -z11*z20 + z10*z21]
+            sage: Iw.dimension()
+            13
+            sage: Iw.dimension() + w.length()
+            16
+            sage: Iw.is_prime()
+            True
+
+            sage: w = Permutation([2, 1, 5, 4, 3])
+            sage: Iw = w.schubert_determinant_ideal()
+            sage: Iw.dimension()
+            21
+            sage: w.length() + Iw.dimension()
+            25
+            sage: Iw.is_prime()
             True
         """
-        Tx = self.rothe_diagram().peelable_tableaux()
-
-        return sum(map(_tableau_contribution, Tx))
+        from sage.matrix.constructor import matrix
+        from sage.rings.rational_field import QQ
+        n = len(self)
+        PR = PolynomialRing(QQ, n, var_array='z')
+        z = PR.gens()
+        Z = matrix(PR, [[z[r*n+c] for c in range(n)] for r in range(n)])
+        rk = self.rank_matrix()
+        gens = []
+        for i, j in self.rothe_diagram().essential_set():
+            # we apply the transpose to the rank matrix to match conventions
+            gens.extend(Z.submatrix(0, 0, i+1, j+1).minors(rk[j, i] + 1))
+        return PR.ideal(gens)
 
     ################
     # Fixed Points #
     ################
 
-    def fixed_points(self) -> list:
+    def fixed_points(self) -> list[int]:
         r"""
         Return a list of the fixed points of ``self``.
 
@@ -3212,7 +3305,7 @@ class Permutation(CombinatorialElement):
         """
         return [i for i, v in enumerate(self, start=1) if i == v]
 
-    def number_of_fixed_points(self) -> Integer:
+    def number_of_fixed_points(self) -> int:
         r"""
         Return the number of fixed points of ``self``.
 
@@ -3223,7 +3316,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([1,2,3,4]).number_of_fixed_points()
             4
         """
-        return len(self.fixed_points())
+        return Integer(len(self.fixed_points()))
 
     def is_derangement(self) -> bool:
         r"""
@@ -3289,7 +3382,7 @@ class Permutation(CombinatorialElement):
                 right = elt
             if right - left == end:
                 return False
-            elif right - left == n - 1:
+            if right - left == n - 1:
                 break
             end += 1
 
@@ -3305,7 +3398,7 @@ class Permutation(CombinatorialElement):
                     right = elt
                 if right - left == end - start:
                     return False
-                elif right - left > n - 1 - start:
+                if right - left > n - 1 - start:
                     break
                 end += 1
 
@@ -3315,7 +3408,7 @@ class Permutation(CombinatorialElement):
     # Recoils  #
     ############
 
-    def recoils(self) -> list:
+    def recoils(self) -> list[int]:
         r"""
         Return the list of the positions of the recoils of ``self``.
 
@@ -3344,7 +3437,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([1,4,3,2]).number_of_recoils()
             2
         """
-        return len(self.recoils())
+        return Integer(len(self.recoils()))
 
     def recoils_composition(self) -> Composition:
         r"""
@@ -3369,7 +3462,7 @@ class Permutation(CombinatorialElement):
     ############
 
     def descents(self, final_descent=False, side='right', positive=False,
-                 from_zero=False, index_set=None):
+                 from_zero=False, index_set=None) -> list[int]:
         r"""
         Return the list of the descents of ``self``.
 
@@ -3384,17 +3477,17 @@ class Permutation(CombinatorialElement):
 
         INPUT:
 
-        - ``final_descent`` -- boolean (default ``False``);
+        - ``final_descent`` -- boolean (default: ``False``);
           if ``True``, the last position of a non-empty
           permutation is also considered as a descent
 
         - ``side`` -- ``'right'`` (default) or ``'left'``;
           if ``'left'``, return the descents of the inverse permutation
 
-        - ``positive`` -- boolean (default ``False``);
+        - ``positive`` -- boolean (default: ``False``);
           if ``True``, return the positions that are not descents
 
-        - ``from_zero`` -- boolean (default ``False``);
+        - ``from_zero`` -- boolean (default: ``False``);
           if ``True``, return the positions starting from `0`
 
         - ``index_set`` -- list (default: ``[1, ..., n-1]`` where ``self``
@@ -3432,9 +3525,8 @@ class Permutation(CombinatorialElement):
             if p[i-1] > p[i]:
                 if not positive:
                     descents.append(i)
-            else:
-                if positive:
-                    descents.append(i)
+            elif positive:
+                descents.append(i)
 
         if final_descent:
             descents.append(len(p))
@@ -3444,7 +3536,7 @@ class Permutation(CombinatorialElement):
 
         return descents
 
-    def idescents(self, final_descent=False, from_zero=False):
+    def idescents(self, final_descent=False, from_zero=False) -> list[int]:
         """
         Return a list of the idescents of ``self``, that is the list of
         the descents of ``self``'s inverse.
@@ -3460,12 +3552,12 @@ class Permutation(CombinatorialElement):
 
         INPUT:
 
-        - ``final_descent`` -- boolean (default ``False``);
-          if ``True``, the last position of a non-empty
-          permutation is also considered as a descent
+        - ``final_descent`` -- boolean (default: ``False``); if ``True``, the
+          last position of a non-empty permutation is also considered as a
+          descent
 
-        - ``from_zero`` -- optional boolean (default ``False``);
-          if ``False``, return the positions starting from `1`
+        - ``from_zero`` -- boolean (default: ``False``); if ``False``, return
+          the positions starting from `1`
 
         EXAMPLES::
 
@@ -3503,7 +3595,7 @@ class Permutation(CombinatorialElement):
         d = {True: -1, False: 1}
         return [d[(i + 1) in idescents] for i in range(len(self))]
 
-    def number_of_descents(self, final_descent=False) -> Integer:
+    def number_of_descents(self, final_descent=False) -> int:
         r"""
         Return the number of descents of ``self``.
 
@@ -3517,9 +3609,9 @@ class Permutation(CombinatorialElement):
             sage: Permutation([1,4,3,2]).number_of_descents(final_descent=True)
             3
         """
-        return len(self.descents(final_descent))
+        return Integer(len(self.descents(final_descent)))
 
-    def number_of_idescents(self, final_descent=False) -> Integer:
+    def number_of_idescents(self, final_descent=False) -> int:
         r"""
         Return the number of idescents of ``self``.
 
@@ -3535,7 +3627,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([1,4,3,2]).number_of_idescents(final_descent=True)
             3
         """
-        return len(self.idescents(final_descent))
+        return Integer(len(self.idescents(final_descent)))
 
     @combinatorial_map(name='descent composition')
     def descents_composition(self) -> Composition:
@@ -3583,29 +3675,19 @@ class Permutation(CombinatorialElement):
         EXAMPLES::
 
             sage: Permutation([2,1,3]).descent_polynomial()
-            z1
+            z2
             sage: Permutation([4,3,2,1]).descent_polynomial()
-            z1*z2^2*z3^3
+            z2*z3*z4
 
         .. TODO::
 
-            This docstring needs to be fixed. First, the definition
-            does not match the implementation (or the examples).
-            Second, this doesn't seem to be defined in [GS1984]_
+            This docstring needs to be fixed. This is not defined in [GS1984]_
             (the descent monomial in their (7.23) is different).
         """
         p = self
-        z = []
-        P = PolynomialRing(ZZ, len(p), 'z')
+        P = PolynomialRing(ZZ, len(p) + 1, 'z')
         z = P.gens()
-        result = 1
-        pol = 1
-        for i in range(len(p)-1):
-            pol *= z[p[i]-1]
-            if p[i] > p[i+1]:
-                result *= pol
-
-        return result
+        return P.prod(z[p[i]] for i in range(len(p) - 1) if p[i] > p[i + 1])
 
     ##############
     # Major Code #
@@ -3632,7 +3714,7 @@ class Permutation(CombinatorialElement):
             6
         """
         descents = self.descents(final_descent)
-        return sum(descents)
+        return Integer(sum(descents))
 
     def multi_major_index(self, composition):
         r"""
@@ -3674,7 +3756,7 @@ class Permutation(CombinatorialElement):
         for j in range(1, len(partial_sum)):
             a = partial_sum[j-1]
             b = partial_sum[j]
-            from bisect import bisect_right, bisect_left
+            from bisect import bisect_left, bisect_right
             start = bisect_right(descents, a)
             end = bisect_left(descents, b)
             multimajor_index.append(sum(descents[start: end])-(end-start)*a)
@@ -3701,7 +3783,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([4,3,2,1]).imajor_index()
             6
         """
-        return sum(self.idescents(final_descent))
+        return Integer(sum(self.idescents(final_descent)))
 
     def to_major_code(self, final_descent=False):
         r"""
@@ -3735,7 +3817,7 @@ class Permutation(CombinatorialElement):
         """
         p = self
         n = len(p)
-        major_indices = [0]*(n+1)
+        major_indices = [0] * (n + 1)
         smaller = p[:]
         P = Permutations()
         for i in range(n):
@@ -3751,7 +3833,7 @@ class Permutation(CombinatorialElement):
     # Peaks #
     #########
 
-    def peaks(self) -> list:
+    def peaks(self) -> list[int]:
         r"""
         Return a list of the peaks of the permutation ``self``.
 
@@ -3771,7 +3853,7 @@ class Permutation(CombinatorialElement):
         return [i for i in range(1, len(p) - 1)
                 if p[i - 1] <= p[i] and p[i] > p[i + 1]]
 
-    def number_of_peaks(self) -> Integer:
+    def number_of_peaks(self) -> int:
         r"""
         Return the number of peaks of the permutation ``self``.
 
@@ -3785,13 +3867,13 @@ class Permutation(CombinatorialElement):
             sage: Permutation([4,1,3,2,6,5]).number_of_peaks()
             2
         """
-        return len(self.peaks())
+        return Integer(len(self.peaks()))
 
     #############
     # Saliances #
     #############
 
-    def saliances(self) -> list:
+    def saliances(self) -> list[int]:
         r"""
         Return a list of the saliances of the permutation ``self``.
 
@@ -3809,15 +3891,16 @@ class Permutation(CombinatorialElement):
         saliances = []
         for i in range(len(p)):
             is_saliance = True
-            for j in range(i+1, len(p)):
+            for j in range(i + 1, len(p)):
                 if p[i] <= p[j]:
                     is_saliance = False
+                    break
             if is_saliance:
                 saliances.append(i)
 
         return saliances
 
-    def number_of_saliances(self) -> Integer:
+    def number_of_saliances(self) -> int:
         r"""
         Return the number of saliances of ``self``.
 
@@ -3831,7 +3914,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([5,4,3,2,1]).number_of_saliances()
             5
         """
-        return len(self.saliances())
+        return Integer(len(self.saliances()))
 
     ################
     # Bruhat Order #
@@ -4106,7 +4189,7 @@ class Permutation(CombinatorialElement):
     # Permutohedron  Order #
     ########################
 
-    def permutohedron_lequal(self, p2, side="right") -> bool:
+    def permutohedron_lequal(self, p2, side='right') -> bool:
         r"""
         Return ``True`` if ``self`` is less or equal to ``p2`` in the
         permutohedron order.
@@ -4184,7 +4267,7 @@ class Permutation(CombinatorialElement):
             sage: sorted( [len([b for b in Permutations(3) if a.permutohedron_lequal(b)])
             ....:          for a in Permutations(3)] )
             [1, 2, 2, 3, 3, 6]
-            sage: sorted( [len([b for b in Permutations(3) if a.permutohedron_lequal(b, side="left")])
+            sage: sorted( [len([b for b in Permutations(3) if a.permutohedron_lequal(b, side='left')])
             ....:          for a in Permutations(3)] )
             [1, 2, 2, 3, 3, 6]
 
@@ -4205,7 +4288,7 @@ class Permutation(CombinatorialElement):
 
         return prod.number_of_inversions() == l2 - l1
 
-    def permutohedron_succ(self, side="right"):
+    def permutohedron_succ(self, side='right'):
         r"""
         Return a list of the permutations strictly greater than ``self``
         in the permutohedron order such that there is no permutation
@@ -4238,7 +4321,7 @@ class Permutation(CombinatorialElement):
                 pp[i+1] = p[i]
                 succ.append(P(pp))
         else:
-            advance = lambda perm: [i for i in range(1,n) if perm.index(i) < perm.index(i+1)]
+            advance = lambda perm: [i for i in range(1, n) if perm.index(i) < perm.index(i+1)]
             for i in advance(p):
                 pp = p[:]
                 pp[p.index(i)] = i+1
@@ -4246,7 +4329,7 @@ class Permutation(CombinatorialElement):
                 succ.append(P(pp))
         return succ
 
-    def permutohedron_pred(self, side="right") -> list:
+    def permutohedron_pred(self, side='right') -> list:
         r"""
         Return a list of the permutations strictly smaller than ``self``
         in the permutohedron order such that there is no permutation
@@ -4278,7 +4361,7 @@ class Permutation(CombinatorialElement):
                 pp[d] = p[d - 1]
                 pred.append(P(pp))
         else:
-            recoil = lambda perm: [i for i in range(1,n) if perm.index(i) > perm.index(i+1)]
+            recoil = lambda perm: [i for i in range(1, n) if perm.index(i) > perm.index(i+1)]
             for i in recoil(p):
                 pp = p[:]
                 pp[p.index(i)] = i+1
@@ -4286,7 +4369,7 @@ class Permutation(CombinatorialElement):
                 pred.append(P(pp))
         return pred
 
-    def permutohedron_smaller(self, side="right") -> list:
+    def permutohedron_smaller(self, side='right') -> list:
         r"""
         Return a list of permutations smaller than or equal to ``self``
         in the permutohedron order.
@@ -4324,7 +4407,7 @@ class Permutation(CombinatorialElement):
         """
         return transitive_ideal(lambda x: x.permutohedron_pred(side), self)
 
-    def permutohedron_greater(self, side="right") -> list:
+    def permutohedron_greater(self, side='right') -> list:
         r"""
         Return a list of permutations greater than or equal to ``self``
         in the permutohedron order.
@@ -4367,7 +4450,7 @@ class Permutation(CombinatorialElement):
             raise ValueError("{} must be lower or equal than {} for the right permutohedron order".format(self, other))
         d = DiGraph()
         d.add_vertices(range(1, len(self) + 1))
-        d.add_edges([(j, i) for (i, j) in self.inverse().inversions()])
+        d.add_edges([(j, i) for i, j in self.inverse().inversions()])
         d.add_edges([(other[i], other[j]) for i in range(len(other) - 1)
                      for j in range(i, len(other)) if other[i] < other[j]])
         return d.topological_sort_generator()
@@ -4413,7 +4496,7 @@ class Permutation(CombinatorialElement):
         P = Permutations()
         return [P(p) for p in self.right_permutohedron_interval_iterator(other)]
 
-    def permutohedron_join(self, other, side="right") -> Permutation:
+    def permutohedron_join(self, other, side='right') -> Permutation:
         r"""
         Return the join of the permutations ``self`` and ``other``
         in the right permutohedron order (or, if ``side`` is set to
@@ -4509,10 +4592,10 @@ class Permutation(CombinatorialElement):
 
             sage: p = Permutation([3,1,2])
             sage: q = Permutation([1,3,2])
-            sage: p.permutohedron_join(q, side="left")
+            sage: p.permutohedron_join(q, side='left')
             [3, 2, 1]
             sage: r = Permutation([2,1,3])
-            sage: r.permutohedron_join(p, side="left")
+            sage: r.permutohedron_join(p, side='left')
             [3, 1, 2]
         """
         if side == "left":
@@ -4533,7 +4616,7 @@ class Permutation(CombinatorialElement):
                 xs.append(i)
         return Permutations(n)(xs)
 
-    def permutohedron_meet(self, other, side="right") -> Permutation:
+    def permutohedron_meet(self, other, side='right') -> Permutation:
         r"""
         Return the meet of the permutations ``self`` and ``other``
         in the right permutohedron order (or, if ``side`` is set to
@@ -4625,10 +4708,10 @@ class Permutation(CombinatorialElement):
 
             sage: p = Permutation([3,1,2])
             sage: q = Permutation([1,3,2])
-            sage: p.permutohedron_meet(q, side="left")
+            sage: p.permutohedron_meet(q, side='left')
             [1, 2, 3]
             sage: r = Permutation([2,1,3])
-            sage: r.permutohedron_meet(p, side="left")
+            sage: r.permutohedron_meet(p, side='left')
             [2, 1, 3]
         """
         return self.reverse().permutohedron_join(other.reverse(), side=side).reverse()
@@ -4689,16 +4772,17 @@ class Permutation(CombinatorialElement):
                 if to_standard([p[z] for z in pos]) == patt]
 
     @combinatorial_map(name='Simion-Schmidt map')
-    def simion_schmidt(self, avoid=[1,2,3]):
+    def simion_schmidt(self, avoid=[1, 2, 3]):
         r"""
-        Implements the Simion-Schmidt map which sends an arbitrary permutation
+        Implement the Simion-Schmidt map which sends an arbitrary permutation
         to a pattern avoiding permutation, where the permutation pattern is one
         of four length-three patterns.  This method also implements the bijection
         between (for example) ``[1,2,3]``- and ``[1,3,2]``-avoiding permutations.
 
         INPUT:
 
-        - ``avoid`` -- one of the patterns ``[1,2,3]``, ``[1,3,2]``, ``[3,1,2]``, ``[3,2,1]``.
+        - ``avoid`` -- one of the patterns ``[1,2,3]``, ``[1,3,2]``,
+          ``[3,1,2]``, ``[3,2,1]``
 
         EXAMPLES::
 
@@ -4718,7 +4802,7 @@ class Permutation(CombinatorialElement):
         targetPermutation = [self[0]]
         extreme = self[0]
         nonMinima = []
-        if avoid == [1,2,3] or avoid == [1,3,2]:
+        if avoid == [1, 2, 3] or avoid == [1, 3, 2]:
             for i in range(1, len(list(self))):
                 if self[i] < extreme:
                     targetPermutation.append(self[i])
@@ -4727,9 +4811,9 @@ class Permutation(CombinatorialElement):
                     targetPermutation.append(None)
                     nonMinima.append(self[i])
             nonMinima.sort()
-            if avoid == [1,3,2]:
+            if avoid == [1, 3, 2]:
                 nonMinima.reverse()
-        if avoid == [3,2,1] or avoid == [3,1,2]:
+        if avoid == [3, 2, 1] or avoid == [3, 1, 2]:
             for i in range(1, len(list(self))):
                 if self[i] > extreme:
                     targetPermutation.append(self[i])
@@ -4738,7 +4822,7 @@ class Permutation(CombinatorialElement):
                     targetPermutation.append(None)
                     nonMinima.append(self[i])
             nonMinima.sort()
-            if avoid == [3,2,1]:
+            if avoid == [3, 2, 1]:
                 nonMinima.reverse()
 
         for i in range(1, len(list(self))):
@@ -5074,7 +5158,7 @@ class Permutation(CombinatorialElement):
         :meth:`permutohedron_lequal`) on `S_n`.
 
         This is related to the
-        :meth:`~sage.combinat.binary_tree.LabelledBinaryTree.sylvester_class`
+        :meth:`~sage.combinat.binary_tree.BinaryTree.sylvester_class`
         method in that the equivalence class of a permutation `\pi` under
         sylvester congruence is the sylvester class of the right-to-left
         binary search tree of `\pi`. However, the present method
@@ -5405,14 +5489,14 @@ class Permutation(CombinatorialElement):
         n = len(self)
         if n % 2 == 1:
             raise ValueError("%s is a permutation of odd size and has no coset-type" % self)
-        S = PerfectMatchings(n)([(2*i+1,2*i+2) for i in range(n//2)])
+        S = PerfectMatchings(n)([(2*i+1, 2*i+2) for i in range(n//2)])
         return S.loop_type(S.apply_permutation(self))
 
     #####################
     # Binary operations #
     #####################
 
-    def shifted_concatenation(self, other, side="right"):
+    def shifted_concatenation(self, other, side='right'):
         r"""
         Return the right (or left) shifted concatenation of ``self``
         with a permutation ``other``. These operations are also known
@@ -5421,18 +5505,18 @@ class Permutation(CombinatorialElement):
         INPUT:
 
         - ``other`` -- a permutation, a list, a tuple, or any iterable
-          representing a permutation.
+          representing a permutation
 
-        - ``side`` -- (default: ``"right"``) the string "left" or "right".
+        - ``side`` -- string (default: ``'right'``); ``'left'`` or ``'right'``
 
         OUTPUT:
 
-        If ``side`` is ``"right"``, the method returns the permutation
+        If ``side`` is ``'right'``, the method returns the permutation
         obtained by concatenating ``self`` with the letters of ``other``
         incremented by the size of ``self``. This is what is called
         ``side / other`` in [LR0102066]_, and denoted as the "over"
         operation.
-        Otherwise, i. e., when ``side`` is ``"left"``, the method
+        Otherwise, i. e., when ``side`` is ``'left'``, the method
         returns the permutation obtained by concatenating the letters
         of ``other`` incremented by the size of ``self`` with ``self``.
         This is what is called ``side \ other`` in [LR0102066]_
@@ -5452,10 +5536,9 @@ class Permutation(CombinatorialElement):
         """
         if side == "right":
             return Permutations()(list(self) + [a + len(self) for a in other])
-        elif side == "left":
+        if side == "left":
             return Permutations()([a + len(self) for a in other] + list(self))
-        else:
-            raise ValueError("%s must be \"left\" or \"right\"" % side)
+        raise ValueError("%s must be \"left\" or \"right\"" % side)
 
     def shifted_shuffle(self, other):
         r"""
@@ -5464,7 +5547,7 @@ class Permutation(CombinatorialElement):
         INPUT:
 
         - ``other`` -- a permutation, a list, a tuple, or any iterable
-          representing a permutation.
+          representing a permutation
 
         OUTPUT:
 
@@ -5536,8 +5619,8 @@ class Permutation(CombinatorialElement):
             sage: list(sigma.nth_roots(2))
             []
 
-        For n >= 6, this algorithm begins to be more efficient than naive search
-        (look at all permutations and test their n-th power).
+        For `n \geq 6`, this algorithm begins to be more efficient than naive search
+        (look at all permutations and test their `n`-th power).
 
         .. SEEALSO::
 
@@ -5563,14 +5646,15 @@ class Permutation(CombinatorialElement):
             ...
             ValueError: n must be at least 1
         """
+        from itertools import product
+
+        from sage.arith.misc import divisors, gcd
         from sage.combinat.partition import Partitions
         from sage.combinat.set_partition import SetPartitions
-        from itertools import product
-        from sage.arith.misc import divisors, gcd
 
         def merging_cycles(list_of_cycles):
             """
-            Generate all l-cycles such that its n-th power is the product
+            Generate all l-cycles such that its `n`-th power is the product
             of cycles in 'cycles' (which contains gcd(l, n) cycles of length l/gcd(l, n))
             """
             lC = len(list_of_cycles)
@@ -5673,8 +5757,8 @@ class Permutation(CombinatorialElement):
             ...
             ValueError: n must be at least 1
         """
-        from sage.combinat.partition import Partitions
         from sage.arith.misc import divisors, gcd
+        from sage.combinat.partition import Partitions
 
         if n < 1:
             raise ValueError('n must be at least 1')
@@ -5733,9 +5817,9 @@ class Permutation(CombinatorialElement):
             ...
             ValueError: n must be at least 1
         """
+        from sage.arith.misc import divisors, gcd
         from sage.combinat.partition import Partitions
         from sage.combinat.set_partition import SetPartitions
-        from sage.arith.misc import divisors, gcd
         from sage.misc.misc_c import prod
 
         if n < 1:
@@ -6000,60 +6084,52 @@ class Permutations(UniqueRepresentation, Parent):
                         if a in StandardPermutations_all():
                             if a == [1, 2]:
                                 return StandardPermutations_avoiding_12(n)
-                            elif a == [2, 1]:
+                            if a == [2, 1]:
                                 return StandardPermutations_avoiding_21(n)
-                            elif a == [1, 2, 3]:
+                            if a == [1, 2, 3]:
                                 return StandardPermutations_avoiding_123(n)
-                            elif a == [1, 3, 2]:
+                            if a == [1, 3, 2]:
                                 return StandardPermutations_avoiding_132(n)
-                            elif a == [2, 1, 3]:
+                            if a == [2, 1, 3]:
                                 return StandardPermutations_avoiding_213(n)
-                            elif a == [2, 3, 1]:
+                            if a == [2, 3, 1]:
                                 return StandardPermutations_avoiding_231(n)
-                            elif a == [3, 1, 2]:
+                            if a == [3, 1, 2]:
                                 return StandardPermutations_avoiding_312(n)
-                            elif a == [3, 2, 1]:
+                            if a == [3, 2, 1]:
                                 return StandardPermutations_avoiding_321(n)
-                            else:
-                                return StandardPermutations_avoiding_generic(n, (a,))
-                        elif isinstance(a, (list, tuple)):
+                            return StandardPermutations_avoiding_generic(n, (a,))
+                        if isinstance(a, (list, tuple)):
                             a = tuple(map(Permutation, a))
                             return StandardPermutations_avoiding_generic(n, a)
-                        else:
-                            raise ValueError("do not know how to avoid %s" % a)
+                        raise ValueError("do not know how to avoid %s" % a)
                     else:
                         return StandardPermutations_n(n)
                 else:
-                    return Permutations_nk(n,k)
+                    return Permutations_nk(n, k)
             else:
                 # In this case, we have that n is a list
                 # Because of UniqueRepresentation, we require the elements
                 #   to be hashable
                 if len(set(n)) == len(n):
-                    if list(n) == list(range(1, len(n)+1)):
+                    if all(i == j for i, j in enumerate(n, start=1)):
                         if k is None:
                             return StandardPermutations_n(len(n))
-                        else:
-                            return Permutations_nk(len(n), k)
-                    else:
-                        if k is None:
-                            return Permutations_set(n)
-                        else:
-                            return Permutations_setk(n,k)
-                else:
+                        return Permutations_nk(len(n), k)
                     if k is None:
-                        return Permutations_mset(n)
-                    else:
-                        return Permutations_msetk(n, k)
+                        return Permutations_set(n)
+                    return Permutations_setk(n, k)
+                if k is None:
+                    return Permutations_mset(n)
+                return Permutations_msetk(n, k)
         elif 'descents' in kwargs:
             # Descent positions specified
             if isinstance(kwargs['descents'], tuple):
                 # Descent positions and size specified
                 args = kwargs['descents']
                 return StandardPermutations_descents(tuple(args[0]), args[1])
-            else:
-                # Size not specified
-                return StandardPermutations_descents(kwargs['descents'])
+            # Size not specified
+            return StandardPermutations_descents(kwargs['descents'])
         elif 'bruhat_smaller' in kwargs:
             return StandardPermutations_bruhat_smaller(Permutation(kwargs['bruhat_smaller']))
         elif 'bruhat_greater' in kwargs:
@@ -6115,7 +6191,7 @@ class Permutations(UniqueRepresentation, Parent):
                    'description': "Specifies how the permutations should be printed",
                    'values': {'list': "the permutations are displayed in list notation"
                               " (aka 1-line notation)",
-                            'cycle': "the permutations are displayed in cycle notation"
+                              'cycle': "the permutations are displayed in cycle notation"
                               " (i. e., as products of disjoint cycles)",
                               'singleton': "the permutations are displayed in cycle notation"
                               " with singleton cycles shown as well",
@@ -6136,7 +6212,7 @@ class Permutations(UniqueRepresentation, Parent):
                            'checker': lambda char: isinstance(char, str)}
         generator_name = {'default': "s",
                           'description': "the letter used in latexing the reduced word",
-                            'checker': lambda char: isinstance(char, str)}
+                          'checker': lambda char: isinstance(char, str)}
         mult = {'default': "l2r",
                 'description': "The multiplication of permutations",
                 'values': {'l2r': r"left to right: `(p_1 \cdot p_2)(x) = p_2(p_1(x))`",
@@ -6153,7 +6229,7 @@ class Permutations_nk(Permutations):
         """
         TESTS::
 
-            sage: P = Permutations(3,2)
+            sage: P = Permutations(5, 3)
             sage: TestSuite(P).run()
         """
         self.n = ZZ(n)
@@ -6230,6 +6306,8 @@ class Permutations_nk(Permutations):
 
     def cardinality(self) -> Integer:
         """
+        Return the cardinality of the set.
+
         EXAMPLES::
 
             sage: Permutations(3,0).cardinality()
@@ -6244,18 +6322,19 @@ class Permutations_nk(Permutations):
             0
         """
         if 0 <= self._k <= self.n:
-            return factorial(self.n) // factorial(self.n - self._k)
+            return falling_factorial(self.n, self._k)
         return ZZ.zero()
 
     def random_element(self):
         """
         EXAMPLES::
 
-            sage: s = Permutations(3,2).random_element()
-            sage: s in Permutations(3,2)
+            sage: s = Permutations(3, 2).random_element()
+            sage: s in Permutations(3, 2)
             True
         """
-        return sample(range(1, self.n+1), self._k)
+        x = sample(range(1, self.n + 1), self._k)
+        return self.element_class(self, x, check=False)
 
 
 class Permutations_mset(Permutations):
@@ -6318,7 +6397,7 @@ class Permutations_mset(Permutations):
         """
         TESTS::
 
-            sage: S = Permutations(['c','a','c'])
+            sage: S = Permutations(['c','a','c','d'])
             sage: TestSuite(S).run()
         """
         self.mset = mset
@@ -6518,7 +6597,7 @@ class Permutations_mset(Permutations):
 
         INPUT:
 
-        - ``r`` -- an integer between ``0`` and ``self.cardinality()-1``
+        - ``r`` -- integer between ``0`` and ``self.cardinality()-1``
           inclusive
 
         ALGORITHM:
@@ -6534,9 +6613,9 @@ class Permutations_mset(Permutations):
             [3, 1, 4, 1, 5, 9, 2, 6, 5]
             sage: p.rank(p.unrank(10))
             10
-            sage: p.unrank(0) == list(sorted(mset))
+            sage: p.unrank(0) == p(sorted(mset))
             True
-            sage: p.unrank(p.cardinality()-1) == list(reversed(sorted(mset)))
+            sage: p.unrank(p.cardinality()-1) == p(reversed(sorted(mset)))
             True
 
         TESTS::
@@ -6564,9 +6643,9 @@ class Permutations_mset(Permutations):
 
             sage: mset = list(range(10)) * 3
             sage: p = Permutations_mset(mset)
-            sage: p.unrank(p.rank(mset)) == mset
+            sage: p.unrank(p.rank(mset)) == p(mset)
             True
-            sage: p.unrank(p.cardinality()-1) == list(reversed(sorted(mset)))
+            sage: p.unrank(p.cardinality()-1) == p(reversed(sorted(mset)))
             True
 
         Exhaustive check of roundtrip and lexicographic order for a single
@@ -6586,7 +6665,7 @@ class Permutations_mset(Permutations):
 
             sage: ps = Permutations(4)
             sage: pm = Permutations_mset(list(range(1, 5)))
-            sage: ps.unrank(5) == pm.unrank(5)
+            sage: ps.unrank(5) == ps(pm.unrank(5))
             True
         """
         range_error = ValueError("r must be between %d and %d inclusive" % (0, self.cardinality()-1))
@@ -6649,7 +6728,7 @@ class Permutations_mset(Permutations):
         if r > 0:
             raise range_error
 
-        return p
+        return self.element_class(self, p, check=False)
 
 
 class Permutations_set(Permutations):
@@ -6776,7 +6855,8 @@ class Permutations_set(Permutations):
             sage: s.parent() is Permutations([1,2,3])
             True
         """
-        return sample(self._set, len(self._set))
+        x = sample(self._set, len(self._set))
+        return self.element_class(self, x, check=False)
 
 
 class Permutations_msetk(Permutations_mset):
@@ -6806,7 +6886,7 @@ class Permutations_msetk(Permutations_mset):
         """
         TESTS::
 
-            sage: P = Permutations([1,2,2],2)
+            sage: P = Permutations([1,2,2,3], 2)
             sage: TestSuite(P).run()                                                    # needs sage.libs.gap
         """
         Permutations_mset.__init__(self, mset)
@@ -6871,6 +6951,30 @@ class Permutations_msetk(Permutations_mset):
             yield self.element_class(self, [lmset[x] for x in ktuple],
                                      check=False)
 
+    def rank(self, x):
+        """
+        The rank of an element of ``self``.
+
+        EXAMPLES::
+
+            sage: P = Permutations([1,1,1,2,3], 3)
+            sage: P.rank(P([1,1,1]))
+            0
+        """
+        return self._rank_from_iterator(x)
+
+    def unrank(self, r):
+        """
+        The element of ``self`` with rank ``r``.
+
+        EXAMPLES::
+
+            sage: P = Permutations([1,1,1,2,3], 3)
+            sage: P.unrank(P.rank(P([1,1,2])))
+            [1, 1, 2]
+        """
+        return self._unrank_from_iterator(r)
+
 
 class Permutations_setk(Permutations_set):
     """
@@ -6898,11 +7002,25 @@ class Permutations_setk(Permutations_set):
         """
         TESTS::
 
-            sage: P = Permutations([1,2,4],2)
+            sage: P = Permutations([1,2,4,5], 2)
             sage: TestSuite(P).run()
         """
         Permutations_set.__init__(self, s)
         self._k = k
+
+    def cardinality(self) -> Integer:
+        """
+        Return the cardinality of the set.
+
+        EXAMPLES::
+
+            sage: Permutations([1,2,4,5], 2).cardinality()
+            12
+        """
+        n = len(self._set)
+        if 0 <= self._k <= n:
+            return falling_factorial(n, self._k)
+        return ZZ.zero()
 
     def __contains__(self, x):
         """
@@ -6950,7 +7068,8 @@ class Permutations_setk(Permutations_set):
             sage: s in Permutations([1,2,4], 2)
             True
         """
-        return sample(self._set, self._k)
+        x = sample(self._set, self._k)
+        return self.element_class(self, x, check=False)
 
 ##################################
 # Arrangements
@@ -7091,7 +7210,7 @@ class StandardPermutations_all(Permutations):
         """
         return "Standard permutations"
 
-    def __contains__(self, x):
+    def __contains__(self, x) -> bool:
         """
         TESTS::
 
@@ -7114,13 +7233,9 @@ class StandardPermutations_all(Permutations):
         """
         if isinstance(x, Permutation):
             return True
-        elif isinstance(x, list):
-            s = sorted(x[:])
-            if s != list(range(1, len(x)+1)):
-                return False
-            return True
-        else:
-            return False
+        if isinstance(x, list):
+            return all(a == b for a, b in enumerate(sorted(x), 1))
+        return False
 
     def __iter__(self):
         """
@@ -7252,7 +7367,8 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
 
     .. TODO::
 
-        Have a :meth:`reduced_word` which works in both multiplication
+        Have a :meth:`~sage.combinat.permutation.Permutation.reduced_word`
+        which works in both multiplication
         conventions.
     """
 
@@ -7396,7 +7512,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             sage: Permutations(0).identity()
             []
         """
-        return self.element_class(self, range(1,self.n+1), check=False)
+        return self.element_class(self, range(1, self.n + 1), check=False)
 
     one = identity
 
@@ -7454,7 +7570,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             sage: s in Permutations(4)
             True
         """
-        return self.element_class(self, sample(range(1, self.n+1), self.n),
+        return self.element_class(self, sample(range(1, self.n + 1), self.n),
                                   check=False)
 
     def cardinality(self):
@@ -7516,7 +7632,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             sage: Permutations(7).degrees()
             (2, 3, 4, 5, 6, 7)
         """
-        return tuple(Integer(i) for i in range(2, self.n+1))
+        return tuple(Integer(i) for i in range(2, self.n + 1))
 
     def codegrees(self):
         """
@@ -7610,7 +7726,9 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             True
         """
         from sage.combinat.partition import Partitions_n
-        from sage.groups.perm_gps.symgp_conjugacy_class import PermutationsConjugacyClass
+        from sage.groups.perm_gps.symgp_conjugacy_class import (
+            PermutationsConjugacyClass,
+        )
         for la in reversed(Partitions_n(self.n)):
             yield PermutationsConjugacyClass(self, la)
 
@@ -7647,7 +7765,9 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             sage: G.conjugacy_class(Partition([2, 1, 1, 1]))                            # needs sage.combinat sage.graphs sage.groups
             Conjugacy class of cycle type [2, 1, 1, 1] in Standard permutations of 5
         """
-        from sage.groups.perm_gps.symgp_conjugacy_class import PermutationsConjugacyClass
+        from sage.groups.perm_gps.symgp_conjugacy_class import (
+            PermutationsConjugacyClass,
+        )
         return PermutationsConjugacyClass(self, g)
 
     def algebra(self, base_ring, category=None):
@@ -7722,13 +7842,59 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             sage: P.simple_reflections()
             Finite family {1: [2, 1, 3, 4], 2: [1, 3, 2, 4], 3: [1, 2, 4, 3]}
         """
-        g = list(range(1, self.n+1))
-        g[i-1] = i+1
+        g = list(range(1, self.n + 1))
+        g[i - 1] = i + 1
         g[i] = i
         return self.element_class(self, g, check=False)
 
+    @cached_method
+    def reflection_index_set(self):
+        r"""
+        Return the index set of the reflections of ``self``.
+
+        .. SEEALSO::
+
+            - :meth:`reflection`
+            - :meth:`~sage.categories.complex_reflection_or_generalized_coxeter_groups.ComplexReflectionOrGeneralizedCoxeterGroups.ParentMethods.reflections`
+
+        EXAMPLES::
+
+            sage: P = Permutations(4)
+            sage: P.reflection_index_set()
+            ((1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4))
+        """
+        return tuple([tuple(c) for c in itertools.combinations(range(1, self.n + 1), 2)])
+
+    def reflection(self, i):
+        r"""
+        Return the reflection indexed by ``i`` of ``self``.
+
+        This returns the permutation with cycle `i = (a, b)`.
+
+        .. SEEALSO::
+
+            - :meth:`~sage.combinat.permutation.StandardPermutations_n.reflection_index_set`
+            - :meth:`~sage.categories.complex_reflection_or_generalized_coxeter_groups.ComplexReflectionOrGeneralizedCoxeterGroups.ParentMethods.reflections`
+
+        EXAMPLES::
+
+            sage: P = Permutations(4)
+            sage: for i in P.reflection_index_set():
+            ....:     print('%s %s'%(i, P.reflection(i)))
+            (1, 2) [2, 1, 3, 4]
+            (1, 3) [3, 2, 1, 4]
+            (1, 4) [4, 2, 3, 1]
+            (2, 3) [1, 3, 2, 4]
+            (2, 4) [1, 4, 3, 2]
+            (3, 4) [1, 2, 4, 3]
+        """
+        data = list(range(1, self.n + 1))
+        data[i[0]-1] = i[1]
+        data[i[1]-1] = i[0]
+        return self.element_class(self, data, check=False)
+
     class Element(Permutation):
-        def has_left_descent(self, i, mult=None):
+        def has_left_descent(self, i) -> bool:
             r"""
             Check if ``i`` is a left descent of ``self``.
 
@@ -7740,7 +7906,8 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
 
             .. WARNING::
 
-                The methods :meth:`descents` and :meth:`idescents` behave
+                The methods :meth:`~sage.combinat.permutation.Permutation.descents` and
+                :meth:`sage.combinat.permutation.Permutation.idescents` behave
                 differently than their Weyl group counterparts. In
                 particular, the indexing is 0-based. This could lead to
                 errors. Instead, construct the descent set as in the example.
@@ -7749,7 +7916,8 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
 
                 This ignores the multiplication convention in order
                 to be consistent with other Coxeter operations in
-                permutations (e.g., computing :meth:`reduced_word`).
+                permutations (e.g., computing
+                :meth:`~sage.combinat.permutation.Permutation.reduced_word`).
 
             EXAMPLES::
 
@@ -7759,30 +7927,14 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
                 [1, 2]
                 sage: [i for i in P.index_set() if x.has_left_descent(i)]
                 [1, 2]
-
-            TESTS::
-
-                sage: P = Permutations(4)
-                sage: x = P([3, 2, 4, 1])
-                sage: x.has_left_descent(2, mult='l2r')
-                doctest:warning
-                ...
-                DeprecationWarning: The mult option is deprecated and ignored.
-                See https://github.com/sagemath/sage/issues/27467 for details.
-                True
-                sage: x.has_left_descent(2, mult='r2l')
-                True
             """
-            if mult is not None:
-                from sage.misc.superseded import deprecation
-                deprecation(27467, "The mult option is deprecated and ignored.")
             for val in self._list:
                 if val == i:
                     return False
                 if val == i + 1:
                     return True
 
-        def has_right_descent(self, i, mult=None):
+        def has_right_descent(self, i, mult=None) -> bool:
             r"""
             Check if ``i`` is a right descent of ``self``.
 
@@ -7794,7 +7946,8 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
 
             .. WARNING::
 
-                The methods :meth:`descents` and :meth:`idescents` behave
+                The methods :meth:`~sage.combinat.permutation.Permutation.descents` and
+                :meth:`sage.combinat.permutation.Permutation.idescents` behave
                 differently than their Weyl group counterparts. In
                 particular, the indexing is 0-based. This could lead to
                 errors. Instead, construct the descent set as in the example.
@@ -7803,7 +7956,8 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
 
                 This ignores the multiplication convention in order
                 to be consistent with other Coxeter operations in
-                permutations (e.g., computing :meth:`reduced_word`).
+                permutations (e.g., computing
+                :meth:`~sage.combinat.permutation.Permutation.reduced_word`).
 
             EXAMPLES::
 
@@ -7813,24 +7967,8 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
                 [1, 3]
                 sage: [i for i in P.index_set() if x.has_right_descent(i)]
                 [1, 3]
-
-            TESTS::
-
-                sage: P = Permutations(4)
-                sage: x = P([3, 2, 4, 1])
-                sage: x.has_right_descent(3, mult='l2r')
-                doctest:warning
-                ...
-                DeprecationWarning: The mult option is deprecated and ignored.
-                See https://github.com/sagemath/sage/issues/27467 for details.
-                True
-                sage: x.has_right_descent(3, mult='r2l')
-                True
             """
-            if mult is not None:
-                from sage.misc.superseded import deprecation
-                deprecation(27467, "The mult option is deprecated and ignored.")
-            return self[i-1] > self[i]
+            return self[i - 1] > self[i]
 
         def __mul__(self, other):
             r"""
@@ -7911,7 +8049,8 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
 
                 This ignores the multiplication convention in order
                 to be consistent with other Coxeter operations in
-                permutations (e.g., computing :meth:`reduced_word`).
+                permutations (e.g., computing
+                :meth:`~sage.combinat.permutation.Permutation.reduced_word`).
 
             EXAMPLES::
 
@@ -7937,7 +8076,8 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
 
                 This ignores the multiplication convention in order
                 to be consistent with other Coxeter operations in
-                permutations (e.g., computing :meth:`reduced_word`).
+                permutations (e.g., computing
+                :meth:`~sage.combinat.permutation.Permutation.reduced_word`).
 
             EXAMPLES::
 
@@ -7961,7 +8101,8 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
 
 def from_permutation_group_element(pge, parent=None):
     """
-    Return a :class:`Permutation` given a :class:`PermutationGroupElement`
+    Return a :class:`Permutation` given a
+    :class:`~sage.groups.perm_gps.permgroup_element.PermutationGroupElement`
     ``pge``.
 
     EXAMPLES::
@@ -8116,13 +8257,13 @@ def from_cycles(n, cycles, parent=None):
             # check that the values are valid
             if (k < 1) or (pk < 1):
                 raise ValueError("all elements should be strictly positive "
-                                f"integers, but I found {min(k, pk)}")
+                                 f"integers, but I found {min(k, pk)}")
             if (k > n) or (pk > n):
                 raise ValueError("you claimed that this is a permutation on "
-                                f"1...{n}, but it contains {max(k, pk)}")
+                                 f"1...{n}, but it contains {max(k, pk)}")
             if p[k - 1] is not None:
                 raise ValueError(f"the element {k} appears more than once"
-                                " in the input")
+                                 " in the input")
 
             p[k - 1] = pk
     # values that are not in any cycle are fixed points of the permutation
@@ -8230,9 +8371,9 @@ def bistochastic_as_sum_of_permutations(M, check=True):
 
     INPUT:
 
-    - ``M`` -- A bistochastic matrix
+    - ``M`` -- a bistochastic matrix
 
-    - ``check`` (boolean) -- set to ``True`` (default) to check
+    - ``check`` -- boolean; set to ``True`` (default) to check
       that the matrix is indeed bistochastic
 
     OUTPUT:
@@ -8259,7 +8400,7 @@ def bistochastic_as_sum_of_permutations(M, check=True):
 
     .. SEEALSO::
 
-        - :meth:`~sage.matrix.matrix2.as_sum_of_permutations`
+        - :meth:`~sage.matrix.matrix2.Matrix.as_sum_of_permutations`
           to use this method through the ``Matrix`` class.
 
     EXAMPLES:
@@ -8275,7 +8416,7 @@ def bistochastic_as_sum_of_permutations(M, check=True):
         sage: L.append((6,Permutation([5, 3, 4, 1, 2])))
         sage: L.append((3,Permutation([3, 1, 4, 2, 5])))
         sage: L.append((2,Permutation([1, 4, 2, 3, 5])))
-        sage: M = sum([c * p.to_matrix() for (c,p) in L])
+        sage: M = sum([c * p.to_matrix() for c, p in L])
         sage: decomp = bistochastic_as_sum_of_permutations(M)
         sage: print(decomp)
         2*B[[1, 4, 2, 3, 5]] + 3*B[[3, 1, 4, 2, 5]]
@@ -8288,34 +8429,49 @@ def bistochastic_as_sum_of_permutations(M, check=True):
         sage: decomp = bistochastic_as_sum_of_permutations(M)
         Traceback (most recent call last):
         ...
-        ValueError: The matrix is not bistochastic
+        ValueError: the matrix is not bistochastic
         sage: bistochastic_as_sum_of_permutations(Matrix(GF(7), 2, [2,1,1,2]))
         Traceback (most recent call last):
         ...
-        ValueError: The base ring of the matrix must have a coercion map to RR
+        ValueError: the base ring of the matrix must have a coercion map to RR
         sage: bistochastic_as_sum_of_permutations(Matrix(ZZ, 2, [2,-1,-1,2]))
         Traceback (most recent call last):
         ...
-        ValueError: The matrix should have nonnegative entries
+        ValueError: the matrix should have nonnegative entries
+
+    TESTS::
+
+        sage: matrix(RR, [  # abs tol 1e-14
+        ....:     [.62, .23, .15],
+        ....:     [.24, .40, .36],
+        ....:     [.14, .37, .49],
+        ....: ]).as_sum_of_permutations()
+        0.4*B[[1, 2, 3]] + 0.22*B[[1, 3, 2]] + 0.09*B[[2, 1, 3]] + 0.15*B[[2, 3, 1]] + 0.14*B[[3, 1, 2]]
+        sage: matrix(RDF, [  # abs tol 1e-14
+        ....:     [.62, .23, .15],
+        ....:     [.24, .40, .36],
+        ....:     [.14, .37, .49],
+        ....: ]).as_sum_of_permutations()
+        0.4*B[[1, 2, 3]] + 0.22*B[[1, 3, 2]] + 0.09*B[[2, 1, 3]] + 0.15*B[[2, 3, 1]] + 0.14*B[[3, 1, 2]]
     """
     n = M.nrows()
 
     if n != M.ncols():
-        raise ValueError("The matrix is expected to be square")
+        raise ValueError("the matrix is expected to be square")
 
     if not all(x >= 0 for x in M.list()):
-        raise ValueError("The matrix should have nonnegative entries")
+        raise ValueError("the matrix should have nonnegative entries")
 
     if check and not M.is_bistochastic(normalized=False):
-        raise ValueError("The matrix is not bistochastic")
+        raise ValueError("the matrix is not bistochastic")
 
     from sage.rings.real_mpfr import RR
 
     if not RR.has_coerce_map_from(M.base_ring()):
-        raise ValueError("The base ring of the matrix must have a coercion map to RR")
+        raise ValueError("the base ring of the matrix must have a coercion map to RR")
 
-    from sage.graphs.bipartite_graph import BipartiteGraph
     from sage.combinat.free_module import CombinatorialFreeModule
+    from sage.graphs.bipartite_graph import BipartiteGraph
 
     CFM = CombinatorialFreeModule(M.base_ring(), Permutations(n))
     value = 0
@@ -8325,6 +8481,10 @@ def bistochastic_as_sum_of_permutations(M, check=True):
 
     while G.size() > 0:
         matching = G.matching(use_edge_labels=True)
+        if len(matching) != n:
+            if M.base_ring().is_exact():
+                raise ValueError("this cannot possibly happen")
+            break
         matching = [(min(u, v), max(u, v), w) for u, v, w in matching]
 
         # This minimum is strictly larger than 0
@@ -8375,8 +8535,7 @@ def bounded_affine_permutation(A):
     """
     n = A.ncols()
     R = A.base_ring()
-    from sage.modules.free_module import FreeModule
-    from sage.modules.free_module import span
+    from sage.modules.free_module import FreeModule, span
     z = FreeModule(R, A.nrows()).zero()
     v = A.columns()
     perm = []
@@ -8472,7 +8631,6 @@ class StandardPermutations_descents(StandardPermutations_n_abstract):
             sage: D = [6, 8, 10, 11, 12, 13, 14, 15, 17, 19]
             sage: P(D, n).cardinality()
             125291047596
-
         """
         def m(l):
             s = 0
@@ -8489,7 +8647,7 @@ class StandardPermutations_descents(StandardPermutations_n_abstract):
         if not self._d:
             return one
 
-        l_ops = [1]*(self.n-1)
+        l_ops = [1] * (self.n-1)
         for i in self._d:
             l_ops[i] = 0
         l = [one]
@@ -9073,7 +9231,7 @@ def bruhat_lequal(p1, p2):
 # Permutohedron #
 #################
 
-def permutohedron_lequal(p1, p2, side="right"):
+def permutohedron_lequal(p1, p2, side='right'):
     r"""
     Return ``True`` if ``p1`` is less than or equal to ``p2`` in the
     permutohedron order.
@@ -9146,7 +9304,7 @@ def to_standard(p, key=None):
     We check against the naive method::
 
         sage: def std(p):
-        ....:     s = [0]*len(p)
+        ....:     s = [0] * len(p)
         ....:     c = p[:]
         ....:     biggest = max(p) + 1
         ....:     i = 1
@@ -9184,19 +9342,19 @@ class CyclicPermutations(Permutations_mset):
 
     INPUT:
 
-    - ``mset`` -- A multiset
+    - ``mset`` -- a multiset
 
     EXAMPLES::
 
         sage: CyclicPermutations(range(4)).list()                                       # needs sage.combinat
-        [[0, 1, 2, 3],
-         [0, 1, 3, 2],
-         [0, 2, 1, 3],
-         [0, 2, 3, 1],
-         [0, 3, 1, 2],
-         [0, 3, 2, 1]]
+        [(0, 1, 2, 3),
+         (0, 1, 3, 2),
+         (0, 2, 1, 3),
+         (0, 2, 3, 1),
+         (0, 3, 1, 2),
+         (0, 3, 2, 1)]
         sage: CyclicPermutations([1,1,1]).list()                                        # needs sage.combinat
-        [[1, 1, 1]]
+        [(1, 1, 1)]
     """
     @staticmethod
     def __classcall_private__(cls, mset):
@@ -9231,16 +9389,16 @@ class CyclicPermutations(Permutations_mset):
         EXAMPLES::
 
             sage: CyclicPermutations(range(4)).list()  # indirect doctest               # needs sage.combinat
-            [[0, 1, 2, 3],
-             [0, 1, 3, 2],
-             [0, 2, 1, 3],
-             [0, 2, 3, 1],
-             [0, 3, 1, 2],
-             [0, 3, 2, 1]]
+            [(0, 1, 2, 3),
+             (0, 1, 3, 2),
+             (0, 2, 1, 3),
+             (0, 2, 3, 1),
+             (0, 3, 1, 2),
+             (0, 3, 2, 1)]
              sage: CyclicPermutations([1,1,1]).list()                                   # needs sage.combinat
-             [[1, 1, 1]]
+             [(1, 1, 1)]
              sage: CyclicPermutations([1,1,1]).list(distinct=True)                      # needs sage.combinat
-             [[1, 1, 1], [1, 1, 1]]
+             [(1, 1, 1), (1, 1, 1)]
         """
         if distinct:
             content = [1] * len(self.mset)
@@ -9252,7 +9410,7 @@ class CyclicPermutations(Permutations_mset):
 
         from .necklace import Necklaces
         for necklace in Necklaces(content):
-            yield [self.mset[x-1] for x in necklace]
+            yield tuple(self.mset[x-1] for x in necklace)
 
     iterator = __iter__
 
@@ -9261,12 +9419,12 @@ class CyclicPermutations(Permutations_mset):
         EXAMPLES::
 
             sage: CyclicPermutations(range(4)).list()                                   # needs sage.combinat
-            [[0, 1, 2, 3],
-             [0, 1, 3, 2],
-             [0, 2, 1, 3],
-             [0, 2, 3, 1],
-             [0, 3, 1, 2],
-             [0, 3, 2, 1]]
+            [(0, 1, 2, 3),
+             (0, 1, 3, 2),
+             (0, 2, 1, 3),
+             (0, 2, 3, 1),
+             (0, 3, 1, 2),
+             (0, 3, 2, 1)]
         """
         return list(self.__iter__(distinct=distinct))
 
@@ -9282,41 +9440,41 @@ class CyclicPermutationsOfPartition(Permutations):
     EXAMPLES::
 
         sage: CyclicPermutationsOfPartition([[1,2,3,4],[5,6,7]]).list()                 # needs sage.combinat
-        [[[1, 2, 3, 4], [5, 6, 7]],
-         [[1, 2, 4, 3], [5, 6, 7]],
-         [[1, 3, 2, 4], [5, 6, 7]],
-         [[1, 3, 4, 2], [5, 6, 7]],
-         [[1, 4, 2, 3], [5, 6, 7]],
-         [[1, 4, 3, 2], [5, 6, 7]],
-         [[1, 2, 3, 4], [5, 7, 6]],
-         [[1, 2, 4, 3], [5, 7, 6]],
-         [[1, 3, 2, 4], [5, 7, 6]],
-         [[1, 3, 4, 2], [5, 7, 6]],
-         [[1, 4, 2, 3], [5, 7, 6]],
-         [[1, 4, 3, 2], [5, 7, 6]]]
+        [[(1, 2, 3, 4), (5, 6, 7)],
+         [(1, 2, 4, 3), (5, 6, 7)],
+         [(1, 3, 2, 4), (5, 6, 7)],
+         [(1, 3, 4, 2), (5, 6, 7)],
+         [(1, 4, 2, 3), (5, 6, 7)],
+         [(1, 4, 3, 2), (5, 6, 7)],
+         [(1, 2, 3, 4), (5, 7, 6)],
+         [(1, 2, 4, 3), (5, 7, 6)],
+         [(1, 3, 2, 4), (5, 7, 6)],
+         [(1, 3, 4, 2), (5, 7, 6)],
+         [(1, 4, 2, 3), (5, 7, 6)],
+         [(1, 4, 3, 2), (5, 7, 6)]]
 
     ::
 
         sage: CyclicPermutationsOfPartition([[1,2,3,4],[4,4,4]]).list()                 # needs sage.combinat
-        [[[1, 2, 3, 4], [4, 4, 4]],
-         [[1, 2, 4, 3], [4, 4, 4]],
-         [[1, 3, 2, 4], [4, 4, 4]],
-         [[1, 3, 4, 2], [4, 4, 4]],
-         [[1, 4, 2, 3], [4, 4, 4]],
-         [[1, 4, 3, 2], [4, 4, 4]]]
+        [[(1, 2, 3, 4), (4, 4, 4)],
+         [(1, 2, 4, 3), (4, 4, 4)],
+         [(1, 3, 2, 4), (4, 4, 4)],
+         [(1, 3, 4, 2), (4, 4, 4)],
+         [(1, 4, 2, 3), (4, 4, 4)],
+         [(1, 4, 3, 2), (4, 4, 4)]]
 
     ::
 
         sage: CyclicPermutationsOfPartition([[1,2,3],[4,4,4]]).list()                   # needs sage.combinat
-        [[[1, 2, 3], [4, 4, 4]], [[1, 3, 2], [4, 4, 4]]]
+        [[(1, 2, 3), (4, 4, 4)], [(1, 3, 2), (4, 4, 4)]]
 
     ::
 
         sage: CyclicPermutationsOfPartition([[1,2,3],[4,4,4]]).list(distinct=True)      # needs sage.combinat
-        [[[1, 2, 3], [4, 4, 4]],
-         [[1, 3, 2], [4, 4, 4]],
-         [[1, 2, 3], [4, 4, 4]],
-         [[1, 3, 2], [4, 4, 4]]]
+        [[(1, 2, 3), (4, 4, 4)],
+         [(1, 3, 2), (4, 4, 4)],
+         [(1, 2, 3), (4, 4, 4)],
+         [(1, 3, 2), (4, 4, 4)]]
     """
     @staticmethod
     def __classcall_private__(cls, partition):
@@ -9382,41 +9540,41 @@ class CyclicPermutationsOfPartition(Permutations):
 
             sage: CyclicPermutationsOfPartition([[1,2,3,4],        # indirect doctest   # needs sage.combinat
             ....:                                [5,6,7]]).list()
-            [[[1, 2, 3, 4], [5, 6, 7]],
-             [[1, 2, 4, 3], [5, 6, 7]],
-             [[1, 3, 2, 4], [5, 6, 7]],
-             [[1, 3, 4, 2], [5, 6, 7]],
-             [[1, 4, 2, 3], [5, 6, 7]],
-             [[1, 4, 3, 2], [5, 6, 7]],
-             [[1, 2, 3, 4], [5, 7, 6]],
-             [[1, 2, 4, 3], [5, 7, 6]],
-             [[1, 3, 2, 4], [5, 7, 6]],
-             [[1, 3, 4, 2], [5, 7, 6]],
-             [[1, 4, 2, 3], [5, 7, 6]],
-             [[1, 4, 3, 2], [5, 7, 6]]]
+            [[(1, 2, 3, 4), (5, 6, 7)],
+             [(1, 2, 4, 3), (5, 6, 7)],
+             [(1, 3, 2, 4), (5, 6, 7)],
+             [(1, 3, 4, 2), (5, 6, 7)],
+             [(1, 4, 2, 3), (5, 6, 7)],
+             [(1, 4, 3, 2), (5, 6, 7)],
+             [(1, 2, 3, 4), (5, 7, 6)],
+             [(1, 2, 4, 3), (5, 7, 6)],
+             [(1, 3, 2, 4), (5, 7, 6)],
+             [(1, 3, 4, 2), (5, 7, 6)],
+             [(1, 4, 2, 3), (5, 7, 6)],
+             [(1, 4, 3, 2), (5, 7, 6)]]
 
         ::
 
             sage: CyclicPermutationsOfPartition([[1,2,3,4],[4,4,4]]).list()             # needs sage.combinat
-            [[[1, 2, 3, 4], [4, 4, 4]],
-             [[1, 2, 4, 3], [4, 4, 4]],
-             [[1, 3, 2, 4], [4, 4, 4]],
-             [[1, 3, 4, 2], [4, 4, 4]],
-             [[1, 4, 2, 3], [4, 4, 4]],
-             [[1, 4, 3, 2], [4, 4, 4]]]
+            [[(1, 2, 3, 4), (4, 4, 4)],
+             [(1, 2, 4, 3), (4, 4, 4)],
+             [(1, 3, 2, 4), (4, 4, 4)],
+             [(1, 3, 4, 2), (4, 4, 4)],
+             [(1, 4, 2, 3), (4, 4, 4)],
+             [(1, 4, 3, 2), (4, 4, 4)]]
 
         ::
 
             sage: CyclicPermutationsOfPartition([[1,2,3],[4,4,4]]).list()               # needs sage.combinat
-            [[[1, 2, 3], [4, 4, 4]], [[1, 3, 2], [4, 4, 4]]]
+            [[(1, 2, 3), (4, 4, 4)], [(1, 3, 2), (4, 4, 4)]]
 
         ::
 
             sage: CyclicPermutationsOfPartition([[1,2,3],[4,4,4]]).list(distinct=True)  # needs sage.combinat
-            [[[1, 2, 3], [4, 4, 4]],
-             [[1, 3, 2], [4, 4, 4]],
-             [[1, 2, 3], [4, 4, 4]],
-             [[1, 3, 2], [4, 4, 4]]]
+            [[(1, 2, 3), (4, 4, 4)],
+             [(1, 3, 2), (4, 4, 4)],
+             [(1, 2, 3), (4, 4, 4)],
+             [(1, 3, 2), (4, 4, 4)]]
         """
         if len(self.partition) == 1:
             for i in CyclicPermutations(self.partition[0]).iterator(distinct=distinct):
@@ -9433,12 +9591,12 @@ class CyclicPermutationsOfPartition(Permutations):
         EXAMPLES::
 
             sage: CyclicPermutationsOfPartition([[1,2,3],[4,4,4]]).list()               # needs sage.combinat
-            [[[1, 2, 3], [4, 4, 4]], [[1, 3, 2], [4, 4, 4]]]
+            [[(1, 2, 3), (4, 4, 4)], [(1, 3, 2), (4, 4, 4)]]
             sage: CyclicPermutationsOfPartition([[1,2,3],[4,4,4]]).list(distinct=True)  # needs sage.combinat
-            [[[1, 2, 3], [4, 4, 4]],
-             [[1, 3, 2], [4, 4, 4]],
-             [[1, 2, 3], [4, 4, 4]],
-             [[1, 3, 2], [4, 4, 4]]]
+            [[(1, 2, 3), (4, 4, 4)],
+             [(1, 3, 2), (4, 4, 4)],
+             [(1, 2, 3), (4, 4, 4)],
+             [(1, 3, 2), (4, 4, 4)]]
         """
         return list(self.iterator(distinct=distinct))
 
@@ -9573,24 +9731,6 @@ class StandardPermutations_avoiding_generic(StandardPermutations_n_abstract):
         StandardPermutations_n_abstract.__init__(self, n)
         self._a = a
 
-    @property
-    def a(self):
-        r"""
-        ``self.a`` is deprecated; use :meth:`patterns` instead.
-
-        TESTS::
-
-            sage: P = Permutations(3, avoiding=[[2,1,3],[1,2,3]])
-            sage: P.a
-            doctest:...: DeprecationWarning: The attribute a for the list of patterns to avoid is deprecated, use the method patterns instead.
-            See https://github.com/sagemath/sage/issues/26810 for details.
-            ([2, 1, 3], [1, 2, 3])
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(26810, "The attribute a for the list of patterns to avoid is "
-                           "deprecated, use the method patterns instead.")
-        return self.patterns()
-
     def patterns(self):
         """
         Return the patterns avoided by this class of permutations.
@@ -9706,7 +9846,7 @@ class StandardPermutations_avoiding_21(StandardPermutations_avoiding_generic):
             sage: Permutations(3, avoiding=[2,1]).list()
             [[1, 2, 3]]
         """
-        yield self.element_class(self, range(1, self.n+1), check=False)
+        yield self.element_class(self, range(1, self.n + 1), check=False)
 
     def cardinality(self):
         """
@@ -9733,6 +9873,8 @@ class StandardPermutations_avoiding_132(StandardPermutations_avoiding_generic):
 
     def cardinality(self):
         """
+        Return the cardinality of the set.
+
         EXAMPLES::
 
             sage: Permutations(5, avoiding=[1, 3, 2]).cardinality()
@@ -9810,6 +9952,8 @@ class StandardPermutations_avoiding_123(StandardPermutations_avoiding_generic):
 
     def cardinality(self) -> Integer:
         """
+        Return the cardinality of the set.
+
         EXAMPLES::
 
             sage: Permutations(5, avoiding=[1, 2, 3]).cardinality()
@@ -9882,6 +10026,8 @@ class StandardPermutations_avoiding_321(StandardPermutations_avoiding_generic):
 
     def cardinality(self):
         """
+        Return the cardinality of the set.
+
         EXAMPLES::
 
             sage: Permutations(5, avoiding=[3, 2, 1]).cardinality()
@@ -9914,6 +10060,8 @@ class StandardPermutations_avoiding_231(StandardPermutations_avoiding_generic):
 
     def cardinality(self):
         """
+        Return the cardinality of the set.
+
         EXAMPLES::
 
             sage: Permutations(5, avoiding=[2, 3, 1]).cardinality()
@@ -9946,6 +10094,8 @@ class StandardPermutations_avoiding_312(StandardPermutations_avoiding_generic):
 
     def cardinality(self):
         """
+        Return the cardinality of the set.
+
         EXAMPLES::
 
             sage: Permutations(5, avoiding=[3, 1, 2]).cardinality()
@@ -9978,6 +10128,8 @@ class StandardPermutations_avoiding_213(StandardPermutations_avoiding_generic):
 
     def cardinality(self):
         """
+        Return the cardinality of the set.
+
         EXAMPLES::
 
             sage: Permutations(5, avoiding=[2, 1, 3]).cardinality()
@@ -10074,6 +10226,7 @@ class PermutationsNK(Permutations_setk):
 
 
 from sage.misc.persist import register_unpickle_override
+
 register_unpickle_override("sage.combinat.permutation", "Permutation_class", Permutation)
 register_unpickle_override("sage.combinat.permutation", "CyclicPermutationsOfPartition_partition", CyclicPermutationsOfPartition)
 register_unpickle_override("sage.combinat.permutation", "CyclicPermutations_mset", CyclicPermutations)

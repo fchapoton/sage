@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-categories
 r"""
 Finite dimensional coalgebras with basis
 """
@@ -13,7 +12,7 @@ Finite dimensional coalgebras with basis
 
 def FiniteDimensionalCoalgebrasWithBasis(base_ring):
     """
-    The category of finite dimensional coalgebras with a distinguished basis
+    The category of finite dimensional coalgebras with a distinguished basis.
 
     EXAMPLES::
 

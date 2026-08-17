@@ -1,4 +1,3 @@
-# sage.doctest: needs numpy sage.modules
 r"""
 Hidden Markov Models
 
@@ -148,11 +147,11 @@ cdef class HiddenMarkovModel:
             sage: m = hmm.DiscreteHiddenMarkovModel([[.3,0,.7],[0,0,1],[.5,.5,0]],
             ....:                                   [[.5,.5,.2]]*3,
             ....:                                   [1/3]*3)
-            sage: G = m.graph(); G                                                      # needs sage.graphs
+            sage: G = m.graph(); G
             Looped digraph on 3 vertices
-            sage: G.edges(sort=True)                                                    # needs sage.graphs
+            sage: G.edges(sort=True)
             [(0, 0, 0.3), (0, 2, 0.7), (1, 2, 1.0), (2, 0, 0.5), (2, 1, 0.5)]
-            sage: G.plot()                                                              # needs sage.graphs sage.plot
+            sage: G.plot()
             Graphics object consisting of 11 graphics primitives
         """
         cdef int i, j
@@ -171,11 +170,11 @@ cdef class HiddenMarkovModel:
         INPUT:
 
         - ``length`` -- positive integer
-        - ``number`` -- (default: ``None``) if given, compute list of this many sample sequences
-        - ``starting_state`` -- int (or ``None``); if specified, generate
-          a sequence using this model starting with the given state
-          instead of the initial probabilities to determine the
-          starting state.
+        - ``number`` -- (default: ``None``) if given, compute list of this many
+          sample sequences
+        - ``starting_state`` -- integer (or ``None``); if specified, generate a
+          sequence using this model starting with the given state instead of
+          the initial probabilities to determine the starting state
 
         OUTPUT:
 
@@ -261,11 +260,11 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
     INPUT:
 
-    - ``A`` -- a list of lists or a square `N \times N` matrix, whose
+    - ``A`` -- list of lists or a square `N \times N` matrix, whose
       `(i,j)` entry gives the probability of transitioning from
       state `i` to state `j`.
 
-    - ``B`` -- a list of `N` lists or a matrix with `N` rows, such that
+    - ``B`` -- list of `N` lists or a matrix with `N` rows, such that
       `B[i,k]` gives the probability of emitting symbol `k` while
       in state `i`.
 
@@ -278,7 +277,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
       is the number of states.  Otherwise, they are the entries
       of the list ``emissions_symbols``, which must all be hashable.
 
-    - ``normalize`` -- bool (default: ``True``); if given, input is
+    - ``normalize`` -- boolean (default: ``True``); if given, input is
       normalized to define valid probability distributions,
       e.g., the entries of `A` are made nonnegative and the rows
       sum to 1, and the probabilities in ``pi`` are normalized.
@@ -313,7 +312,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         Initial probabilities: [0.0000, 1.0000]
         sage: m.sample(10)
         [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
-        sage: m.graph().plot()                                                          # needs sage.plot
+        sage: m.graph().plot()
         Graphics object consisting of 6 graphics primitives
 
     A 3-state model that happens to always outputs 'b'::
@@ -347,7 +346,6 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             sage: hmm.DiscreteHiddenMarkovModel([1,2,.1,1.2], [[1],[1]],[.5,.5]).transition_matrix()
             [ 0.3333333333333333  0.6666666666666666]
             [0.07692307692307693   0.923076923076923]
-
         """
         self.pi = util.initial_probs_to_TimeSeries(pi, normalize)
         self.N = len(self.pi)
@@ -444,13 +442,13 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             sage: m.__repr__()
             'Discrete Hidden Markov Model with 2 States and 2 Emissions\nTransition matrix:\n[0.4 0.6]\n[0.1 0.9]\nEmission matrix:\n[0.1 0.9]\n[0.5 0.5]\nInitial probabilities: [0.2000, 0.8000]'
         """
-        s = "Discrete Hidden Markov Model with %s States and %s Emissions"%(
+        s = "Discrete Hidden Markov Model with %s States and %s Emissions" % (
             self.N, self.n_out)
-        s += '\nTransition matrix:\n%s'%self.transition_matrix()
-        s += '\nEmission matrix:\n%s'%self.emission_matrix()
-        s += '\nInitial probabilities: %s'%self.initial_probabilities()
+        s += '\nTransition matrix:\n%s' % self.transition_matrix()
+        s += '\nEmission matrix:\n%s' % self.emission_matrix()
+        s += '\nInitial probabilities: %s' % self.initial_probabilities()
         if self._emission_symbols is not None:
-            s += '\nEmission symbols: %s'%self._emission_symbols
+            s += '\nEmission symbols: %s' % self._emission_symbols
         return s
 
     def _emission_symbols_to_IntList(self, obs):
@@ -459,7 +457,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
         INPUT:
 
-        - ``obs`` -- a list of objects
+        - ``obs`` -- list of objects
 
         OUTPUT: an IntList
 
@@ -478,7 +476,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
         INPUT:
 
-        - ``obs`` -- a list of objects
+        - ``obs`` -- list of objects
 
         OUTPUT: an IntList
 
@@ -494,7 +492,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
     def log_likelihood(self, obs, bint scale=True):
         r"""
         Return the logarithm of the probability that this model produced the given
-        observation sequence.  Thus the output is a non-positive number.
+        observation sequence.  Thus the output is a nonpositive number.
 
         INPUT:
 
@@ -543,20 +541,19 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             obs = IntList(obs)
         if scale:
             return self._forward_scale(obs)
-        else:
-            return self._forward(obs)
+        return self._forward(obs)
 
     def _forward(self, IntList obs):
         r"""
-        Memory-efficient implementation of the forward algorithm, without scaling.
+        Memory-efficient implementation of the forward algorithm, without
+        scaling.
 
         INPUT:
 
-        - ``obs`` -- an integer list of observation states.
+        - ``obs`` -- integer list of observation states
 
-        OUTPUT:
-
-        ``float`` -- the log of the probability that the model produced this sequence
+        OUTPUT: ``float`` -- the log of the probability that the model produced
+        this sequence
 
         EXAMPLES::
 
@@ -607,11 +604,10 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
         INPUT:
 
-        - ``obs`` -- an integer list of observation states.
+        - ``obs`` -- integer list of observation states
 
-        OUTPUT:
-
-        ``float`` -- the log of the probability that the model produced this sequence
+        OUTPUT: ``float`` -- the log of the probability that the model produced
+        this sequence
 
         EXAMPLES::
 
@@ -697,10 +693,9 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         INPUT:
 
         - ``length`` -- positive integer
-        - ``starting_state`` -- int (or ``None``); if specified, generate
-          a sequence using this model starting with the given state
-          instead of the initial probabilities to determine the
-          starting state.
+        - ``starting_state`` -- integer (or ``None``); if specified, generate a
+          sequence using this model starting with the given state instead of
+          the initial probabilities to determine the starting state
 
         OUTPUT:
 
@@ -745,8 +740,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             # A special case
             if self._emission_symbols is None:
                 return states, obs
-            else:
-                return states, []
+            return states, []
 
         # Setup variables, including random state.
         cdef Py_ssize_t i, j
@@ -776,7 +770,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         else:
             q = starting_state
             if q < 0 or q >= self.N:
-                raise ValueError("starting state must be between 0 and %s"%(self.N-1))
+                raise ValueError("starting state must be between 0 and %s" % (self.N-1))
 
         states._values[0] = q
         # Generate a symbol from state q
@@ -815,12 +809,10 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
         INPUT:
 
-        - ``q`` -- a nonnegative integer, which specifies a state
+        - ``q`` -- nonnegative integer, which specifies a state
         - ``r`` -- a real number between 0 and 1
 
-        OUTPUT:
-
-        a nonnegative int
+        OUTPUT: a nonnegative int
 
         EXAMPLES::
 
@@ -855,16 +847,16 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
         - ``seq`` -- sequence of emitted ints or symbols
 
-        - ``log_scale`` -- bool (default: ``True``) whether to scale the
-          sequence in order to avoid numerical overflow.
+        - ``log_scale`` -- boolean (default: ``True``); whether to scale the
+          sequence in order to avoid numerical overflow
 
         OUTPUT:
 
         - ``list`` -- "the" most probable sequence of hidden states, i.e.,
-          the Viterbi path.
+          the Viterbi path
 
         - ``float`` -- log of probability that the observed sequence
-          was produced by the Viterbi sequence of states.
+          was produced by the Viterbi sequence of states
 
         EXAMPLES::
 
@@ -892,8 +884,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             obs = IntList(obs)
         if log_scale:
             return self._viterbi_scale(obs)
-        else:
-            return self._viterbi(obs)
+        return self._viterbi(obs)
 
     cpdef _viterbi(self, IntList obs):
         r"""
@@ -1118,8 +1109,8 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
         - TimeSeries alpha with alpha_t(i) = alpha[t*N + i]
         - TimeSeries scale with scale[t] the scaling at step t
-        - float -- log_probability of the observation sequence
-          being produced by the model.
+        - ``float`` -- log_probability of the observation sequence
+          being produced by the model
         """
         cdef Py_ssize_t i, j, t, T = len(obs)
         cdef int N = self.N
@@ -1208,7 +1199,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
         - ``obs`` -- list of emissions
 
-        - ``max_iter`` -- integer (default: 100) maximum number
+        - ``max_iter`` -- integer (default: 100); maximum number
           of Baum-Welch steps to take
 
         - ``log_likelihood_cutoff`` -- positive float (default: 1e-4);
@@ -1216,8 +1207,8 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
           the last iteration required to continue. Relative value
           to log likelihood.
 
-        - ``fix_emissions`` -- bool (default: ``False``); if ``True``, do not
-          change emissions when updating
+        - ``fix_emissions`` -- boolean (default: ``False``); if ``True``, do
+          not change emissions when updating
 
         OUTPUT:
 

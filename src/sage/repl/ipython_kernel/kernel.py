@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-repl
 """
 The Sage ZMQ Kernel
 
@@ -48,11 +47,11 @@ class SageKernel(IPythonKernel):
 
     def __init__(self, **kwds):
         """
-        The Sage Jupyter Kernel
+        The Sage Jupyter Kernel.
 
         INPUT:
 
-        See the Jupyter documentation
+        See the Jupyter documentation.
 
         EXAMPLES::
 
@@ -66,14 +65,12 @@ class SageKernel(IPythonKernel):
     @property
     def banner(self):
         r"""
-        The Sage Banner
+        The Sage Banner.
 
         The value of this property is displayed in the Jupyter
         notebook.
 
-        OUTPUT:
-
-        String.
+        OUTPUT: string
 
         EXAMPLES::
 
@@ -88,11 +85,9 @@ class SageKernel(IPythonKernel):
     @property
     def help_links(self):
         r"""
-        Help in the Jupyter Notebook
+        Help in the Jupyter Notebook.
 
-        OUTPUT:
-
-        See the Jupyter documentation.
+        OUTPUT: see the Jupyter documentation
 
         EXAMPLES::
 

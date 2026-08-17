@@ -11,7 +11,7 @@ cdef class BasisExchangeMatroid(Matroid):
     cdef frozenset _groundset
 
     cdef _bcount
-    cdef _weak_invariant_var, _strong_invariant_var, _heuristic_invariant_var
+    cdef Py_hash_t _weak_invariant_var, _strong_invariant_var, _heuristic_invariant_var
     cdef SetSystem _weak_partition_var, _strong_partition_var, _heuristic_partition_var
 
     cdef _relabel(self, mapping)
@@ -46,19 +46,19 @@ cdef class BasisExchangeMatroid(Matroid):
     cpdef _move_current_basis(self, X, Y)
 
     cpdef frozenset _max_independent(self, frozenset F)
-    cpdef int _rank(self, frozenset F)
+    cpdef int _rank(self, frozenset F) except? -1
     cpdef frozenset _circuit(self, frozenset F)
     cpdef frozenset _fundamental_circuit(self, frozenset B, e)
     cpdef frozenset _closure(self, frozenset F)
 
     cpdef frozenset _max_coindependent(self, frozenset F)
-    cpdef int _corank(self, frozenset F)
+    cpdef int _corank(self, frozenset F) noexcept
     cpdef frozenset _cocircuit(self, frozenset F)
     cpdef frozenset _fundamental_cocircuit(self, frozenset B, e)
     cpdef frozenset _coclosure(self, frozenset F)
 
     cpdef frozenset _augment(self, frozenset X, frozenset Y)
-    cpdef bint _is_independent(self, frozenset F)
+    cpdef bint _is_independent(self, frozenset F) noexcept
 
     cpdef list whitney_numbers2(self)
     cdef  _whitney_numbers2_rec(self, object f_vec, bitset_t* flats, bitset_t* todo, long elt, long rnk)
@@ -75,14 +75,14 @@ cdef class BasisExchangeMatroid(Matroid):
     cpdef SetSystem cocircuits(self)
     cpdef SetSystem circuits(self, k=*)
 
-    cpdef _characteristic_setsystem(self)
-    cpdef _weak_invariant(self)
-    cpdef _weak_partition(self)
-    cpdef _strong_invariant(self)
-    cpdef _strong_partition(self)
-    cpdef _heuristic_invariant(self)
-    cpdef _heuristic_partition(self)
-    cdef _flush(self)
+    cpdef SetSystem _characteristic_setsystem(self)
+    cpdef Py_hash_t _weak_invariant(self) noexcept
+    cpdef SetSystem _weak_partition(self)
+    cpdef Py_hash_t _strong_invariant(self) noexcept
+    cpdef SetSystem _strong_partition(self)
+    cpdef Py_hash_t _heuristic_invariant(self) noexcept
+    cpdef SetSystem _heuristic_partition(self)
+    cdef _flush_invariants(self)
 
     cpdef _equitable_partition(self, P=*)
     cpdef _is_isomorphic(self, other, certificate=*)
@@ -90,6 +90,6 @@ cdef class BasisExchangeMatroid(Matroid):
     cpdef _is_isomorphism(self, other, morphism)
     cdef bint __is_isomorphism(self, BasisExchangeMatroid other, morphism) noexcept
 
-    cpdef bint is_valid(self)
+    cpdef is_valid(self, certificate=*)
 
 cdef bint nxksrd(bitset_s *b, long n, long k, bint succ) noexcept

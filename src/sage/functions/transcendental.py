@@ -16,7 +16,6 @@ Number-theoretic functions
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 import math
-import sys
 
 from sage.misc.lazy_import import lazy_import
 from sage.misc.misc import increase_recursion_limit
@@ -44,7 +43,7 @@ class Function_zeta(GinacFunction):
 
         INPUT:
 
-        -  ``s`` -- real or complex number
+        - ``s`` -- real or complex number
 
         If s is a real number, the computation is done using the MPFR
         library. When the input is not real, the computation is done using
@@ -173,7 +172,7 @@ class Function_stieltjes(GinacFunction):
 
         INPUT:
 
-        -  ``n`` -- non-negative integer
+        - ``n`` -- nonnegative integer
 
         EXAMPLES::
 
@@ -256,10 +255,9 @@ class Function_HurwitzZeta(BuiltinFunction):
             return zeta(s)
         if s in ZZ and s > 1:
             return ((-1) ** s) * psi(s - 1, x) / factorial(s - 1)
-        elif s in ZZ and s <= 0:
+        if s in ZZ and s <= 0:
             return -bernoulli_polynomial(x, -s + 1) / (-s + 1)
-        else:
-            return
+        return
 
     def _evalf_(self, s, x, parent=None, algorithm=None):
         r"""
@@ -284,9 +282,8 @@ class Function_HurwitzZeta(BuiltinFunction):
         """
         if diff_param == 1:
             return -s * hurwitz_zeta(s + 1, x)
-        else:
-            raise NotImplementedError('derivative with respect to first '
-                                      'argument')
+        raise NotImplementedError('derivative with respect to first '
+                                  'argument')
 
 
 hurwitz_zeta_func = Function_HurwitzZeta()
@@ -305,7 +302,7 @@ def hurwitz_zeta(s, x, **kwargs):
 
 
     When `x = 1`, this coincides with Riemann's zeta function.
-    The Dirichlet L-functions may be expressed as linear combinations
+    The Dirichlet `L`-functions may be expressed as linear combinations
     of Hurwitz zeta functions.
 
     EXAMPLES:
@@ -378,7 +375,7 @@ class Function_zetaderiv(GinacFunction):
             zetaderiv([1.500000000 +/- 1.01e-10], 1)
         """
         GinacFunction.__init__(self, "zetaderiv", nargs=2,
-                               conversions=dict(maple="Zeta"))
+                               conversions=dict(maple='Zeta'))
 
     def _evalf_(self, n, x, parent=None, algorithm=None):
         r"""
@@ -391,7 +388,7 @@ class Function_zetaderiv(GinacFunction):
         """
         return _mpmath_utils_call(_mpmath_zeta, x, 1, n, parent=parent)
 
-    def _method_arguments(self, k, x, **args):
+    def _method_arguments(self, k, x):
         r"""
         TESTS::
 
@@ -412,9 +409,7 @@ def zeta_symmetric(s):
 
     INPUT:
 
-
-    -  ``s`` -- real or complex number
-
+    - ``s`` -- real or complex number
 
     If s is a real number the computation is done using the MPFR
     library. When the input is not real, the computation is done using
@@ -425,7 +420,6 @@ def zeta_symmetric(s):
     .. MATH::
 
                 xi(s) = \gamma(s/2 + 1) * (s-1) * \pi^{-s/2} * \zeta(s).
-
 
     EXAMPLES::
 
@@ -452,7 +446,7 @@ def zeta_symmetric(s):
     - I copied the definition of xi from
       http://web.viu.ca/pughg/RiemannZeta/RiemannZetaLong.html
     """
-    if not (isinstance(s, ComplexNumber) or isinstance(s, RealNumber)):
+    if not isinstance(s, (ComplexNumber, RealNumber)):
         s = ComplexField()(s)
 
     R = s.parent()
@@ -518,7 +512,7 @@ class DickmanRho(BuiltinFunction):
     """
     def __init__(self):
         """
-        Constructs an object to represent Dickman's rho function.
+        Construct an object to represent Dickman's rho function.
 
         TESTS::
 
@@ -551,9 +545,9 @@ class DickmanRho(BuiltinFunction):
                 return None
         if x < 0:
             return x.parent()(0)
-        elif x <= 1:
+        if x <= 1:
             return x.parent()(1)
-        elif x <= 2:
+        if x <= 2:
             return 1 - x.log()
         n = x.floor()
         if self._cur_prec < x.parent().prec() or n not in self._f:
@@ -574,11 +568,11 @@ class DickmanRho(BuiltinFunction):
 
         INPUT:
 
-        -  ``n`` -- the lower endpoint of the interval for which
-           this power series holds
+        - ``n`` -- the lower endpoint of the interval for which
+          this power series holds
 
-        -  ``abs_prec`` -- the absolute precision of the
-           resulting power series
+        - ``abs_prec`` -- the absolute precision of the
+          resulting power series
 
         EXAMPLES::
 
@@ -602,14 +596,14 @@ class DickmanRho(BuiltinFunction):
 
         INPUT:
 
-        -  ``n`` -- the lower endpoint of the interval for which
-           this power series holds
+        - ``n`` -- the lower endpoint of the interval for which
+          this power series holds
 
-        -  ``abs_prec`` -- the absolute precision of the
-           resulting power series
+        - ``abs_prec`` -- the absolute precision of the
+          resulting power series
 
-        -  ``cache_ring`` -- for internal use, caches the power
-           series at this precision.
+        - ``cache_ring`` -- for internal use, caches the power
+          series at this precision
 
         EXAMPLES::
 
@@ -624,7 +618,7 @@ class DickmanRho(BuiltinFunction):
                 return PolynomialRealDense(RealField(abs_prec)['x'])
             if n == 0:
                 return PolynomialRealDense(RealField(abs_prec)['x'], [1])
-            elif n == 1:
+            if n == 1:
                 nterms = (RDF(abs_prec) * RDF(2).log()/RDF(3).log()).ceil()
                 R = RealField(abs_prec)
                 neg_three = ZZ(-3)
@@ -653,7 +647,7 @@ class DickmanRho(BuiltinFunction):
 
     def approximate(self, x, parent=None):
         r"""
-        Approximate using de Bruijn's formula
+        Approximate using de Bruijn's formula.
 
         .. MATH::
 

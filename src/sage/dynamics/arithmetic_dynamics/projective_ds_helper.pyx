@@ -34,7 +34,7 @@ cpdef _fast_possible_periods(self, return_points=False):
 
     INPUT:
 
-    - ``return_points`` -- (default: ``False``) boolean; if ``True``, then
+    - ``return_points`` -- boolean (default: ``False``); if ``True``, then
       return the points as well as the possible periods
 
     OUTPUT:
@@ -70,10 +70,10 @@ cpdef _fast_possible_periods(self, return_points=False):
 
         - More space efficient hash/point-table.
     """
-    cdef int i, k, N
+    cdef int i, N
     cdef int hash_p, hash_q
     cdef int index, startindex
-    cdef list pointslist, points_periods
+    cdef list points_periods
     cdef list P, Q
     cdef set periods, lorders, rvalues
 
@@ -88,7 +88,7 @@ cpdef _fast_possible_periods(self, return_points=False):
     p = PS.base_ring().order()
     N = int(PS.dimension_relative())
 
-    point_table = [[0,0] for i in range(p**(N + 1))]
+    point_table = [[0, 0] for i in range(p**(N + 1))]
     index = 1
     periods = set()
     points_periods = []
@@ -132,7 +132,7 @@ cpdef _fast_possible_periods(self, return_points=False):
                     for r in rvalues:
                         periods.add(period*r)
                         points_periods.append([P_proj, period*r])
-                        if p == 2 or p == 3: #need e=1 for N=1, QQ
+                        if p == 2 or p == 3:  # need e=1 for N=1, QQ
                             periods.add(period*r*p)
                             points_periods.append([P_proj, period*r*p])
                 else:
@@ -141,7 +141,7 @@ cpdef _fast_possible_periods(self, return_points=False):
                         periods.add(period*r*p)
                         points_periods.append([P_proj, period*r])
                         points_periods.append([P_proj, period*r*p])
-                        if p == 2:  #need e=3 for N>1, QQ
+                        if p == 2:  # need e=3 for N>1, QQ
                             periods.add(period*r*4)
                             points_periods.append([P_proj, period*r*4])
                             periods.add(period*r*8)
@@ -149,8 +149,7 @@ cpdef _fast_possible_periods(self, return_points=False):
 
     if not return_points:
         return sorted(periods)
-    else:
-        return points_periods
+    return points_periods
 
 
 def _enum_points(int prime, int dimension):
@@ -187,7 +186,6 @@ cpdef int _hash(list Point, int prime) noexcept:
         sage: from sage.dynamics.arithmetic_dynamics.projective_ds_helper import _hash
         sage: _hash([1, 2, 1], 3)
         16
-
     """
     cdef int hash_q
     cdef int coefficient
@@ -238,8 +236,7 @@ cdef inline int _mod_inv(int num, int prime) noexcept:
 
     if y < 0:
         return y + prime
-    else:
-        return y
+    return y
 
 cpdef _normalize_coordinates(list point, int prime, int len_points):
     """

@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-repl
 r"""
 Rich Output for the Browser
 """
@@ -12,11 +11,12 @@ from sage.repl.rich_output.buffer import OutputBuffer
 latex_re = re.compile(r'<html>(?P<mathstart>\\\[|\\\()(?P<latex>.*)(?P<mathend>\\\]|\\\))</html>',
                       flags=re.DOTALL)
 
+
 class OutputHtml(OutputBase):
 
     def __init__(self, html):
         """
-        HTML Output
+        HTML Output.
 
         INPUT:
 
@@ -52,14 +52,12 @@ class OutputHtml(OutputBase):
     @classmethod
     def example(cls):
         r"""
-        Construct a sample Html output container
+        Construct a sample Html output container.
 
         This static method is meant for doctests, so they can easily
         construct an example.
 
-        OUTPUT:
-
-        An instance of :class:`OutputHtml`.
+        OUTPUT: an instance of :class:`OutputHtml`
 
         EXAMPLES::
 
@@ -84,11 +82,11 @@ class OutputHtml(OutputBase):
             sage: rich_output.print_to_stdout()
             <div>Hello World!</div>
         """
-        print(self.html.get_unicode())
+        print(self.html.get_str())
 
-    def with_html_tag(self):
+    def with_html_tag(self) -> str:
         r"""
-        Return the HTML code surrounded by ``<html>`` tag
+        Return the HTML code surrounded by ``<html>`` tag.
 
         This is just a convenience method.
 
@@ -101,4 +99,4 @@ class OutputHtml(OutputBase):
             sage: rich_output.with_html_tag()
             '<html><div>Hello World!</div></html>'
         """
-        return '<html>{0}</html>'.format(self.html.get_unicode())
+        return '<html>{0}</html>'.format(self.html.get_str())

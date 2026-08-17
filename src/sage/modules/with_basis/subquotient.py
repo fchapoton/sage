@@ -27,7 +27,7 @@ class QuotientModuleWithBasis(CombinatorialFreeModule):
     ``submodule`` should be a free submodule admitting a basis in
     unitriangular echelon form. Typically ``submodule`` is a
     :class:`SubmoduleWithBasis` as returned by
-    :meth:`Modules.WithBasis.ParentMethods.submodule`.
+    :meth:`ModulesWithBasis.ParentMethods.submodule <sage.categories.modules_with_basis.ModulesWithBasis.ParentMethods.submodule>`.
 
     The ``lift`` method should have a method
     ``.cokernel_basis_indices`` that computes the indexing set of a
@@ -39,9 +39,9 @@ class QuotientModuleWithBasis(CombinatorialFreeModule):
     modulo ``submodule``.
 
     This is meant to be constructed via
-    :meth:`Modules.WithBasis.FiniteDimensional.ParentMethods.quotient_module`
+    :meth:`ModulesWithBasis.ParentMethods.quotient_module <sage.categories.modules_with_basis.ModulesWithBasis.ParentMethods.quotient_module>`
 
-    This differs from :class:`sage.rings.quotient_ring.QuotientRing`
+    This differs from :func:`~sage.rings.quotient_ring.QuotientRing`
     in the following ways:
 
     - ``submodule`` needs not be an ideal. If it is, the
@@ -58,10 +58,10 @@ class QuotientModuleWithBasis(CombinatorialFreeModule):
 
     .. SEEALSO::
 
-        - :meth:`Modules.WithBasis.ParentMethods.submodule`
-        - :meth:`Modules.WithBasis.FiniteDimensional.ParentMethods.quotient_module`
+        - :meth:`ModulesWithBasis.ParentMethods.submodule <sage.categories.modules_with_basis.ModulesWithBasis.ParentMethods.submodule>`
+        - :meth:`ModulesWithBasis.ParentMethods.quotient_module <sage.categories.modules_with_basis.ModulesWithBasis.ParentMethods.quotient_module>`
         - :class:`SubmoduleWithBasis`
-        - :class:`sage.rings.quotient_ring.QuotientRing`
+        - :func:`~sage.rings.quotient_ring.QuotientRing`
     """
     @staticmethod
     def __classcall_private__(cls, submodule, category=None):
@@ -89,7 +89,7 @@ class QuotientModuleWithBasis(CombinatorialFreeModule):
         TESTS::
 
             sage: from sage.modules.with_basis.subquotient import QuotientModuleWithBasis
-            sage: X = CombinatorialFreeModule(QQ, range(3), prefix="x"); x = X.basis()
+            sage: X = CombinatorialFreeModule(QQ, range(3), prefix='x'); x = X.basis()
             sage: I = X.submodule( (x[0]-x[1], x[1]-x[2]) )
             sage: Y = QuotientModuleWithBasis(I)
             sage: Y.print_options(prefix='y')
@@ -115,7 +115,7 @@ class QuotientModuleWithBasis(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: X = CombinatorialFreeModule(QQ, range(3), prefix="x"); x = X.basis()
+            sage: X = CombinatorialFreeModule(QQ, range(3), prefix='x'); x = X.basis()
             sage: Y = X.quotient_module((x[0]-x[1], x[1]-x[2]))
             sage: Y.ambient() is X
             True
@@ -132,7 +132,7 @@ class QuotientModuleWithBasis(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: X = CombinatorialFreeModule(QQ, range(3), prefix="x"); x = X.basis()
+            sage: X = CombinatorialFreeModule(QQ, range(3), prefix='x'); x = X.basis()
             sage: Y = X.quotient_module((x[0]-x[1], x[1]-x[2]));         y = Y.basis()
             sage: Y.lift(y[2])
             x[2]
@@ -150,7 +150,7 @@ class QuotientModuleWithBasis(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: X = CombinatorialFreeModule(QQ, range(3), prefix="x"); x = X.basis()
+            sage: X = CombinatorialFreeModule(QQ, range(3), prefix='x'); x = X.basis()
             sage: Y = X.quotient_module((x[0]-x[1], x[1]-x[2]));         y = Y.basis()
             sage: Y.print_options(prefix='y')
             sage: Y.retract(x[0])
@@ -187,11 +187,11 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
     :class:`CombinatorialFreeModule`.
 
     This is meant to be constructed via
-    :meth:`Modules.WithBasis.ParentMethods.submodule`.
+    :meth:`ModulesWithBasis.ParentMethods.submodule <sage.categories.modules_with_basis.ModulesWithBasis.ParentMethods.submodule>`.
 
     .. SEEALSO::
 
-        - :meth:`Modules.WithBasis.ParentMethods.submodule`
+        - :meth:`ModulesWithBasis.ParentMethods.submodule <sage.categories.modules_with_basis.ModulesWithBasis.ParentMethods.submodule>`
         - :class:`QuotientModuleWithBasis`
     """
     @staticmethod
@@ -231,7 +231,7 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
         TESTS::
 
             sage: from sage.modules.with_basis.subquotient import SubmoduleWithBasis
-            sage: X = CombinatorialFreeModule(QQ, range(3), prefix="x"); x = X.basis()
+            sage: X = CombinatorialFreeModule(QQ, range(3), prefix='x'); x = X.basis()
             sage: ybas = (x[0]-x[1], x[1]-x[2])
             sage: Y = SubmoduleWithBasis(ybas, [0, 1, 2], X)
             sage: Y.print_options(prefix='y')
@@ -287,7 +287,7 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: X = CombinatorialFreeModule(QQ, range(3), prefix="x");             x = X.basis()
+            sage: X = CombinatorialFreeModule(QQ, range(3), prefix='x');             x = X.basis()
             sage: Y = X.submodule((x[0]-x[1], x[1]-x[2]), already_echelonized=True); y = Y.basis()
             sage: Y.lift
             Generic morphism:
@@ -300,10 +300,10 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
         """
         return self.module_morphism(self.lift_on_basis,
                                     codomain=self._ambient,
-                                    triangular="lower",
+                                    triangular='lower',
                                     unitriangular=self._unitriangular,
                                     key=self._support_key,
-                                    inverse_on_support="compute")
+                                    inverse_on_support='compute')
 
     @lazy_attribute
     def reduce(self):
@@ -315,7 +315,7 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: X = CombinatorialFreeModule(QQ, range(3), prefix="x"); x = X.basis()
+            sage: X = CombinatorialFreeModule(QQ, range(3), prefix='x'); x = X.basis()
             sage: Y = X.submodule((x[0]-x[1], x[1]-x[2]), already_echelonized=True)
             sage: Y.reduce
             Generic endomorphism of Free module generated by {0, 1, 2} over Rational Field
@@ -338,7 +338,7 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: X = CombinatorialFreeModule(QQ, range(3), prefix="x"); x = X.basis()
+            sage: X = CombinatorialFreeModule(QQ, range(3), prefix='x'); x = X.basis()
             sage: Y = X.submodule((x[0]-x[1], x[1]-x[2]), already_echelonized=True)
             sage: Y.print_options(prefix='y')
             sage: Y.retract
@@ -355,7 +355,7 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
         """
         return self.lift.section()
 
-    def is_submodule(self, other):
+    def is_submodule(self, other) -> bool:
         r"""
         Return whether ``self`` is a submodule of ``other``.
 
@@ -483,7 +483,7 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
         V = A.submodule([A([vec[supp] for supp in supp_order]) for vec in other._basis], check=False)
         return (U, V)
 
-    def is_equal_subspace(self, other):
+    def is_equal_subspace(self, other) -> bool:
         r"""
         Return whether ``self`` is an equal submodule to ``other``.
 
@@ -648,7 +648,7 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
         UV = U & V  # the intersection
         A = self._ambient
         supp = self._support_order
-        return A.submodule([A.element_class(A, {supp[i]: c for i, c in vec.iteritems()})
+        return A.submodule([A.element_class(A, {supp[i]: c for i, c in vec.items()})
                             for vec in UV.basis()])
 
     intersection = __and__
@@ -661,7 +661,7 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
 
         INPUT:
 
-        - ``gens`` -- a list or family of elements of ``self``
+        - ``gens`` -- list or family of elements of ``self``
 
         For additional optional arguments, see
         :meth:`ModulesWithBasis.ParentMethods.submodule`.

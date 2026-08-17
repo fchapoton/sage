@@ -6,10 +6,10 @@ This is the reference to the Sagemath R interface, usable from any
 Sage program.
 
 The %r interface creating an R cell in the sage
-notebook is decribed in the Notebook manual.
+notebook is described in the Notebook manual.
 
 The %R and %%R interface creating an R line or an R cell in the
-Jupyter notebook are briefly decribed at the end of this page. This
+Jupyter notebook are briefly described at the end of this page. This
 documentation will be expanded and placed in the Jupyter notebook
 manual when this manual exists.
 
@@ -156,7 +156,7 @@ Index vectors; selecting and modifying subsets of a data set::
 
 Distributions::
 
-    sage: r.options(width="60")
+    sage: r.options(width='60')
     $width
     [1] 80
 
@@ -264,24 +264,31 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 #
 # ************************************************************************
+import logging
 import os
-
-from .interface import Interface, InterfaceElement, InterfaceFunction, InterfaceFunctionElement
-from sage.env import DOT_SAGE
 import re
-from sage.structure.element import parent
+
+from sage.env import DOT_SAGE
+from sage.features import PythonModule
+from sage.interfaces.interface import (
+    Interface,
+    InterfaceElement,
+    InterfaceFunction,
+    InterfaceFunctionElement,
+)
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.misc.instancedoc import instancedoc
 
 # see the _lazy_init for some reasoning behind the lazy imports
 from sage.misc.lazy_import import lazy_import
-from sage.features import PythonModule
+from sage.structure.element import parent
 
 rpy2_feature = PythonModule('rpy2', spkg='rpy2', type='standard')
 
 lazy_import("rpy2", "robjects", feature=rpy2_feature)
 lazy_import("rpy2.robjects", "packages", "rpy2_packages", feature=rpy2_feature)
-lazy_import("rpy2.robjects.conversion", ["localconverter", "Converter"], feature=rpy2_feature)
+lazy_import("rpy2.robjects.conversion", ["localconverter", "Converter"],
+            feature=rpy2_feature)
 
 # for help page fetching
 lazy_import("rpy2.robjects.help", "Package", feature=rpy2_feature)
@@ -297,6 +304,9 @@ RFilteredPackages = ['.GlobalEnv']
 # crosscheck with https://svn.r-project.org/R/trunk/src/main/names.c
 # but package:base should cover this. i think.
 RBaseCommands = ['c', "NULL", "NA", "True", "False", "Inf", "NaN"]
+
+# silence rpy2 warnings
+logging.getLogger('rpy2.rinterface_lib.callbacks').setLevel(logging.ERROR)
 
 
 def _setup_r_to_sage_converter():
@@ -347,7 +357,7 @@ def _setup_r_to_sage_converter():
          '_Names': ['Min.', '1st Qu.', 'Median', 'Mean', '3rd Qu.', 'Max.'],
          '_r_class': ['summaryDefault', 'table']}
 
-        sage: r.options(width="60").sage()
+        sage: r.options(width='60').sage()
         {'DATA': {'width': 60}, '_Names': 'width'}
 
     The conversion can handle "not a number", infinity, imaginary values and
@@ -367,10 +377,10 @@ def _setup_r_to_sage_converter():
         sage: labs = r.paste('c("X","Y")', '1:10', sep='""'); labs.sage()
         ['X1', 'Y2', 'X3', 'Y4', 'X5', 'Y6', 'X7', 'Y8', 'X9', 'Y10']
     """
-    from rpy2.rinterface import SexpVector, ListSexpVector, FloatSexpVector
+    from rpy2.rinterface import FloatSexpVector, ListSexpVector, SexpVector
 
-    # convert rpy2's representation of r objects to the one sage expects (as defined by the old
-    # expect interface)
+    # convert rpy2's representation of r objects to the one sage
+    # expects (as defined by the old expect interface)
     cv = Converter('r to sage converter')
 
     # support rpy version 2 and 3
@@ -395,8 +405,7 @@ def _setup_r_to_sage_converter():
     def list_to_singleton_if_possible(l):
         if len(l) == 1:
             return l[0]
-        else:
-            return l
+        return l
 
     def _vector(vec):
         attrs = vec.list_attrs()
@@ -413,9 +422,8 @@ def _setup_r_to_sage_converter():
                 '_Names': names,
                 '_r_class': rclass,
             }
-        else:
-            # if no names are present, convert to a normal list or a single value
-            return data
+        # if no names are present, convert to a normal list or a single value
+        return data
     rpy2py.register(SexpVector, _vector)
 
     def _matrix(mat):
@@ -438,10 +446,8 @@ def _setup_r_to_sage_converter():
 
     def _list_vector(vec):
         # we have a R list (vector of arbitrary elements)
-        attrs = vec.list_attrs()
         names = vec.do_slot('names')
         values = [rpy2py(val) for val in vec]
-        rclass = list(vec.do_slot('class')) if 'class' in attrs else vec.rclass
         data = zip(names, values)
         return {
             'DATA': dict(data),
@@ -480,6 +486,7 @@ class R(ExtraTabCompletion, Interface):
 
         TESTS::
 
+            sage: from sage.interfaces.r import r
             sage: r == loads(dumps(r))
             True
         """
@@ -606,7 +613,7 @@ class R(ExtraTabCompletion, Interface):
 
     def png(self, *args, **kwds):
         """
-        Creates an R PNG device.
+        Create an R PNG device.
 
         This should primarily be used to save an R graphic to a custom file.  Note
         that when using this in the notebook, one must plot in the same cell that
@@ -645,7 +652,7 @@ class R(ExtraTabCompletion, Interface):
 
     def convert_r_list(self, l):
         r"""
-        Converts an R list to a Python list.
+        Convert an R list to a Python list.
 
         EXAMPLES::
 
@@ -772,11 +779,11 @@ class R(ExtraTabCompletion, Interface):
 
     def _source(self, s):
         """
-        Returns the source code of an R function as a string.
+        Return the source code of an R function as a string.
 
         INPUT:
 
-        - s -- the name of the function as a string
+        - ``s`` -- the name of the function as a string
 
         EXAMPLES::
 
@@ -793,9 +800,9 @@ class R(ExtraTabCompletion, Interface):
 
         INPUT:
 
-        - s -- a string representing the function whose source code you want to see
+        - ``s`` -- string representing the function whose source code you want to see
 
-        OUTPUT: string -- source code
+        OUTPUT: string; source code
 
         EXAMPLES::
 
@@ -836,12 +843,12 @@ class R(ExtraTabCompletion, Interface):
         """
         Load the library library_name into the R interpreter.
 
-        This function raises an ImportError if the given library
+        This function raises an :exc:`ImportError` if the given library
         is not known.
 
         INPUT:
 
-        - library_name -- string
+        - ``library_name`` -- string
 
         EXAMPLES::
 
@@ -870,13 +877,13 @@ class R(ExtraTabCompletion, Interface):
 
     def available_packages(self):
         """
-        Returns a list of all available R package names.
+        Return a list of all available R package names.
 
         This list is not necessarily sorted.
 
         OUTPUT: list of strings
 
-        .. note::
+        .. NOTE::
 
             This requires an internet connection. The CRAN server is
             that is checked is defined at the top of sage/interfaces/r.py.
@@ -894,7 +901,7 @@ class R(ExtraTabCompletion, Interface):
         # The following was more structural, but breaks on my machine.  (stein)
         # p = p._sage_()
         # s = p['_Dim'][0]
-        # l = [[p['DATA'][i],p['DATA'][s+1+i]] for i in range(0,s)]
+        # l = [[p['DATA'][i],p['DATA'][s+1+i]] for i in range(s)]
         # return l
 
     def _object_class(self):
@@ -912,7 +919,7 @@ class R(ExtraTabCompletion, Interface):
 
     def _true_symbol(self):
         """
-        Return the symbol that represents True in R.
+        Return the symbol that represents ``True`` in R.
 
         OUTPUT: string
 
@@ -927,7 +934,7 @@ class R(ExtraTabCompletion, Interface):
 
     def _false_symbol(self):
         """
-        Return the symbol that represents True in R.
+        Return the symbol that represents ``True`` in R.
 
         OUTPUT: string
 
@@ -971,12 +978,14 @@ class R(ExtraTabCompletion, Interface):
 
     def help(self, command):
         """
-        Returns help string for a given command.
+        Return help string for a given command.
 
         INPUT:
-        - command -- a string
 
-        OUTPUT: HelpExpression -- a subclass of string whose __repr__ method is __str__, so it prints nicely
+        - ``command`` -- string
+
+        OUTPUT: HelpExpression; a subclass of string whose ``__repr__``
+        method is ``__str__``, so it prints nicely
 
         EXAMPLES::
 
@@ -1016,7 +1025,7 @@ class R(ExtraTabCompletion, Interface):
 
     def _left_list_delim(self):
         """
-        Return the left delimiter for lists in R, which is 'c('
+        Return the left delimiter for lists in R, which is 'c('.
 
         OUTPUT: string
 
@@ -1029,7 +1038,7 @@ class R(ExtraTabCompletion, Interface):
 
     def _right_list_delim(self):
         """
-        Return the right delimiter for lists in R, which is 'c('
+        Return the right delimiter for lists in R, which is 'c('.
 
         OUTPUT: string
 
@@ -1042,7 +1051,7 @@ class R(ExtraTabCompletion, Interface):
 
     def console(self):
         """
-        Runs the R console as a separate new R process.
+        Run the R console as a separate new R process.
 
         EXAMPLES::
 
@@ -1058,7 +1067,7 @@ class R(ExtraTabCompletion, Interface):
         """
         Return the result of calling an R function, with given args and keyword args.
 
-        OUTPUT: RElement -- an object in R
+        OUTPUT: RElement; an object in R
 
         EXAMPLES::
 
@@ -1083,10 +1092,10 @@ class R(ExtraTabCompletion, Interface):
 
     def _an_element_(self):
         """
-        Returns an element belonging to the R interpreter.  This is used
+        Return an element belonging to the R interpreter.  This is used
         behind the scenes when doing things like comparisons, etc.
 
-        OUTPUT: RElement -- an R element.
+        OUTPUT: RElement; an R element
 
         EXAMPLES::
 
@@ -1103,8 +1112,8 @@ class R(ExtraTabCompletion, Interface):
 
         INPUT:
 
-        - var -- a string
-        - value -- a string
+        - ``var`` -- string
+        - ``value`` -- string
 
         EXAMPLES::
 
@@ -1116,11 +1125,11 @@ class R(ExtraTabCompletion, Interface):
 
     def get(self, var):
         """
-        Returns the string representation of the variable var.
+        Return the string representation of the variable var.
 
         INPUT:
 
-        - var -- a string
+        - ``var`` -- string
 
         OUTPUT: string
 
@@ -1134,9 +1143,9 @@ class R(ExtraTabCompletion, Interface):
 
     def na(self):
         """
-        Returns the NA in R.
+        Return the NA in R.
 
-        OUTPUT: RElement -- an element of R
+        OUTPUT: RElement; an element of R
 
         EXAMPLES::
 
@@ -1152,9 +1161,9 @@ class R(ExtraTabCompletion, Interface):
 
         INPUT:
 
-        - s -- string
+        - ``s`` -- string
 
-        OUTPUT: list -- a list of strings
+        OUTPUT: list of strings
 
         EXAMPLES::
 
@@ -1168,7 +1177,7 @@ class R(ExtraTabCompletion, Interface):
         """
         Return list of all commands defined in R.
 
-        OUTPUT: list -- a sorted list of strings
+        OUTPUT: list; a sorted list of strings
 
         EXAMPLES::
 
@@ -1214,11 +1223,12 @@ class R(ExtraTabCompletion, Interface):
 
         INPUT:
 
-        - verbose -- bool (default: ``True``); if True, display debugging information
-        - use_disk_cache -- bool (default: ``True``); if True, use the disk cache of
-          tab completions to save time.
+        - ``verbose`` -- boolean (default: ``True``); if ``True``, display
+          debugging information
+        - ``use_disk_cache`` -- boolean (default: ``True``); if ``True``, use
+          the disk cache of tab completions to save time
 
-        OUTPUT: list -- list of string
+        OUTPUT: list of string
 
         EXAMPLES::
 
@@ -1299,7 +1309,7 @@ class R(ExtraTabCompletion, Interface):
             sage: r.quartz()
             sage: r.hist("rnorm(100)")
             sage: r.library("lattice")
-            sage: r.histogram(x = "~ wt | cyl", data="mtcars")
+            sage: r.histogram(x = '~ wt | cyl', data='mtcars')
             sage: r.dev_off()
 
         In the notebook, one can use r.png() to open the device, but
@@ -1333,15 +1343,15 @@ class R(ExtraTabCompletion, Interface):
 
     def _r_to_sage_name(self, s):
         """
-        Returns a Sage/Python identifier from an R one.  This involves
+        Return a Sage/Python identifier from an R one.  This involves
         replacing periods with underscores, <- with __, and prepending
         _ in front of Python keywords.
 
         INPUT:
 
-        - s -- a string
+        - ``s`` -- string
 
-        OUTPUT: a string
+        OUTPUT: string
 
         EXAMPLES::
 
@@ -1389,13 +1399,13 @@ class R(ExtraTabCompletion, Interface):
 
     def __getitem__(self, s):
         """
-        Returns the RFunction with name s.
+        Return the RFunction with name s.
 
         INPUT:
 
-        - s -- a string
+        - ``s`` -- string
 
-        OUTPUT: RFunction -- the R function that in R has name s
+        OUTPUT: RFunction; the R function that in R has name s
 
         EXAMPLES::
 
@@ -1408,11 +1418,11 @@ class R(ExtraTabCompletion, Interface):
 
     def chdir(self, dir):
         """
-        Changes the working directory to ``dir``
+        Changes the working directory to ``dir``.
 
         INPUT:
 
-        - ``dir`` -- the directory to change to.
+        - ``dir`` -- the directory to change to
 
         EXAMPLES::
 
@@ -1439,7 +1449,7 @@ class RElement(ExtraTabCompletion, InterfaceElement):
         """
         Return a list of all methods of this object.
 
-        .. note::
+        .. NOTE::
 
             Currently returns all R commands.
 
@@ -1482,7 +1492,6 @@ class RElement(ExtraTabCompletion, InterfaceElement):
             True
             sage: r([1,2,3]).is_string()
             False
-
         """
         return isinstance(self.sage(), str)
 
@@ -1507,7 +1516,7 @@ class RElement(ExtraTabCompletion, InterfaceElement):
 
         INPUT:
 
-        - attrname -- string
+        - ``attrname`` -- string
 
         OUTPUT: RFunctionElement
 
@@ -1533,11 +1542,12 @@ class RElement(ExtraTabCompletion, InterfaceElement):
 
     def __getitem__(self, n):
         """
-        Return element(s) of self.
+        Return element(s) of ``self``.
 
         INPUT:
 
-        - n -- an integer, a tuple, a string that makes sense to R, or an RElement
+        - ``n`` -- integer, a tuple, a string that makes sense to R, or an
+          RElement
 
         OUTPUT: RElement
 
@@ -1578,26 +1588,26 @@ class RElement(ExtraTabCompletion, InterfaceElement):
         if isinstance(n, str):
             n = n.replace('self', self._name)
             return P.new('%s[%s]' % (self._name, n))
-        elif parent(n) is P:  # the key is RElement itself
+        if parent(n) is P:  # the key is RElement itself
             return P.new('%s[%s]' % (self._name, n.name()))
-        elif not isinstance(n, tuple):
+        if not isinstance(n, tuple):
             return P.new('%s[%s]' % (self._name, n))
-        else:
-            L = []
-            for i in range(len(n)):
-                if parent(n[i]) is P:
-                    L.append(n[i].name())
-                else:
-                    L.append(str(n[i]))
-            return P.new('%s[%s]' % (self._name, ','.join(L)))
+        L = []
+        for i in range(len(n)):
+            if parent(n[i]) is P:
+                L.append(n[i].name())
+            else:
+                L.append(str(n[i]))
+        return P.new('%s[%s]' % (self._name, ','.join(L)))
 
     def __bool__(self):
         """
-        Implements bool(self).
+        Implement ``bool(self)``.
 
-        .. note::
+        .. NOTE::
 
-            bool(self) will only return True if self == 0 contains a FALSE in its representation.
+            bool(self) will only return ``True`` if ``self == 0`` contains a
+            FALSE in its representation.
 
         EXAMPLES::
 
@@ -1620,10 +1630,10 @@ class RElement(ExtraTabCompletion, InterfaceElement):
 
         INPUT:
 
-        - other -- RElement
-        - symbol -- string
+        - ``other`` -- RElement
+        - ``symbol`` -- string
 
-        OUTPUT: RElement -- output is an R element; not a bool!
+        OUTPUT: RElement; output is an R element (not a bool!)
 
         TESTS::
 
@@ -1641,9 +1651,9 @@ class RElement(ExtraTabCompletion, InterfaceElement):
 
         INPUT:
 
-        - other -- RElement
+        - ``other`` -- RElement
 
-        OUTPUT: RElement -- an R element; not a bool!
+        OUTPUT: RElement; an R element (not a bool!)
 
         EXAMPLES:
 
@@ -1661,9 +1671,9 @@ class RElement(ExtraTabCompletion, InterfaceElement):
 
         INPUT:
 
-        - other -- RElement
+        - ``other`` -- RElement
 
-        OUTPUT: RElement -- an R element; not a bool!
+        OUTPUT: RElement; an R element (not a bool!)
 
         EXAMPLES:
 
@@ -1681,9 +1691,9 @@ class RElement(ExtraTabCompletion, InterfaceElement):
 
         INPUT:
 
-        - other -- RElement
+        - ``other`` -- RElement
 
-        OUTPUT: RElement -- an R element; not a bool!
+        OUTPUT: RElement; an R element (not a bool!)
 
         EXAMPLES:
 
@@ -1701,9 +1711,9 @@ class RElement(ExtraTabCompletion, InterfaceElement):
 
         INPUT:
 
-        - other -- RElement
+        - ``other`` -- RElement
 
-        OUTPUT: RElement -- an R element; not a bool!
+        OUTPUT: RElement; an R element (not a bool!)
 
         EXAMPLES::
 
@@ -1719,9 +1729,9 @@ class RElement(ExtraTabCompletion, InterfaceElement):
 
         INPUT:
 
-        - other -- RElement
+        - ``other`` -- RElement
 
-        OUTPUT: RElement -- an R element; not a bool!
+        OUTPUT: RElement; an R element (not a bool!)
 
         EXAMPLES::
 
@@ -1737,26 +1747,25 @@ class RElement(ExtraTabCompletion, InterfaceElement):
 
         INPUT:
 
-        - other -- RElement
+        - ``other`` -- RElement
 
-        OUTPUT: RElement -- an R element; not a bool!
+        OUTPUT: RElement; an R element (not a bool!)
 
         EXAMPLES::
 
             sage: x = r([10.4,5.6,3.1,6.4,21.7])
             sage: x != 10.4
             [1] FALSE  TRUE  TRUE  TRUE  TRUE
-
         """
         return self._comparison(other, "!=")
 
     def dot_product(self, other):
         """
-        Implements the notation self . other.
+        Implement the notation ``self . other``.
 
         INPUT:
 
-        - self, other -- R elements
+        - ``self``, ``other`` -- R elements
 
         OUTPUT: R element
 
@@ -1782,7 +1791,7 @@ class RElement(ExtraTabCompletion, InterfaceElement):
 
     def _sage_(self):
         r"""
-        Returns Sage representation of the R object.
+        Return Sage representation of the R object.
 
         R objects are basic C structures, of different kind, that can
         be stacked together.  This is similar to Python lists with
@@ -1790,7 +1799,7 @@ class RElement(ExtraTabCompletion, InterfaceElement):
         names, they are translated to a Python dictionary, with anonymous
         list entries called ``#{number}``.
 
-        OUTPUT: object -- Python object
+        OUTPUT: object; Python object
 
         EXAMPLES::
 
@@ -1804,7 +1813,7 @@ class RElement(ExtraTabCompletion, InterfaceElement):
         self._check_valid()
         P = self.parent()
 
-        with localconverter(P._r_to_sage_converter) as cv:
+        with localconverter(P._r_to_sage_converter):
             return robjects.r(self.name())
 
     def _latex_(self):
@@ -1849,7 +1858,7 @@ class RFunctionElement(InterfaceFunctionElement):
 
     def _instancedoc_(self):
         """
-        Returns the help for self as a string.
+        Return the help for ``self`` as a string.
 
         EXAMPLES::
 
@@ -1872,7 +1881,7 @@ class RFunctionElement(InterfaceFunctionElement):
 
     def _sage_src_(self):
         """
-        Returns the source code of self.
+        Return the source code of ``self``.
 
         EXAMPLES::
 
@@ -1904,9 +1913,9 @@ class RFunction(InterfaceFunction):
 
         INPUT:
 
-        - parent -- the R interface
-        - name -- the name of the function for Python
-        - r_name -- the name of the function in R itself (which can have dots in it)
+        - ``parent`` -- the R interface
+        - ``name`` -- the name of the function for Python
+        - ``r_name`` -- the name of the function in R itself (which can have dots in it)
 
         EXAMPLES::
 
@@ -1947,7 +1956,7 @@ class RFunction(InterfaceFunction):
 
     def _instancedoc_(self):
         """
-        Returns the help for self.
+        Return the help for ``self``.
 
         EXAMPLES::
 
@@ -1969,14 +1978,13 @@ class RFunction(InterfaceFunction):
 
     def _sage_src_(self):
         """
-        Returns the source of self.
+        Return the source of ``self``.
 
         EXAMPLES::
 
             sage: length = r.length
             sage: print(length._sage_src_())
             function (x)  .Primitive("length")
-
         """
         M = self._parent
         return M.source(self._name)
@@ -1990,32 +1998,6 @@ class RFunction(InterfaceFunction):
             [1] 3
         """
         return self._parent.function_call(self._name, args=list(args), kwds=kwds)
-
-
-def is_RElement(x):
-    """
-    Return True if x is an element in an R interface.
-
-    INPUT:
-
-    - x -- object
-
-    OUTPUT: bool
-
-    EXAMPLES::
-
-        sage: from sage.interfaces.r import is_RElement
-        sage: is_RElement(2)
-        doctest:...: DeprecationWarning: the function is_RElement is deprecated; use isinstance(x, sage.interfaces.abc.RElement) instead
-        See https://github.com/sagemath/sage/issues/34804 for details.
-        False
-        sage: is_RElement(r(2))
-        True
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(34804, "the function is_RElement is deprecated; use isinstance(x, sage.interfaces.abc.RElement) instead")
-
-    return isinstance(x, RElement)
 
 
 # An instance of R

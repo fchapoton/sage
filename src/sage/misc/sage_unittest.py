@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-objects
 r"""
 Unit testing for Sage objects
 """
@@ -71,6 +70,8 @@ class TestSuite:
         running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
+        running ._test_random() . . . pass
+        running ._test_rank() . . . pass
         running ._test_some_elements() . . . pass
 
     The different test methods can be called independently::
@@ -93,9 +94,9 @@ class TestSuite:
 
     Adding a new test boils down to adding a new method in the class
     of the object or any super class (e.g. in a category). This method
-    should use the utility :meth:`._tester` to handle standard options
+    should use the utility ``._tester`` to handle standard options
     and report test failures. See the code of
-    :meth:`._test_an_element` for an example. Note: Python's testunit
+    ``._test_an_element`` for an example. Note: Python's testunit
     convention is to look for methods called ``.test*``; we use instead
     ``._test_*`` so as not to pollute the object's interface.
 
@@ -110,40 +111,40 @@ class TestSuite:
         running ._test_new() . . . pass
         running ._test_pickling() . . . pass
 
-    TODO:
+    .. TODO::
 
-     - Allow for customized behavior in case of failing assertion
-       (warning, error, statistic accounting).
-       This involves reimplementing the methods fail / failIf / ...
-       of unittest.TestCase in InstanceTester
+        - Allow for customized behavior in case of failing assertion
+          (warning, error, statistic accounting).
+          This involves reimplementing the methods fail / failIf / ...
+          of :class:`TestCase <unittest.TestCase>` in InstanceTester
 
-     - Don't catch the exceptions if ``TestSuite(..).run()`` is called
-       under the debugger, or with ``%pdb`` on (how to detect this? see
-       ``get_ipython()``, ``IPython.Magic.shell.call_pdb``, ...)
-       In the mean time, see the ``catch=False`` option.
+        - Don't catch the exceptions if ``TestSuite(..).run()`` is called
+          under the debugger, or with ``%pdb`` on (how to detect this? see
+          ``get_ipython()``, ``IPython.Magic.shell.call_pdb``, ...)
+          In the mean time, see the ``catch=False`` option.
 
-     - Run the tests according to the inheritance order, from most
-       generic to most specific, rather than alphabetically. Then, the
-       first failure will be the most relevant, the others being
-       usually consequences.
+        - Run the tests according to the inheritance order, from most
+          generic to most specific, rather than alphabetically. Then, the
+          first failure will be the most relevant, the others being
+          usually consequences.
 
-     - Improve integration with doctests (statistics on failing/passing tests)
+        - Improve integration with doctests (statistics on failing/passing tests)
 
-     - Add proper support for nested testsuites.
+        - Add proper support for nested testsuites.
 
-     - Integration with unittest:
-       Make TestSuite inherit from unittest.TestSuite?
-       Make ``.run(...)`` accept a result object
+        - Integration with unittest:
+          Make TestSuite inherit from unittest.TestSuite?
+          Make ``.run(...)`` accept a result object
 
-     - Add some standard option ``proof = True``, asking for the
-       test method to choose appropriately the elements so as to
-       prove the desired property. The test method may assume that
-       a parent implements properly all the super categories. For
-       example, the ``_test_commutative`` method of the category
-       ``CommutativeSemigroups()`` may just check that the
-       provided generators commute, implicitly assuming that
-       generators indeed generate the semigroup (as required by
-       ``Semigroups()``).
+        - Add some standard option ``proof = True``, asking for the
+          test method to choose appropriately the elements so as to
+          prove the desired property. The test method may assume that
+          a parent implements properly all the super categories. For
+          example, the ``_test_commutative`` method of the category
+          ``CommutativeSemigroups()`` may just check that the
+          provided generators commute, implicitly assuming that
+          generators indeed generate the semigroup (as required by
+          ``Semigroups()``).
     """
 
     def __init__(self, instance):
@@ -174,10 +175,10 @@ class TestSuite:
 
         INPUT:
 
-         - ``category``         -- a category; reserved for future use
-         - ``skip``             -- a string or list (or iterable) of strings
-         - ``raise_on_failure`` -- a boolean (default: ``False``)
-         - ``catch``            -- a boolean (default: ``True``)
+        - ``category`` -- a category; reserved for future use
+        - ``skip`` -- string or list (or iterable) of strings
+        - ``raise_on_failure`` -- boolean (default: ``False``)
+        - ``catch`` -- boolean (default: ``True``)
 
         All other options are passed down to the individual tests.
 
@@ -197,7 +198,7 @@ class TestSuite:
 
         Some tests may be skipped using the ``skip`` option::
 
-            sage: TestSuite(1).run(verbose = True, skip ="_test_pickling")
+            sage: TestSuite(1).run(verbose = True, skip ='_test_pickling')
             running ._test_category() . . . pass
             running ._test_eq() . . . pass
             running ._test_new() . . . pass
@@ -229,10 +230,9 @@ class TestSuite:
             AssertionError: None
             ------------------------------------------------------------
             Failure in _test_pickling:
-            Traceback (most recent call last):
-              ...
-            ...PicklingError: Can't pickle <class '__main__.Blah'>: attribute
-            lookup ...Blah... failed
+            ...
+            ...PicklingError: Can't pickle <class '__main__.Blah'>: ...
+            ...
             ------------------------------------------------------------
             The following tests failed: _test_b, _test_d, _test_pickling
 
@@ -253,15 +253,13 @@ class TestSuite:
             running ._test_new() . . . pass
             running ._test_not_implemented_methods() . . . pass
             running ._test_pickling() . . . fail
-            Traceback (most recent call last):
-              ...
-            ...PicklingError: Can't pickle <class '__main__.Blah'>: attribute
-            lookup ...Blah... failed
+            ...
+            ...PicklingError: Can't pickle <class '__main__.Blah'>: ...
+            ...
             ------------------------------------------------------------
             The following tests failed: _test_b, _test_d, _test_pickling
 
-            File "/opt/sage/local/lib/python/site-packages/sage/misc/sage_unittest.py", line 183, in run
-            test_method(tester = tester)
+            ...
 
         The ``catch=False`` option prevents ``TestSuite`` from
         catching exceptions::
@@ -349,7 +347,7 @@ def instance_tester(instance, tester=None, **options):
         AssertionError: 1 != 0
 
     The available assertion testing facilities are the same as in
-    :class:`unittest.TestCase` [UNITTEST]_, which see (actually, by a slight
+    :class:`TestCase <unittest.TestCase>` [UNITTEST]_, which see (actually, by a slight
     abuse, tester is currently an instance of this class).
 
     TESTS::
@@ -359,10 +357,9 @@ def instance_tester(instance, tester=None, **options):
     """
     if tester is None:
         return InstanceTester(instance, **options)
-    else:
-        assert not options
-        assert tester._instance is instance
-        return tester
+    assert not options
+    assert tester._instance is instance
+    return tester
 
 
 class InstanceTester(unittest.TestCase):
@@ -388,7 +385,7 @@ class InstanceTester(unittest.TestCase):
     # all that much anyways)
     longMessage = False
 
-    def __init__(self, instance, elements=None, verbose=False, prefix="",
+    def __init__(self, instance, elements=None, verbose=False, prefix='',
                  max_runs=4096, max_samples=None, **options):
         """
         A gadget attached to an instance providing it with testing utilities.
@@ -414,9 +411,9 @@ class InstanceTester(unittest.TestCase):
 
     def runTest(self):
         """
-        Trivial implementation of :meth:`unittest.TestCase.runTest` to
-        please the super class :class:`TestCase`. That's the price to
-        pay for abusively inheriting from it.
+        Trivial implementation of the default ``unittest.TestCase.runTest()``
+        method expected by :class:`TestCase <unittest.TestCase>`. That's the
+        price to pay for abusively inheriting from it.
 
         EXAMPLES::
 
@@ -428,7 +425,7 @@ class InstanceTester(unittest.TestCase):
 
     def info(self, message, newline=True):
         """
-        Display user information
+        Display user information.
 
         EXAMPLES::
 
@@ -460,7 +457,6 @@ class InstanceTester(unittest.TestCase):
             sage: from sage.misc.sage_unittest import InstanceTester
             sage: InstanceTester(ZZ, verbose = True)
             Testing utilities for Integer Ring
-
         """
         return "Testing utilities for %s" % self._instance
 
@@ -473,13 +469,13 @@ class InstanceTester(unittest.TestCase):
 
         INPUT:
 
-        - ``S`` -- a set of elements to select from.  By default this
+        - ``S`` -- set of elements to select from; by default this
           will use the elements passed to this tester at creation
           time, or the result of :meth:`.some_elements` if no elements
-          were specified.
+          were specified
 
-        - ``repeat`` -- integer (default: None).  If given, instead returns
-          a list of tuples of length ``repeat`` from ``S``.
+        - ``repeat`` -- integer (default: ``None``);  if given, instead returns
+          a list of tuples of length ``repeat`` from ``S``
 
         OUTPUT:
 
@@ -599,7 +595,7 @@ class PythonObjectWithTests:
 
     def _test_pickling(self, **options):
         """
-        Checks that the instance in self can be pickled and unpickled properly.
+        Check that the instance in ``self`` can be pickled and unpickled properly.
 
         EXAMPLES::
 

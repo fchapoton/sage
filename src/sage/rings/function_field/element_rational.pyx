@@ -61,7 +61,6 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
             sage: K.<a> = FunctionField(QQ)
             sage: ((a+1)/(a-1)).__pari__()                                              # needs sage.libs.pari
             (a + 1)/(a - 1)
-
         """
         return self.element().__pari__()
 
@@ -77,7 +76,6 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
             sage: type(t.element())                                                     # needs sage.libs.ntl
             <... 'sage.rings.fraction_field_FpT.FpTElement'>
 
-            sage: # needs sage.rings.finite_rings
             sage: K.<t> = FunctionField(GF(131101))
             sage: t.element()
             t
@@ -146,7 +144,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     cpdef _richcmp_(self, other, int op):
         """
-        Compare the element with the other element with respect to ``op``
+        Compare the element with the other element with respect to ``op``.
 
         INPUT:
 
@@ -213,7 +211,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     cpdef _mul_(self, right):
         """
-        Multiply the element with the other element
+        Multiply the element with the other element.
 
         INPUT:
 
@@ -231,7 +229,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     cpdef _div_(self, right):
         """
-        Divide the element with the other element
+        Divide the element with the other element.
 
         INPUT:
 
@@ -357,8 +355,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         """
         if all:
             return [self._parent(r) for r in self._x.sqrt(all=True)]
-        else:
-            return self._parent(self._x.sqrt())
+        return self._parent(self._x.sqrt())
 
     cpdef bint is_nth_power(self, n) noexcept:
         r"""
@@ -367,7 +364,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
         INPUT:
 
-        - ``n`` -- an integer
+        - ``n`` -- integer
 
         OUTPUT:
 
@@ -386,7 +383,6 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
         EXAMPLES::
 
-            sage: # needs sage.rings.finite_rings
             sage: K.<x> = FunctionField(GF(3))
             sage: f = (x+1)/(x-1)
             sage: f.is_nth_power(1)
@@ -419,7 +415,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
         INPUT:
 
-        - ``n`` -- an integer
+        - ``n`` -- integer
 
         OUTPUT:
 
@@ -475,7 +471,6 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
         EXAMPLES::
 
-            sage: # needs sage.libs.pari
             sage: K.<t> = FunctionField(QQ)
             sage: f = (t+1) / (t^2 - 1/3)
             sage: f.factor()

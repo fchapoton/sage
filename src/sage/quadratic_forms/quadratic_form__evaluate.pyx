@@ -17,13 +17,13 @@ def QFEvaluateVector(Q, v):
     .. NOTE::
 
         This is a Python wrapper for the fast evaluation routine
-        :func:`QFEvaluateVector_cdef`.  This routine is for internal use and is
+        ``QFEvaluateVector_cdef``.  This routine is for internal use and is
         called more conveniently as ``Q(M)``.
 
     INPUT:
 
     - ``Q`` -- :class:`QuadraticForm` over a base ring `R`
-    - ``v`` -- a tuple or list (or column matrix) of ``Q.dim()`` elements of `R`
+    - ``v`` -- tuple or list (or column matrix) of ``Q.dim()`` elements of `R`
 
     OUTPUT: an element of `R`
 
@@ -48,7 +48,6 @@ cdef QFEvaluateVector_cdef(Q, v):
     r"""
     Routine to quickly evaluate a quadratic form `Q` on a vector `v`.  See
     the Python wrapper function :meth:`QFEvaluate` above for details.
-
     """
     # If we are passed a matrix A, return the quadratic form Q(A(x))
     # (In matrix notation: A^t * Q * A)
@@ -76,7 +75,7 @@ def QFEvaluateMatrix(Q, M, Q2):
     .. NOTE::
 
         This is a Python wrapper for the fast evaluation routine
-        :func:`QFEvaluateMatrix_cdef`.  This routine is for internal use and is
+        ``QFEvaluateMatrix_cdef``.  This routine is for internal use and is
         called more conveniently as ``Q(M)``.  The inclusion of ``Q2`` as an
         argument is to avoid having to create a :func:`QuadraticForm` here, which
         for now creates circular imports.
@@ -115,7 +114,6 @@ cdef QFEvaluateMatrix_cdef(Q, M, Q2):
     r"""
     Routine to quickly evaluate a quadratic form `Q` on a matrix `M`.  See
     the Python wrapper function :func:`QFEvaluateMatrix` above for details.
-
     """
     # Create the new quadratic form
     n = Q.dim()

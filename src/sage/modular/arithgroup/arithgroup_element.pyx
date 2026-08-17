@@ -43,7 +43,7 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
           which lives in ``parent``
 
         - ``check`` -- if ``True``, check that parent is an arithmetic
-          subgroup, and that `x` defines a matrix of determinant `1`.
+          subgroup, and that `x` defines a matrix of determinant `1`
 
         We tend not to create elements of arithmetic subgroups that are not
         SL2Z, in order to avoid coercion issues (that is, the other arithmetic
@@ -157,10 +157,10 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         """
         return '%s' % self.__x._latex_()
 
-    cpdef _richcmp_(self, right_r, int op):
+    cpdef _richcmp_(self, other, int op):
         """
-        Compare self to right, where right is guaranteed to have the same
-        parent as self.
+        Compare ``self`` to ``other``, where ``other`` is guaranteed to have
+        the same parent as ``self``.
 
         EXAMPLES::
 
@@ -187,7 +187,7 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
             sage: s*u == v
             True
         """
-        cdef ArithmeticSubgroupElement right = <ArithmeticSubgroupElement>right_r
+        cdef ArithmeticSubgroupElement right = <ArithmeticSubgroupElement>other
         return richcmp(self.__x, right.__x, op)
 
     def __bool__(self):
@@ -205,7 +205,7 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
 
     cpdef _mul_(self, right):
         """
-        Return self * right.
+        Return ``self * right``.
 
         EXAMPLES::
 
@@ -375,12 +375,11 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
             sage: G([1, 4, 0, 1]).acton(infinity)
             +Infinity
         """
-        from sage.rings.infinity import is_Infinite, infinity
-        if is_Infinite(z):
+        from sage.rings.infinity import InfinityElement, infinity
+        if isinstance(z, InfinityElement):
             if self.c() != 0:
                 return self.a() / self.c()
-            else:
-                return infinity
+            return infinity
         if hasattr(z, 'denominator') and hasattr(z, 'numerator'):
             p = z.numerator()
             q = z.denominator()
@@ -388,8 +387,7 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
             Q = self.c() * p + self.d() * q
             if not Q and P:
                 return infinity
-            else:
-                return P / Q
+            return P / Q
         return (self.a() * z + self.b()) / (self.c() * z + self.d())
 
     def __getitem__(self, q):
@@ -409,9 +407,10 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
 
         EXAMPLES::
 
-            sage: hash(SL2Z.0)
-            -8192788425652673914  # 64-bit
-            -1995808122           # 32-bit
+            sage: hash32 = -1995808122
+            sage: hash64 = -8192788425652673914
+            sage: hash(SL2Z.0) in [hash32, hash64]
+            True
         """
         return hash(self.__x)
 

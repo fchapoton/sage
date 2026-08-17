@@ -23,18 +23,18 @@ from cpython.object cimport *
 
 from sage.misc.fast_methods cimport hash_by_id
 from sage.structure.element cimport ModuleElement, Element
-from sage.numerical.linear_functions cimport LinearFunction, is_LinearFunction
+from sage.numerical.linear_functions cimport LinearFunction
 
 
-#*****************************************************************************
+# ***************************************************************************
 #
 # Elements of linear functions tensored with a free module
 #
-#*****************************************************************************
+# ***************************************************************************
 
 cdef class LinearTensor(ModuleElement):
     r"""
-    A linear function tensored with a free module
+    A linear function tensored with a free module.
 
     .. warning::
 
@@ -56,9 +56,9 @@ cdef class LinearTensor(ModuleElement):
         INPUT:
 
         - ``parent`` -- the parent
-          :class:`~sage.numerical.linear_tensor.LinearTensorParent_class`.
+          :class:`~sage.numerical.linear_tensor.LinearTensorParent_class`
 
-        - ``f`` -- A linear function tensored by a free module is
+        - ``f`` -- a linear function tensored by a free module is
           represented as a dictionary. The values are the coefficient
           (free module elements) of the variable represented by the
           keys. The key ``-1`` corresponds to the constant term.
@@ -100,9 +100,8 @@ cdef class LinearTensor(ModuleElement):
             sage: lt[1]
             2*x_0 + 5*x_3
         """
-        f = dict([key, value[indices]] for key, value in self._f.items())
         LF = self.parent().linear_functions()
-        return LF(f)
+        return LF({key: value[indices] for key, value in self._f.items()})
 
     def dict(self):
         r"""
@@ -188,9 +187,7 @@ cdef class LinearTensor(ModuleElement):
         """
         Return a string representation.
 
-        OUTPUT:
-
-        String.
+        OUTPUT: string
 
         EXAMPLES::
 
@@ -226,9 +223,7 @@ cdef class LinearTensor(ModuleElement):
         """
         Return a matrix-like string representation.
 
-        OUTPUT:
-
-        String.
+        OUTPUT: string
 
         EXAMPLES::
 
@@ -267,11 +262,9 @@ cdef class LinearTensor(ModuleElement):
 
         INPUT:
 
-        - ``b`` -- a :class:`LinearTensor`.
+        - ``b`` -- a :class:`LinearTensor`
 
-        OUTPUT:
-
-        A :class:`LinearTensor`.
+        OUTPUT: a :class:`LinearTensor`
 
         EXAMPLES::
 
@@ -281,7 +274,7 @@ cdef class LinearTensor(ModuleElement):
             (16.0, 16.0) + (1.0, 2.0)*x_0 + (5.0, 6.0)*x_2 + (-5.0, -10.0)*x_3
         """
         result = dict(self._f)
-        for key, coeff in b.dict().iteritems():
+        for key, coeff in b.dict().items():
             result[key] = self._f.get(key, 0) + coeff
         return self.parent()(result)
 
@@ -289,9 +282,7 @@ cdef class LinearTensor(ModuleElement):
         r"""
         Return the negative.
 
-        OUTPUT:
-
-        A :class:`LinearTensor`.
+        OUTPUT: a :class:`LinearTensor`
 
         EXAMPLES::
 
@@ -311,11 +302,9 @@ cdef class LinearTensor(ModuleElement):
 
         INPUT:
 
-        - ``b`` -- a :class:`LinearTensor`.
+        - ``b`` -- a :class:`LinearTensor`
 
-        OUTPUT:
-
-        A :class:`LinearTensor`.
+        OUTPUT: a :class:`LinearTensor`
 
         EXAMPLES::
 
@@ -327,7 +316,7 @@ cdef class LinearTensor(ModuleElement):
             (-16.0, -16.0) + (1.0, 2.0)*x_0 + (-7.0, -8.0)*x_3
         """
         result = dict(self._f)
-        for key, coeff in b.dict().iteritems():
+        for key, coeff in b.dict().items():
             result[key] = self._f.get(key, 0) - coeff
         return self.parent()(result)
 
@@ -337,11 +326,9 @@ cdef class LinearTensor(ModuleElement):
 
         INPUT:
 
-        - ``b`` -- base ring element. The scalar to multiply by.
+        - ``b`` -- base ring element; the scalar to multiply by
 
-        OUTPUT:
-
-        A :class:`LinearTensor`.
+        OUTPUT: a :class:`LinearTensor`
 
         EXAMPLES::
 
@@ -433,7 +420,7 @@ cdef class LinearTensor(ModuleElement):
         elif op == Py_GE:
             return LC(right, left, False)
         else:
-            assert(False)   # unreachable
+            assert False   # unreachable
 
     def __hash__(self):
         r"""

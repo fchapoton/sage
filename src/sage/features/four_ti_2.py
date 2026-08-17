@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-environment
 r"""
 Features for testing the presence of ``4ti2``
 """
@@ -23,7 +22,7 @@ class FourTi2Executable(Executable):
         Executable.__init__(self,
                             name="4ti2-" + name,
                             executable=SAGE_ENV.get("FOURTITWO_" + name.upper(), None) or name,
-                            spkg="4ti2")
+                            spkg='4ti2')
 
 
 class FourTi2(JoinFeature):

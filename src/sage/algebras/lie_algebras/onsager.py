@@ -318,7 +318,7 @@ class OnsagerAlgebra(LieAlgebraWithGenerators, IndexedGenerators):
     Element = LieAlgebraElement
 
 #####################################################################
-## q-Onsager algebra (the quantum group)
+# q-Onsager algebra (the quantum group)
 
 
 class QuantumOnsagerAlgebra(CombinatorialFreeModule):
@@ -430,11 +430,10 @@ class QuantumOnsagerAlgebra(CombinatorialFreeModule):
             sage: Q._basis_key((1,2))
             (0, 2)
         """
-        if k[0] == 0: # B_{m\delta + \alpha_1}
+        if k[0] == 0:  # B_{m\delta + \alpha_1}
             if k[1] < 0:
                 return (-1, -k[1])
-            else:
-                return (1, -k[1])
+            return (1, -k[1])
         # B_{n\delta}
         return (0, k[1])
 
@@ -795,10 +794,10 @@ class QuantumOnsagerAlgebra(CombinatorialFreeModule):
                 assert m > 0
                 terms = q**-2 * self.monomial(B[kr] * B[kl])
                 terms -= self.monomial(B[1,m])
-                temp = ( -sum(q**(-2*(p-1)) * self.monomial(B[1,m-2*p])
+                temp = (-sum(q**(-2*(p-1)) * self.monomial(B[1,m-2*p])
                              for p in range(1, (m - 1) // 2 + 1))
                          + sum(a(m,p) * self.monomial(B[0,kr[1]-p]) * self.monomial(B[0,p+kl[1]])
-                               for p in range(1, m // 2 + 1)) )
+                               for p in range(1, m // 2 + 1)))
                 terms += (q**-2 - 1) * temp
             else:
                 r = -kr[1] - 1
@@ -812,10 +811,10 @@ class QuantumOnsagerAlgebra(CombinatorialFreeModule):
                     terms -= (q**2-q**-2) * sum(q**(2*(r-1-k)) * self.monomial(B[0,-(k+1)]) * self.monomial(B[0,-r+kl[1]+k])
                                                 for k in range(r))
                     m = -r + kl[1] + 1
-                    temp = ( -sum(q**(-2*(p-1)) * self.monomial(B[1,m-2*p])
+                    temp = (-sum(q**(-2*(p-1)) * self.monomial(B[1,m-2*p])
                                  for p in range(1, (m - 1) // 2 + 1))
                              + sum(a(m,p) * self.monomial(B[0,m-p-1]) * self.monomial(B[0,p-1])
-                                   for p in range(1, m // 2 + 1)) )
+                                   for p in range(1, m // 2 + 1)))
                     terms += (q**-2 - 1) * q**(2*r) * temp
                 else:
                     # [B[rd+a0], B[sd+a1]] r > s
@@ -826,10 +825,10 @@ class QuantumOnsagerAlgebra(CombinatorialFreeModule):
                     terms -= (q**2-q**-2) * sum(q**(2*(kl[1]-1-k)) * self.monomial(B[0,-(r-kl[1]+k+1)]) * self.monomial(B[0,k])
                                                 for k in range(kl[1]))
                     m = r - kl[1] + 1
-                    temp = ( -sum(q**(-2*(p-1)) * self.monomial(B[1,m-2*p])
+                    temp = (-sum(q**(-2*(p-1)) * self.monomial(B[1,m-2*p])
                                  for p in range(1, (m - 1) // 2 + 1))
                              + sum(a(m,p) * self.monomial(B[0,-p]) * self.monomial(B[0,p-m])
-                                   for p in range(1, m // 2 + 1)) )
+                                   for p in range(1, m // 2 + 1)))
                     terms += (q**-2 - 1) * q**(2*kl[1]) * temp
                 terms = -q**2 * terms
         elif kl[0] == 1 and kr[0] == 0:
@@ -877,7 +876,7 @@ class QuantumOnsagerAlgebra(CombinatorialFreeModule):
                                                 for h in range(1, ell))
                          - q**(2*(ell-1)) * self.monomial(B[0,-(p-ell+1)] * B[1,kl[1]-ell])
                          for ell in range(1, kl[1]))
-        else: #kl[0] == 0 and kr[0] == 1:
+        else:  # kl[0] == 0 and kr[0] == 1:
             terms = self.monomial(B[kr] * B[kl])
             if kl[1] < kr[1]:
                 # [B[pd+a1], B[md]] with p < m
@@ -923,7 +922,7 @@ class QuantumOnsagerAlgebra(CombinatorialFreeModule):
         return self.monomial(lhs // B[kl]) * terms * self.monomial(rhs // B[kr])
 
 #####################################################################
-## ACE of the Onsager algebra
+# ACE of the Onsager algebra
 
 
 class OnsagerAlgebraACE(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
@@ -1308,15 +1307,14 @@ class OnsagerAlgebraACE(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
         """
         R = self.base_ring()
         O = OnsagerAlgebra(R)
-        if x[0] == 0: # A_k
+        if x[0] == 0:  # A_k
             return O._from_dict({x: R.one()}, remove_zeros=False)
         # Otherwise B_k
         c = R.one() / 2
         if x[1] < 0:
             return O._from_dict({(1, -x[1]): -c}, remove_zeros=False)
-        elif x[1] == 0:
+        if x[1] == 0:
             return O.zero()
-        else:
-            return O._from_dict({x: c}, remove_zeros=False)
+        return O._from_dict({x: c}, remove_zeros=False)
 
     Element = LieAlgebraElement

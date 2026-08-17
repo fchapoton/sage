@@ -26,6 +26,7 @@ from cpython.object cimport Py_LE, Py_EQ, Py_NE, Py_GE
 from sage.misc.constant_function import ConstantFunction
 from sage.structure.element cimport RingElement
 from sage.rings.integer cimport Integer
+from sage.rings.integer_ring import ZZ
 
 Infinity = float('+inf')
 MInfinity = float('-inf')
@@ -37,7 +38,9 @@ cdef class IntegerListsBackend():
     integers with specified constraints.
 
     This base implements the basic operations, including checking for
-    containment using :meth:`_contains`, but not iteration. For
+    containment using
+    :meth:`_contains <sage.combinat.integer_lists.base.IntegerListsBackend._contains>`,
+    but not iteration. For
     iteration, subclass this class and implement an ``_iter()`` method.
 
     EXAMPLES::
@@ -46,6 +49,8 @@ cdef class IntegerListsBackend():
         sage: L = IntegerListsBackend(6, max_slope=-1)
         sage: L._contains([3,2,1])
         True
+
+    .. automethod:: _contains
     """
     def __init__(self,
                  n=None, length=None, *,
@@ -83,7 +88,7 @@ cdef class IntegerListsBackend():
         self.max_length = Integer(max_length) if max_length != Infinity else Infinity
 
         self.min_slope = Integer(min_slope) if min_slope != -Infinity else -Infinity
-        self.max_slope = Integer(max_slope) if max_slope !=  Infinity else Infinity
+        self.max_slope = Integer(max_slope) if max_slope != Infinity else Infinity
 
         self.min_part = Integer(min_part) if min_part != -Infinity else -Infinity
         self.max_part = Integer(max_part) if max_part != Infinity else Infinity
@@ -100,9 +105,11 @@ cdef class IntegerListsBackend():
             else:
                 raise TypeError("floor should be a list, tuple, or function")
             self.floor = Envelope(floor, sign=-1,
-                    min_part=self.min_part, max_part=self.max_part,
-                    min_slope=self.min_slope, max_slope=self.max_slope,
-                    min_length=self.min_length)
+                                  min_part=self.min_part,
+                                  max_part=self.max_part,
+                                  min_slope=self.min_slope,
+                                  max_slope=self.max_slope,
+                                  min_length=self.min_length)
 
         if isinstance(ceiling, Envelope):
             self.ceiling = ceiling
@@ -117,9 +124,11 @@ cdef class IntegerListsBackend():
             else:
                 raise ValueError("Unable to parse value of parameter ceiling")
             self.ceiling = Envelope(ceiling, sign=1,
-                    min_part=self.min_part, max_part=self.max_part,
-                    min_slope=self.min_slope, max_slope=self.max_slope,
-                    min_length=self.min_length)
+                                    min_part=self.min_part,
+                                    max_part=self.max_part,
+                                    min_slope=self.min_slope,
+                                    max_slope=self.max_slope,
+                                    min_length=self.min_length)
 
     def __richcmp__(self, other, int op):
         r"""
@@ -154,22 +163,21 @@ cdef class IntegerListsBackend():
         cdef IntegerListsBackend left = <IntegerListsBackend>self
         cdef IntegerListsBackend right = <IntegerListsBackend>other
         equal = (type(left) is type(other) and
-            left.min_length == right.min_length and
-            left.max_length == right.max_length and
-            left.min_sum == right.min_sum and
-            left.max_sum == right.max_sum and
-            left.min_slope == right.min_slope and
-            left.max_slope == right.max_slope and
-            left.floor == right.floor and
-            left.ceiling == right.ceiling)
+                 left.min_length == right.min_length and
+                 left.max_length == right.max_length and
+                 left.min_sum == right.min_sum and
+                 left.max_sum == right.max_sum and
+                 left.min_slope == right.min_slope and
+                 left.max_slope == right.max_slope and
+                 left.floor == right.floor and
+                 left.ceiling == right.ceiling)
         if equal:
             return op == Py_EQ or op == Py_LE or op == Py_GE
         if op == Py_EQ:
             return False
         if op == Py_NE:
             return True
-        else:
-            raise TypeError("IntegerListsBackend can only be compared for equality")
+        raise TypeError("IntegerListsBackend can only be compared for equality")
 
     def _repr_(self):
         """
@@ -184,13 +192,11 @@ cdef class IntegerListsBackend():
         """
         if self.min_sum == self.max_sum:
             return "Integer lists of sum {} satisfying certain constraints".format(self.min_sum)
-        elif self.max_sum == Infinity:
+        if self.max_sum == Infinity:
             if self.min_sum == 0:
                 return "Integer lists with arbitrary sum satisfying certain constraints"
-            else:
-                return "Integer lists of sum at least {} satisfying certain constraints".format(self.min_sum)
-        else:
-            return "Integer lists of sum between {} and {} satisfying certain constraints".format(self.min_sum, self.max_sum)
+            return "Integer lists of sum at least {} satisfying certain constraints".format(self.min_sum)
+        return "Integer lists of sum between {} and {} satisfying certain constraints".format(self.min_sum, self.max_sum)
 
     def _contains(self, comp):
         """
@@ -202,8 +208,18 @@ cdef class IntegerListsBackend():
             sage: C = IntegerListsLex(n=2, max_length=3, min_slope=0)
             sage: all(l in C for l in C)  # indirect doctest
             True
+
+        TESTS::
+
+            sage: [None, 2] in C
+            False
+
+            sage: [1/2, 3/2] in C
+            False
         """
         if len(comp) < self.min_length or len(comp) > self.max_length:
+            return False
+        if not all(e in ZZ for e in comp):
             return False
         n = sum(comp)
         if n < self.min_sum or n > self.max_sum:
@@ -374,6 +390,8 @@ cdef class Envelope():
         sage: f = Envelope(3, sign=-1, max_slope=-1, min_length=4)
         sage: [f(i) for i in range(10)]
         [6, 5, 4, 3, 3, 3, 3, 3, 3, 3]
+
+    .. automethod:: __init__
     """
     def __init__(self, f, *,
                  min_part=0, max_part=Infinity,
@@ -394,7 +412,7 @@ cdef class Envelope():
             inf
             sage: f.min_slope
             1
-            sage: TestSuite(f).run(skip="_test_pickling")
+            sage: TestSuite(f).run(skip='_test_pickling')
             sage: Envelope(3, sign=1/3, max_slope=-1, min_length=4)
             Traceback (most recent call last):
             ...
@@ -447,8 +465,9 @@ cdef class Envelope():
 
         if min_length > 0:
             self(min_length-1)
-            for i in range(min_length-1,0,-1):
-                self.precomputed[i-1] = min(self.precomputed[i-1], self.precomputed[i] - self.min_slope)
+            for i in range(min_length-1, 0, -1):
+                self.precomputed[i-1] = min(self.precomputed[i-1],
+                                            self.precomputed[i] - self.min_slope)
 
     def __richcmp__(self, other, int op):
         r"""
@@ -474,20 +493,19 @@ cdef class Envelope():
         cdef Envelope left = <Envelope>self
         cdef Envelope right = <Envelope>other
         equal = (type(left) is type(other) and
-            left.sign == right.sign and
-            left.f == right.f and
-            left.f_limit_start == right.f_limit_start and
-            left.max_part == right.max_part and
-            left.min_slope == right.min_slope and
-            left.max_slope == right.max_slope)
+                 left.sign == right.sign and
+                 left.f == right.f and
+                 left.f_limit_start == right.f_limit_start and
+                 left.max_part == right.max_part and
+                 left.min_slope == right.min_slope and
+                 left.max_slope == right.max_slope)
         if equal:
             return op == Py_EQ or op == Py_LE or op == Py_GE
         if op == Py_EQ:
             return False
         if op == Py_NE:
             return True
-        else:
-            raise TypeError("Envelopes can only be compared for equality")
+        raise TypeError("Envelopes can only be compared for equality")
 
     def limit_start(self):
         """
@@ -518,7 +536,6 @@ cdef class Envelope():
 
             sage: Envelope(lambda x: 3, sign=-1, min_part=2).limit_start() == Infinity
             True
-
         """
         return self.f_limit_start
 
@@ -526,7 +543,7 @@ cdef class Envelope():
         r"""
         Return a bound on the limit of ``self``.
 
-        OUTPUT: a nonnegative integer or `\infty`
+        OUTPUT: nonnegative integer or `\infty`
 
         This returns some upper bound for the accumulation points of
         this upper envelope. For a lower envelope, a lower bound is
@@ -570,8 +587,7 @@ cdef class Envelope():
         """
         if self.limit_start() < Infinity and self.max_slope <= 0:
             return self(self.limit_start())
-        else:
-            return self.max_part * self.sign
+        return self.max_part * self.sign
 
     def __call__(self, Py_ssize_t k):
         """
@@ -605,9 +621,9 @@ cdef class Envelope():
 
         INPUT:
 
-        - ``m`` -- a nonnegative integer (starting value)
+        - ``m`` -- nonnegative integer (starting value)
 
-        - ``j`` -- a nonnegative integer (position)
+        - ``j`` -- nonnegative integer (position)
 
         This method adapts this envelope to the additional local
         constraint imposed by having a part `m` at position `j`.
@@ -660,7 +676,8 @@ cdef class Envelope():
             return self
         m *= self.sign
         m = m - j * self.max_slope
-        return lambda i: self.sign * min(m + i*self.max_slope, self.sign*self(i) )
+        return lambda i: self.sign * min(m + i * self.max_slope,
+                                         self.sign*self(i))
 
     def __reduce__(self):
         """
@@ -680,7 +697,7 @@ cdef class Envelope():
 
 
 def _unpickle_Envelope(type t, _sign, _f, _f_limit_start, _precomputed,
-        _max_part, _min_slope, _max_slope):
+                       _max_part, _min_slope, _max_slope):
     """
     Internal function to support pickling for :class:`Envelope`.
 

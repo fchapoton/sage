@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-categories
 """
 Examples of infinite enumerated sets
 """
@@ -17,7 +16,7 @@ from sage.rings.integer import Integer
 
 class NonNegativeIntegers(UniqueRepresentation, Parent):
     r"""
-    An example of infinite enumerated set: the non negative integers
+    An example of infinite enumerated set: the nonnegative integers.
 
     This class provides a minimal implementation of an infinite enumerated set.
 
@@ -25,7 +24,7 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
 
         sage: NN = InfiniteEnumeratedSets().example()
         sage: NN
-        An example of an infinite enumerated set: the non negative integers
+        An example of an infinite enumerated set: the nonnegative integers
         sage: NN.cardinality()
         +Infinity
         sage: NN.list()
@@ -85,23 +84,23 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
 
             sage: NN = InfiniteEnumeratedSets().example()
             sage: NN
-            An example of an infinite enumerated set: the non negative integers
+            An example of an infinite enumerated set: the nonnegative integers
             sage: NN.category()
             Category of infinite enumerated sets
             sage: TestSuite(NN).run()
         """
         Parent.__init__(self, category=InfiniteEnumeratedSets())
 
-    def _repr_(self):
+    def _repr_(self) -> str:
         """
         TESTS::
 
             sage: InfiniteEnumeratedSets().example() # indirect doctest
-            An example of an infinite enumerated set: the non negative integers
+            An example of an infinite enumerated set: the nonnegative integers
         """
-        return "An example of an infinite enumerated set: the non negative integers"
+        return "An example of an infinite enumerated set: the nonnegative integers"
 
-    def __contains__(self, elt):
+    def __contains__(self, elt) -> bool:
         """
         EXAMPLES::
 
@@ -139,11 +138,11 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
             sage: NN(-1)
             Traceback (most recent call last):
             ...
-            ValueError: Value -1 is not a non negative integer.
+            ValueError: Value -1 is not a nonnegative integer.
         """
         if elt in self:
             return self._element_constructor_(elt)
-        raise ValueError("Value %s is not a non negative integer." % (elt))
+        raise ValueError("Value %s is not a nonnegative integer." % (elt))
 
     def an_element(self):
         """

@@ -1,4 +1,3 @@
-# cython: binding=True
 r"""
 Tree decompositions
 
@@ -75,7 +74,7 @@ The treewidth of a clique is `n-1` and its treelength is 1::
 
     :meth:`treewidth` | Compute the treewidth of `G` (and provide a decomposition).
     :meth:`treelength` | Compute the treelength of `G` (and provide a decomposition).
-    :meth:`make_nice_tree_decomposition` | Return a *nice* tree decomposition (TD) of the TD `tree_decomp`.
+    :meth:`make_nice_tree_decomposition` | Return a *nice* tree decomposition (TD) of the TD ``tree_decomp``.
     :meth:`label_nice_tree_decomposition` | Return a nice tree decomposition with nodes labelled accordingly.
     :meth:`is_valid_tree_decomposition` | Check whether `T` is a valid tree-decomposition for `G`.
     :meth:`reduced_tree_decomposition` | Return a reduced tree-decomposition of `T`.
@@ -450,14 +449,14 @@ def treewidth(g, k=None, kmin=None, certificate=False, algorithm=None, nice=Fals
       when ``k`` is not ``None`` or when ``algorithm == 'tdlib'``.
 
     - ``certificate`` -- boolean (default: ``False``); whether to return the
-      tree-decomposition itself.
+      tree-decomposition itself
 
-    - ``algorithm`` -- whether to use ``"sage"`` or ``"tdlib"`` (requires the
-      installation of the :ref:`spkg_sagemath_tdlib` package). The default behaviour is to use
+    - ``algorithm`` -- whether to use ``'sage'`` or ``'tdlib'`` (requires the
+      installation of the :ref:`spkg_tdlib` package). The default behaviour is to use
       'tdlib' if it is available, and Sage's own algorithm when it is not.
 
     - ``nice`` -- boolean (default: ``False``); whether or not to return the
-      nice tree decomposition, provided ``certificate`` is ``True``.
+      nice tree decomposition, provided ``certificate`` is ``True``
 
     OUTPUT:
 
@@ -468,7 +467,9 @@ def treewidth(g, k=None, kmin=None, certificate=False, algorithm=None, nice=Fals
 
     When ``certificate=True``, the tree decomposition is returned.
 
-    When ``nice=True``, the nice tree decomposition is returned.
+    When ``nice=True``, the nice tree decomposition is returned. See
+    :meth:`~sage.graphs.graph_decompositions.tree_decomposition.make_nice_tree_decomposition`
+    for details.
 
     ALGORITHM:
 
@@ -491,9 +492,13 @@ def treewidth(g, k=None, kmin=None, certificate=False, algorithm=None, nice=Fals
 
     .. SEEALSO::
 
-        :meth:`~sage.graphs.graph_decompositions.vertex_separation.path_decomposition`
-        computes the pathwidth of a graph. See also the
-        :mod:`~sage.graphs.graph_decompositions.vertex_separation` module.
+        - The utility functions in the
+          :mod:`~sage.graphs.graph_decompositions.tree_decomposition`
+          module, especially
+          :meth:`~sage.graphs.graph_decompositions.tree_decomposition.label_nice_tree_decomposition`.
+        - :meth:`~sage.graphs.graph_decompositions.vertex_separation.path_decomposition`
+          computes the pathwidth of a graph.
+        - module :mod:`~sage.graphs.graph_decompositions.vertex_separation`.
 
     EXAMPLES:
 
@@ -699,10 +704,9 @@ def treewidth(g, k=None, kmin=None, certificate=False, algorithm=None, nice=Fals
                 for a in atoms:
                     kmin = max(kmin, g.subgraph(a).treewidth(algorithm=algorithm, kmin=kmin))
                 return kmin
-            elif max(len(c) for c in cliques) - 1 > k:
+            if max(len(c) for c in cliques) - 1 > k:
                 return False
-            else:
-                return all(g.subgraph(a).treewidth(algorithm=algorithm, k=k) for a in atoms)
+            return all(g.subgraph(a).treewidth(algorithm=algorithm, k=k) for a in atoms)
 
         # Otherwise, compute the tree decomposition of each atom
         T = []
@@ -811,7 +815,7 @@ def make_nice_tree_decomposition(graph, tree_decomp):
 
     A *nice* TD `NT` is a rooted tree with four types of nodes:
 
-    - *Leaf* nodes have no children and bag size 1;
+    - *Leaf* nodes have no children and bag size 0;
     - *Introduce* nodes have one child: If `v \in NT` is an introduce node and
       `w \in NT` its child, then `Bag(v) = Bag(w) \cup \{ x \}`, where `x` is the
       introduced node;
@@ -826,13 +830,12 @@ def make_nice_tree_decomposition(graph, tree_decomp):
 
     - ``tree_decomp`` -- a tree decomposition
 
-    OUTPUT:
-
-    A nice tree decomposition.
+    OUTPUT: a nice tree decomposition whose root vertex is a tuple of the form
+    ``(0, bag)``.
 
     .. WARNING::
 
-        This method assumes that the vertices of the input tree `tree_decomp`
+        This method assumes that the vertices of the input tree ``tree_decomp``
         are hashable and have attribute ``issuperset``, e.g., ``frozenset`` or
         :class:`~sage.sets.set.Set_object_enumerated_with_category`.
 
@@ -957,7 +960,7 @@ def make_nice_tree_decomposition(graph, tree_decomp):
     for ui in list(directed_tree):
         if directed_tree.out_degree(ui) > 2:
             children = directed_tree.neighbors_out(ui)
-            children.pop() # one vertex remains a child of ui
+            children.pop()  # one vertex remains a child of ui
 
             directed_tree.delete_edges((ui, vi) for vi in children)
 
@@ -1067,7 +1070,7 @@ def make_nice_tree_decomposition(graph, tree_decomp):
     return nice_tree_decomp
 
 
-def label_nice_tree_decomposition(nice_TD, root, directed=False):
+def label_nice_tree_decomposition(nice_TD, root=None, directed=False):
     r"""
     Return a nice tree decomposition with nodes labelled accordingly.
 
@@ -1075,15 +1078,15 @@ def label_nice_tree_decomposition(nice_TD, root, directed=False):
 
     - ``nice_TD`` -- a nice tree decomposition
 
-    - ``root`` -- the root of the nice tree decomposition
+    - ``root`` -- the root of the nice tree decomposition (default:
+      ``min(nice_TD)``). The default value is suitable for the output of
+      :meth:`make_nice_tree_decomposition`.
 
     - ``directed`` -- boolean (default: ``False``); whether to return the nice
-      tree decomposition as a directed graph rooted at vertex ``root`` or as an
-      undirected graph
+      tree decomposition as a directed graph rooted at vertex ``root`` (with
+      edges oriented away from the root) or as an undirected graph
 
-    OUTPUT:
-
-    A nice tree decomposition with nodes labelled.
+    OUTPUT: a nice tree decomposition with nodes labelled
 
     EXAMPLES::
 
@@ -1091,8 +1094,7 @@ def label_nice_tree_decomposition(nice_TD, root, directed=False):
         sage: claw = graphs.CompleteBipartiteGraph(1, 3)
         sage: claw_TD = claw.treewidth(certificate=True)
         sage: nice_TD = make_nice_tree_decomposition(claw, claw_TD)
-        sage: root = sorted(nice_TD.vertices())[0]
-        sage: label_TD = label_nice_tree_decomposition(nice_TD, root, directed=True)
+        sage: label_TD = label_nice_tree_decomposition(nice_TD, directed=True)
         sage: label_TD.name()
         'Labelled Nice tree decomposition of Tree decomposition'
         sage: for node in sorted(label_TD):  # random
@@ -1109,6 +1111,9 @@ def label_nice_tree_decomposition(nice_TD, root, directed=False):
     """
     from sage.graphs.digraph import DiGraph
     from sage.graphs.graph import Graph
+
+    if root is None:
+        root = min(nice_TD)
 
     directed_TD = DiGraph(nice_TD.breadth_first_search(start=root, edges=True),
                           format='list_of_edges',
@@ -1361,7 +1366,7 @@ cdef class TreelengthConnected:
         ...
         ValueError: the graph is not connected
 
-    The parameter `k` must be non-negative::
+    The parameter `k` must be nonnegative::
 
         sage: TreelengthConnected(Graph(1), k=-1)
         Traceback (most recent call last):
@@ -1439,11 +1444,11 @@ cdef class TreelengthConnected:
         if self.n <= 1 or (self.k_is_defined and self.n <= k):
             if certificate:
                 if self.n:
-                    self.tree = Graph({Set(G): []}, format="dict_of_lists", name=self.name)
+                    self.tree = Graph({Set(G): []}, format='dict_of_lists', name=self.name)
                 else:
                     self.tree = Graph(name=self.name)
             self.length = 0 if self.n <= 1 else G.diameter(algorithm='DHV')
-            self.leq_k = True  # We know that k is non negative
+            self.leq_k = True  # We know that k is nonnegative
             return
 
         if self.k_is_defined and not k:
@@ -1453,7 +1458,7 @@ cdef class TreelengthConnected:
 
         if G.is_clique():
             if certificate:
-                self.tree = Graph({Set(G): []}, format="dict_of_lists", name=self.name)
+                self.tree = Graph({Set(G): []}, format='dict_of_lists', name=self.name)
             self.length = 1
             self.leq_k = True
             return
@@ -1485,7 +1490,7 @@ cdef class TreelengthConnected:
         if self.k_is_defined and k >= self.diameter:
             # All vertices fit in one bag
             if certificate:
-                self.tree = Graph({Set(G): []}, format="dict_of_lists", name=self.name)
+                self.tree = Graph({Set(G): []}, format='dict_of_lists', name=self.name)
             self.length = self.diameter
             self.leq_k = True
             return
@@ -1508,7 +1513,7 @@ cdef class TreelengthConnected:
 
     def __dealloc__(self):
         r"""
-        Destroy the object
+        Destroy the object.
 
         TESTS::
 
@@ -1552,7 +1557,7 @@ cdef class TreelengthConnected:
             cdef frozenset reduced_cut
 
             if len(cc) == 1:
-                [v] = cc
+                v, = cc
                 # We identify the neighbors of v in cut
                 reduced_cut = cut.intersection(g.neighbor_iterator(v))
                 # We can form a new bag with its closed neighborhood, and this
@@ -1650,7 +1655,7 @@ cdef class TreelengthConnected:
 
         from sage.graphs.graph import Graph
         T = Graph([(good_label(x), good_label(y)) for x, y in TD if x != y],
-                  format="list_of_edges")
+                  format='list_of_edges')
         self.tree = reduced_tree_decomposition(T)
         self.tree.name(self.name)
         return True
@@ -1900,17 +1905,16 @@ def treelength(G, k=None, certificate=False):
         answer = 0 if k is None else True
         if certificate:
             if G:
-                answer = answer, Graph({Set(G): []}, format="dict_of_lists", name=name)
+                answer = answer, Graph({Set(G): []}, format='dict_of_lists', name=name)
             else:
                 answer = answer, Graph(name=name)
         return answer
     if not G.is_connected():
         if certificate:
             raise ValueError("the tree decomposition of a disconnected graph is not defined")
-        elif k is None:
+        if k is None:
             return +Infinity
-        else:
-            return k is Infinity
+        return k is Infinity
     if k == 0:
         return (False, None) if certificate else False
     if not certificate and G.is_chordal():
@@ -1926,10 +1930,9 @@ def treelength(G, k=None, certificate=False):
         if certificate:
             if k is None:
                 return TC.get_length(), TC.get_tree_decomposition()
-            elif TC.is_less_than_k():
+            if TC.is_less_than_k():
                 return True, TC.get_tree_decomposition()
-            else:
-                return False, None
+            return False, None
         if k is None:
             return TC.get_length()
         return TC.is_less_than_k()
@@ -1947,7 +1950,7 @@ def treelength(G, k=None, certificate=False):
         ga = G.subgraph(atom)
         if ga.is_clique():
             if certificate:
-                result.append(Graph({Set(atom): []}, format="dict_of_lists"))
+                result.append(Graph({Set(atom): []}, format='dict_of_lists'))
             continue
 
         gc, certif = ga.canonical_label(certificate=True)

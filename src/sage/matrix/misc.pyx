@@ -54,6 +54,62 @@ def matrix_integer_sparse_rational_reconstruction(Matrix_integer_sparse A, Integ
         Traceback (most recent call last):
         ...
         ZeroDivisionError: The modulus cannot be zero
+
+    Check that :issue:`42533` is fixed: the GMP temporaries must be released
+    even when reconstruction of an entry fails, which is the normal signal
+    that not enough primes have been used yet::
+
+        sage: import resource
+        sage: A = matrix(ZZ, 1, 1, {(0, 0): 12345}, sparse=True)
+
+    The entry is genuinely not reconstructible modulo 13 (it reduces to 8,
+    while the bound on numerator and denominator is 2), so every call below
+    really does take the failing path::
+
+        sage: matrix_integer_sparse_rational_reconstruction(A, 13)
+        Traceback (most recent call last):
+        ...
+        ValueError: rational reconstruction does not exist
+
+    ::
+
+        sage: def leak(N):
+        ....:     before = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        ....:     for _ in range(N):
+        ....:         try:
+        ....:             matrix_integer_sparse_rational_reconstruction(A, 13)
+        ....:         except ValueError:
+        ....:             pass
+        ....:     after = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        ....:     return (after - before) * 1024   # ru_maxrss is in kilobytes
+
+    Loop (at most 30 times) until we have 6 consecutive zeros when calling
+    ``leak(10000)``. Before the fix each failing call leaked about 113 bytes,
+    so 10000 iterations grew the resident set by more than a megabyte::
+
+        sage: zeros = 0
+        sage: for i in range(30):  # long time
+        ....:     n = leak(10000)
+        ....:     print("Leaked {} bytes".format(n))
+        ....:     if n == 0:
+        ....:         zeros += 1
+        ....:         if zeros >= 6:
+        ....:             break
+        ....:     else:
+        ....:         zeros = 0
+        Leaked...
+        Leaked 0 bytes
+        Leaked 0 bytes
+        Leaked 0 bytes
+        Leaked 0 bytes
+        Leaked 0 bytes
+
+    Since ``ru_maxrss`` is a high-water mark, the printed lines alone would
+    also match a run that exhausted the 30 iterations without ever reaching
+    six consecutive zeros, so check that explicitly::
+
+        sage: zeros >= 6  # long time
+        True
     """
     if not N:
         raise ZeroDivisionError("The modulus cannot be zero")
@@ -73,67 +129,70 @@ def matrix_integer_sparse_rational_reconstruction(Matrix_integer_sparse A, Integ
     mpz_init_set_si(denom, 1)
     mpz_init(a)
     mpz_init(other_bnd)
+    mpz_init(bnd)
 
-    _bnd = (N//2).isqrt()
-    mpz_init_set(bnd, _bnd.value)
-    mpz_sub(other_bnd, N.value, bnd)
+    try:
+        _bnd = (N//2).isqrt()
+        mpz_set(bnd, _bnd.value)
+        mpz_sub(other_bnd, N.value, bnd)
 
-    for i in range(A._nrows):
-        sig_check()
-        A_row = &A._matrix[i]
-        R_row = &R._matrix[i]
-        reallocate_mpq_vector(R_row, A_row.num_nonzero)
-        R_row.num_nonzero = A_row.num_nonzero
-        R_row.degree = A_row.degree
-        for j in range(A_row.num_nonzero):
+        for i in range(A._nrows):
             sig_check()
-            mpz_set(a, A_row.entries[j])
-            if mpz_cmp_ui(denom, 1) != 0:
-                mpz_mul(a, a, denom)
-            mpz_fdiv_r(a, a, N.value)
-            do_it = 0
-            if mpz_cmp(a, bnd) <= 0:
-                do_it = 1
-            elif mpz_cmp(a, other_bnd) >= 0:
-                mpz_sub(a, a, N.value)
-                do_it = 1
-            if do_it:
-                mpz_set(mpq_numref(t), a)
+            A_row = &A._matrix[i]
+            R_row = &R._matrix[i]
+            reallocate_mpq_vector(R_row, A_row.num_nonzero)
+            R_row.num_nonzero = A_row.num_nonzero
+            R_row.degree = A_row.degree
+            for j in range(A_row.num_nonzero):
+                sig_check()
+                mpz_set(a, A_row.entries[j])
                 if mpz_cmp_ui(denom, 1) != 0:
-                    mpz_set(mpq_denref(t), denom)
-                    mpq_canonicalize(t)
+                    mpz_mul(a, a, denom)
+                mpz_fdiv_r(a, a, N.value)
+                do_it = 0
+                if mpz_cmp(a, bnd) <= 0:
+                    do_it = 1
+                elif mpz_cmp(a, other_bnd) >= 0:
+                    mpz_sub(a, a, N.value)
+                    do_it = 1
+                if do_it:
+                    mpz_set(mpq_numref(t), a)
+                    if mpz_cmp_ui(denom, 1) != 0:
+                        mpz_set(mpq_denref(t), denom)
+                        mpq_canonicalize(t)
+                    else:
+                        mpz_set_si(mpq_denref(t), 1)
+                    mpq_set(R_row.entries[j], t)
+                    R_row.positions[j] = A_row.positions[j]
                 else:
-                    mpz_set_si(mpq_denref(t), 1)
-                mpq_set(R_row.entries[j], t)
-                R_row.positions[j] = A_row.positions[j]
-            else:
-                # Otherwise have to do it the hard way
-                mpq_rational_reconstruction(t, A_row.entries[j], N.value)
-                mpq_set(R_row.entries[j], t)
-                R_row.positions[j] = A_row.positions[j]
-                mpz_lcm(denom, denom, mpq_denref(t))
-
-    mpq_clear(t)
-    mpz_clear(denom)
-    mpz_clear(a)
-    mpz_clear(other_bnd)
-    mpz_clear(bnd)
+                    # Otherwise have to do it the hard way
+                    mpq_rational_reconstruction(t, A_row.entries[j], N.value)
+                    mpq_set(R_row.entries[j], t)
+                    R_row.positions[j] = A_row.positions[j]
+                    mpz_lcm(denom, denom, mpq_denref(t))
+    finally:
+        mpq_clear(t)
+        mpz_clear(denom)
+        mpz_clear(a)
+        mpz_clear(other_bnd)
+        mpz_clear(bnd)
 
     return R
 
 
 def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, proof=None):
     """
-    Returns reduced row-echelon form using a multi-modular
-    algorithm.  Does not change self.
+    Return reduced row-echelon form using a multi-modular
+    algorithm.  Does not change ``self``.
 
     REFERENCE: Chapter 7 of Stein's "Explicitly Computing Modular Forms".
 
     INPUT:
 
-    - height_guess -- integer or None
-    - proof -- boolean or None (default: None, see proof.linear_algebra or
-      sage.structure.proof). Note that the global Sage default is proof=True
+    - ``height_guess`` -- integer or ``None``
+    - ``proof`` -- boolean or ``None`` (default: ``None``, see
+      ``proof.linear_algebra`` or ``sage.structure.proof``). Note that the
+      global Sage default is proof=True
 
     OUTPUT: a pair consisting of a matrix in echelon form and a tuple of pivot
     positions.
@@ -203,12 +262,55 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
         [                0                 0                 1                 2]
         sage: A.pivots()
         (0, 1, 2)
+
+    A small benchmark, showing that flint fraction-free multimodular algorithm
+    is always faster than the fraction-free multimodular algorithm implemented in Python::
+
+        sage: import copy
+        sage: def benchmark(num_row, num_col, entry_size, timeout=2, integer_coefficient=True):
+        ....:     A = matrix(QQ, [[
+        ....:         randint(1, 2^entry_size) if integer_coefficient else ZZ(randint(1, 2^entry_size))/randint(1, 2^entry_size)
+        ....:         for col in range(num_col)] for row in range(num_row)])
+        ....:     data=[]
+        ....:     for algorithm in ("flint:fflu", "flint:multimodular", "padic", "multimodular"):
+        ....:         # classical is too slow
+        ....:         B = copy.copy(A)
+        ....:         t = walltime()
+        ....:         alarm(timeout)
+        ....:         try:
+        ....:             B.echelonize(algorithm=algorithm)
+        ....:         except AlarmInterrupt:
+        ....:             pass
+        ....:         finally:
+        ....:             cancel_alarm()
+        ....:         data.append((round(walltime(t), 4), algorithm))
+        ....:     return sorted(data)
+        sage: benchmark(20, 20, 10000)  # long time
+        [...'flint:multimodular'...'multimodular'...'flint:fflu'...]
+        sage: benchmark(39, 40, 200)  # long time
+        [...'flint:multimodular'...'flint:fflu'...'multimodular'...]
+
+    In older versions of flint
+    before this `issue <https://github.com/flintlib/flint/issues/2129>`_
+    is fixed, ``algorithm='flint'`` (automatic choice) may be slower than
+    ``algorithm='flint:multimodular'``.
+
+    In this case, there are more columns than rows, which means the resulting
+    matrix has height much higher than the input matrix. We check that the function
+    does not take too long::
+
+        sage: A = matrix(QQ, [[randint(1, 2^500) for col in range(40)] for row in range(20)])
+        sage: t = walltime()
+        sage: A.echelonize(algorithm="multimodular")  # long time
+        sage: t = walltime(t)  # long time
+        sage: (t < 10, t)  # long time
+        (True, ...)
     """
     if proof is None:
         from sage.structure.proof.proof import get_flag
         proof = get_flag(proof, "linear_algebra")
 
-    verbose("Multimodular echelon algorithm on %s x %s matrix"%(self._nrows, self._ncols), caller_name="multimod echelon")
+    verbose("Multimodular echelon algorithm on %s x %s matrix" % (self._nrows, self._ncols), caller_name="multimod echelon")
     cdef Matrix E
     if self._nrows == 0 or self._ncols == 0:
         return self, ()
@@ -218,12 +320,14 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
     height = self.height()
     if height_guess is None:
         height_guess = 10000000*(height+100)
-    tm = verbose("height_guess = %s"%height_guess, level=2, caller_name="multimod echelon")
+    tm = verbose("height_guess = %s" % height_guess, level=2, caller_name="multimod echelon")
 
+    cdef Integer M
+    from sage.arith.misc import integer_floor as floor
     if proof:
-        M = self._ncols * height_guess * height  +  1
+        M = floor(max(1, self._ncols * height_guess * height + 1))
     else:
-        M = height_guess + 1
+        M = floor(max(1, height_guess + 1))
 
     if self.is_sparse():
         from sage.matrix.matrix_modn_sparse import MAX_MODULUS
@@ -243,7 +347,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
             problem = problem + 1
             if problem > 50:
                 verbose("echelon multi-modular possibly not converging?", caller_name="multimod echelon")
-            t = verbose("echelon modulo p=%s (%.2f%% done)"%(
+            t = verbose("echelon modulo p=%s (%.2f%% done)" % (
                        p, 100*float(len(str(prod))) / len(str(M))), level=2, caller_name="multimod echelon")
 
             # We use denoms=False, since we made self integral by calling clear_denom above.
@@ -280,10 +384,10 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
             if cmp_pivots(best_pivots, X[i].pivots()) <= 0:
                 p = X[i].base_ring().order()
                 if p not in lifts:
-                    t0 = verbose("Lifting a good matrix", level=2, caller_name = "multimod echelon")
+                    t0 = verbose("Lifting a good matrix", level=2, caller_name="multimod echelon")
                     lift = X[i].lift()
                     lifts[p] = (lift, p)
-                    verbose("Finished lift", level=2, caller_name= "multimod echelon", t=t0)
+                    verbose("Finished lift", level=2, caller_name="multimod echelon", t=t0)
                 Y.append(lifts[p])
                 prod = prod * X[i].base_ring().order()
         verbose("finished comparing pivots", level=2, t=t, caller_name="multimod echelon")
@@ -308,7 +412,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
         except ValueError as msg:
             verbose(msg, level=2)
             verbose("Not enough primes to do CRT lift; redoing with several more primes.", level=2, caller_name="multimod echelon")
-            M = prod * p*p*p
+            M <<= M.bit_length() // 5 + 1
             continue
 
         if not proof:
@@ -320,7 +424,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
             verbose("Validity of result checked.", level=2, caller_name="multimod echelon")
             break
         verbose("Validity failed; trying again with more primes.", level=2, caller_name="multimod echelon")
-        M = prod * p*p*p
+        M <<= M.bit_length() // 5 + 1
     #end while
     verbose("total time",tm, level=2, caller_name="multimod echelon")
     return E, tuple(best_pivots)
@@ -364,7 +468,6 @@ def cmp_pivots(x, y):
         return 1
     if x < y:
         return 1
-    elif x == y:
+    if x == y:
         return 0
-    else:
-        return -1
+    return -1

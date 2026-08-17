@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-categories
 r"""
 Lie Algebras With Basis
 
@@ -44,7 +43,7 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             sage: LieAlgebras(QQ).WithBasis().example(Compositions())                   # needs sage.combinat sage.modules
             An example of a Lie algebra: the abelian Lie algebra on the
-             generators indexed by Compositions of non-negative integers
+             generators indexed by Compositions of nonnegative integers
              over Rational Field
         """
         if gens is None:
@@ -92,7 +91,7 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             underlying `R`-module of ``self``.
 
             See
-            :meth:`sage.categories.lie_algebras.LieAlgebras.module` for
+            :meth:`~sage.categories.lie_algebras.LieAlgebras.ParentMethods.module` for
             an explanation.
 
             EXAMPLES::
@@ -116,7 +115,7 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             Implement this if you implement :meth:`module`; see the
             documentation of
-            :meth:`sage.categories.lie_algebras.LieAlgebras.module`
+            :meth:`~sage.categories.lie_algebras.LieAlgebras.ParentMethods.module`
             for how this is to be done.
 
             EXAMPLES::
@@ -204,7 +203,7 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             ``self``).
 
             Implement this if you implement ``g.module()``.
-            See :meth:`sage.categories.lie_algebras.LieAlgebras.module`
+            See :meth:`~sage.categories.lie_algebras.LieAlgebras.ParentMethods.module`
             for how this is to be done.
 
             EXAMPLES::

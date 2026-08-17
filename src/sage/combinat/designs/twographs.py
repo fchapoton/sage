@@ -36,9 +36,9 @@ This module's methods are the following:
     :widths: 30, 70
     :delim: |
 
-    :meth:`~TwoGraph.is_regular_twograph` | tests if ``self`` is a regular two-graph, i.e. a 2-design
-    :meth:`~TwoGraph.complement` | returns the complement of ``self``
-    :meth:`~TwoGraph.descendant` | returns the descendant graph at `w`
+    :meth:`~TwoGraph.is_regular_twograph` | Test if ``self`` is a regular two-graph, i.e. a 2-design
+    :meth:`~TwoGraph.complement` | Return the complement of ``self``
+    :meth:`~TwoGraph.descendant` | Return the descendant graph at `w`
 
 This module's functions are the following:
 
@@ -47,9 +47,9 @@ This module's functions are the following:
     :widths: 30, 70
     :delim: |
 
-    :func:`~taylor_twograph` | constructs Taylor's two-graph for `U_3(q)`
-    :func:`~is_twograph`         | checks that the incidence system is a two-graph
-    :func:`~twograph_descendant`  | returns the descendant graph w.r.t. a given vertex of the two-graph of a given graph
+    :func:`~taylor_twograph` | Construct Taylor's two-graph for `U_3(q)`
+    :func:`~is_twograph`         | Check that the incidence system is a two-graph
+    :func:`~twograph_descendant`  | Return the descendant graph w.r.t. a given vertex of the two-graph of a given graph
 
 Methods
 ---------
@@ -68,12 +68,11 @@ class TwoGraph(IncidenceStructure):
     of size four contains an even number of elements of `T`. For more
     information, see the documentation of the
     :mod:`~sage.combinat.designs.twographs` module.
-
     """
     def __init__(self, points=None, blocks=None, incidence_matrix=None,
-            name=None, check=False, copy=True):
+                 name=None, check=False, copy=True):
         r"""
-        Constructor of the class
+        Constructor of the class.
 
         TESTS::
 
@@ -98,13 +97,15 @@ class TwoGraph(IncidenceStructure):
         r"""
         Test if the :class:`TwoGraph` is regular, i.e. is a 2-design.
 
-        Namely, each pair of elements of :meth:`ground_set` is contained in
+        Namely, each pair of elements of
+        :meth:`~sage.combinat.designs.incidence_structures.IncidenceStructure.ground_set`
+        is contained in
         exactly ``alpha`` triples.
 
         INPUT:
 
-        - ``alpha`` -- (default: ``False``) return the value of
-          ``alpha``, if possible.
+        - ``alpha`` -- boolean (default: ``False``); return the value of
+          ``alpha``, if possible
 
         EXAMPLES::
 
@@ -125,9 +126,9 @@ class TwoGraph(IncidenceStructure):
             return a
         return r
 
-    def descendant(self, v):
+    def descendant(self, v, immutable=False):
         """
-        The descendant :class:`graph <sage.graphs.graph.Graph>` at ``v``
+        The descendant :class:`graph <sage.graphs.graph.Graph>` at ``v``.
 
         The :mod:`switching class of graphs <sage.combinat.designs.twographs>`
         corresponding to ``self`` contains a graph ``D`` with ``v`` its own connected
@@ -136,21 +137,36 @@ class TwoGraph(IncidenceStructure):
 
         INPUT:
 
-        - ``v`` -- an element of :meth:`ground_set`
+        - ``v`` -- an element of
+          :meth:`~sage.combinat.designs.incidence_structures.IncidenceStructure.ground_set`
+
+        - ``immutable`` -- boolean (default: ``False``); whether to return an
+          immutable or a mutable graph
 
         EXAMPLES::
 
             sage: p = graphs.PetersenGraph().twograph().descendant(0)                   # needs sage.modules
             sage: p.is_strongly_regular(parameters=True)                                # needs sage.modules
             (9, 4, 1, 2)
+
+        TESTS:
+
+        Check the behavior of parameter ``immutable``::
+
+            sage: # needs sage.modules
+            sage: T = graphs.PetersenGraph().twograph()
+            sage: T.descendant(0, immutable=False).is_immutable()
+            False
+            sage: T.descendant(0, immutable=True).is_immutable()
+            True
         """
         from sage.graphs.graph import Graph
         return Graph([[z for z in x if z != v]
-                      for x in self.blocks() if v in x])
+                      for x in self.blocks() if v in x], immutable=immutable)
 
     def complement(self):
         """
-        The two-graph which is the complement of ``self``
+        The two-graph which is the complement of ``self``.
 
         That is, the two-graph consisting exactly of triples not in ``self``.
         Note that this is different from :meth:`complement
@@ -175,7 +191,7 @@ class TwoGraph(IncidenceStructure):
 
 def taylor_twograph(q):
     r"""
-    constructing Taylor's two-graph for `U_3(q)`, `q` odd prime power
+    Constructing Taylor's two-graph for `U_3(q)`, `q` odd prime power.
 
     The Taylor's two-graph `T` has the `q^3+1` points of the projective plane over `F_{q^2}`
     singular w.r.t. the non-degenerate Hermitean form `S` preserved by `U_3(q)` as its ground set;
@@ -206,7 +222,8 @@ def is_twograph(T) -> bool:
 
     INPUT:
 
-    - ``T`` -- an :class:`incidence structure <sage.combinat.designs.IncidenceStructure>`
+    - ``T`` -- an :class:`incidence structure
+      <sage.combinat.designs.incidence_structures.IncidenceStructure>`
 
     EXAMPLES:
 
@@ -238,27 +255,24 @@ def is_twograph(T) -> bool:
         return False
 
     # A structure for a fast triple existence check
-    v_to_blocks = {v: set() for v in range(T.num_points())}
+    v_to_blocks = {v: set() for v in range(T.n_points())}
     for B in T._blocks:
         B = frozenset(B)
         for x in B:
             v_to_blocks[x].add(B)
 
-    def has_triple(x_y_z):
+    def has_triple(x_y_z) -> bool:
         x, y, z = x_y_z
         return bool(v_to_blocks[x] & v_to_blocks[y] & v_to_blocks[z])
 
     # Check that every quadruple contains an even number of triples
-    for quad in combinations(range(T.num_points()), 4):
-        if sum(map(has_triple, combinations(quad, 3))) % 2 == 1:
-            return False
-
-    return True
+    return not any(sum(map(has_triple, combinations(quad, 3))) % 2
+                   for quad in combinations(range(T.n_points()), 4))
 
 
-def twograph_descendant(G, v, name=None):
+def twograph_descendant(G, v, name=None, immutable=None):
     r"""
-    Return the descendant graph w.r.t. vertex `v` of the two-graph of `G`
+    Return the descendant graph w.r.t. vertex `v` of the two-graph of `G`.
 
     In the :mod:`switching class <sage.combinat.designs.twographs>` of `G`,
     construct a graph `\Delta` with `v` an isolated vertex, and return the subgraph
@@ -272,7 +286,11 @@ def twograph_descendant(G, v, name=None):
 
     - ``v`` -- a vertex of ``G``
 
-    - ``name`` -- (default: ``None``); no name, otherwise derive from the construction
+    - ``name`` -- (default: ``None``) no name, otherwise derive from the construction
+
+    - ``immutable`` -- boolean (default: ``None``); whether to create a
+      mutable/immutable graph. ``immutable=None`` (default) means that the graph
+      and its descendant will behave the same way.
 
     EXAMPLES:
 
@@ -296,11 +314,26 @@ def twograph_descendant(G, v, name=None):
         Graph on 9 vertices
         sage: twograph_descendant(p, 5, name=True)
         descendant of Petersen graph at 5: Graph on 9 vertices
+
+    Check the behavior of parameter ``immutable``::
+
+        sage: p = graphs.PetersenGraph()
+        sage: twograph_descendant(p, 5).is_immutable()
+        False
+        sage: twograph_descendant(p, 5, immutable=True).is_immutable()
+        True
+        sage: p = graphs.PetersenGraph(immutable=True)
+        sage: twograph_descendant(p, 5).is_immutable()
+        True
+        sage: twograph_descendant(p, 5, immutable=False).is_immutable()
+        False
     """
-    G = G.seidel_switching(G.neighbors(v), inplace=False)
+    if immutable is None:
+        immutable = G.is_immutable()
+    G = G.seidel_switching(G.neighbors(v), inplace=False, immutable=False)
     G.delete_vertex(v)
     if name:
         G.name('descendant of ' + G.name() + ' at ' + str(v))
     else:
         G.name('')
-    return G
+    return G.copy(immutable=True) if immutable else G

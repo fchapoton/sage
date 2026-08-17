@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-categories
 r"""
 Hopf algebras with basis
 """
@@ -20,7 +19,7 @@ from sage.misc.lazy_import import LazyImport
 
 class HopfAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     """
-    The category of Hopf algebras with a distinguished basis
+    The category of Hopf algebras with a distinguished basis.
 
     EXAMPLES::
 
@@ -37,7 +36,7 @@ class HopfAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         sage: A = C.example(); A                                                        # needs sage.groups
         An example of Hopf algebra with basis: the group algebra of the
          Dihedral group of order 6 as a permutation group over Rational Field
-        sage: A.rename("A")                                                             # needs sage.groups
+        sage: A.rename('A')                                                             # needs sage.groups
         sage: A.category()                                                              # needs sage.groups
         Category of finite dimensional Hopf algebras with basis over Rational Field
 
@@ -121,7 +120,7 @@ class HopfAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
     def example(self, G=None):
         """
-        Returns an example of algebra with basis::
+        Return an example of algebra with basis::
 
             sage: HopfAlgebrasWithBasis(QQ['x']).example()                              # needs sage.groups
             An example of Hopf algebra with basis: the group algebra of the
@@ -169,11 +168,11 @@ class HopfAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         @abstract_method(optional=True)
         def antipode_on_basis(self, x):
             """
-            The antipode of the Hopf algebra on the basis (optional)
+            The antipode of the Hopf algebra on the basis (optional).
 
             INPUT:
 
-             - ``x`` -- an index of an element of the basis of ``self``
+            - ``x`` -- an index of an element of the basis of ``self``
 
             Returns the antipode of the basis element indexed by ``x``.
 
@@ -197,10 +196,11 @@ class HopfAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             The antipode of this Hopf algebra.
 
-            If :meth:`.antipode_basis` is available, this constructs the
+            If :meth:`.antipode_on_basis` is available, this constructs the
             antipode morphism from ``self`` to ``self`` by extending it by
-            linearity. Otherwise, :meth:`self.antipode_by_coercion` is used, if
-            available.
+            linearity. Otherwise,
+            :meth:`~sage.categories.hopf_algebras.HopfAlgebras.Realizations.ParentMethods.antipode_by_coercion`
+            is used, if available.
 
             EXAMPLES::
 
@@ -224,7 +224,7 @@ class HopfAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 # Should give the information that this is an anti-morphism of algebra
                 return self._module_morphism(self.antipode_on_basis,
                                              codomain=self)
-            elif hasattr(self, "antipode_by_coercion"):
+            if hasattr(self, "antipode_by_coercion"):
                 return self.antipode_by_coercion
 
         def _test_antipode(self, **options):
@@ -256,7 +256,6 @@ class HopfAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                 sage: s = SymmetricFunctions(QQ).schur()                                # needs sage.combinat sage.modules
                 sage: s._test_antipode()                                                # needs lrcalc_python sage.combinat sage.modules
-
             """
             tester = self._tester(**options)
 

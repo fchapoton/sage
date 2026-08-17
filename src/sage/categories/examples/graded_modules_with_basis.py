@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-categories
 # sage.doctest: needs sage.combinat
 r"""
 Examples of graded modules with basis
@@ -38,7 +37,7 @@ class GradedPartitionModule(CombinatorialFreeModule):
 
           sage: A = GradedModulesWithBasis(QQ).example()                                # needs sage.modules
 
-    - A basis function - this module is graded by the non-negative
+    - A basis function - this module is graded by the nonnegative
       integers, so there is a function defined in this module,
       creatively called :func:`basis`, which takes an integer
       `d` as input and returns a family of partitions representing a basis
@@ -63,9 +62,9 @@ class GradedPartitionModule(CombinatorialFreeModule):
           [P[4], P[3, 1], P[2, 2], P[2, 1, 1], P[1, 1, 1, 1]]
 
     - For dealing with basis elements: :meth:`degree_on_basis`, and
-      :meth:`_repr_term`. The first of these defines the degree of any
+      ``_repr_term()``. The first of these defines the degree of any
       monomial, and then the :meth:`degree
-      <GradedModules.Element.degree>` method for elements --
+      <sage.categories.filtered_modules_with_basis.FilteredModulesWithBasis.ElementMethods.degree>` method for elements --
       see the next item -- uses it to compute the degree for a linear
       combination of monomials.  The last of these determines the
       print representation for monomials, which automatically produces
@@ -84,8 +83,8 @@ class GradedPartitionModule(CombinatorialFreeModule):
       An element is determined by a dictionary whose keys are partitions and
       whose corresponding values are the coefficients.  The class implements
       two things: an :meth:`is_homogeneous
-      <GradedModules.Element.is_homogeneous>` method and a
-      :meth:`degree <GradedModules.Element.degree>` method.
+      <sage.categories.filtered_modules_with_basis.FilteredModulesWithBasis.ElementMethods.is_homogeneous>` method and a
+      :meth:`degree <sage.categories.filtered_modules_with_basis.FilteredModulesWithBasis.ElementMethods.degree>` method.
 
       ::
 
@@ -122,7 +121,7 @@ class GradedPartitionModule(CombinatorialFreeModule):
         - ``t`` -- the index of an element of the basis of this module,
           i.e. a partition
 
-        OUTPUT: an integer, the degree of the corresponding basis element
+        OUTPUT: integer, the degree of the corresponding basis element
 
         EXAMPLES::
 
@@ -139,7 +138,7 @@ class GradedPartitionModule(CombinatorialFreeModule):
 
     def _repr_(self):
         """
-        Print representation
+        Print representation.
 
         EXAMPLES::
 

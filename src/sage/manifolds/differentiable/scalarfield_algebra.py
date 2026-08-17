@@ -30,10 +30,11 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.manifolds.differentiable.scalarfield import DiffScalarField
+from sage.manifolds.scalarfield_algebra import ScalarFieldAlgebra
 from sage.rings.infinity import infinity
 from sage.symbolic.ring import SymbolicRing
-from sage.manifolds.scalarfield_algebra import ScalarFieldAlgebra
-from sage.manifolds.differentiable.scalarfield import DiffScalarField
+
 
 class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     r"""
@@ -243,7 +244,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     Since the Symbolic Ring is the base ring for the algebra ``CM``, the
     coercion of a symbolic expression ``s`` is performed by the operation
     ``s*CM.one()``, which invokes the reflected multiplication operator
-    :meth:`sage.manifolds.scalarfield.ScalarField._rmul_`. If the symbolic
+    ``ScalarField._rmul_``. If the symbolic
     expression does not involve any chart coordinate, the outcome is a
     constant scalar field::
 
@@ -367,7 +368,6 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     It is passed also for `C^k(W)`::
 
         sage: TestSuite(CW).run()
-
     """
 
     Element = DiffScalarField
@@ -388,7 +388,6 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
             sage: type(CM).__base__
             <class 'sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra'>
             sage: TestSuite(CM).run()
-
         """
         ScalarFieldAlgebra.__init__(self, domain)
 
@@ -396,7 +395,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
 
     def _coerce_map_from_(self, other):
         r"""
-        Determine whether coercion to self exists from other parent
+        Determine whether coercion to ``self`` exists from other parent.
 
         TESTS::
 
@@ -417,7 +416,6 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
             False
             sage: CU._coerce_map_from_(CM)
             True
-
         """
         from sage.manifolds.chart_func import ChartFunctionRing
 
@@ -426,12 +424,11 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
                          # algebra unit, i.e. self.one())
                          # cf. ScalarField._lmul_() for the implementation of
                          # the coercion map
-        elif isinstance(other, DiffScalarFieldAlgebra):
+        if isinstance(other, DiffScalarFieldAlgebra):
             return self._domain.is_subset(other._domain)
-        elif isinstance(other, ChartFunctionRing):
+        if isinstance(other, ChartFunctionRing):
             return self._domain.is_subset(other._chart.domain())
-        else:
-            return False
+        return False
 
     #### End of methods required for any Parent
 
@@ -447,7 +444,6 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
             'Algebra of differentiable scalar fields on the 2-dimensional differentiable manifold M'
             sage: repr(CM)  # indirect doctest
             'Algebra of differentiable scalar fields on the 2-dimensional differentiable manifold M'
-
         """
         return "Algebra of differentiable scalar fields on " + \
                "the {}".format(self._domain)

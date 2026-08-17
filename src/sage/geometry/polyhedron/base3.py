@@ -1,7 +1,7 @@
 r"""
 Base class for polyhedra: Methods regarding the combinatorics of a polyhedron
 
-Excluding methods relying on :mod:`sage.graphs`.
+Excluding methods relying on :ref:`sage.graphs <sage.graphs>`.
 """
 
 # ****************************************************************************
@@ -38,11 +38,14 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from .base2 import Polyhedron_base2
 
+
 class Polyhedron_base3(Polyhedron_base2):
     """
     Methods related to the combinatorics of a polyhedron.
 
     See :class:`sage.geometry.polyhedron.base.Polyhedron_base`.
+
+    .. automethod:: _test_combinatorial_face_as_combinatorial_polyhedron
 
     TESTS::
 
@@ -73,7 +76,7 @@ class Polyhedron_base3(Polyhedron_base2):
 
     def _init_empty_polyhedron(self):
         """
-        Initializes an empty polyhedron.
+        Initialize an empty polyhedron.
 
         TESTS::
 
@@ -135,7 +138,6 @@ class Polyhedron_base3(Polyhedron_base2):
             [1 0 1 0 0 1]
             [1 0 0 0 1 1]
 
-            sage: # needs sage.rings.number_field
             sage: P = polytopes.dodecahedron().faces(2)[0].as_polyhedron()
             sage: P.slack_matrix()
             [1/2*sqrt5 - 1/2               0               0               1 1/2*sqrt5 - 1/2               0]
@@ -288,7 +290,6 @@ class Polyhedron_base3(Polyhedron_base2):
         Test that this method works for inexact base ring
         (``cdd`` sets the cache already)::
 
-            sage: # needs sage.groups
             sage: P = polytopes.dodecahedron(exact=False)
             sage: M = P.incidence_matrix.cache
             sage: P.incidence_matrix.clear_cache()
@@ -380,7 +381,7 @@ class Polyhedron_base3(Polyhedron_base2):
 
         INPUT:
 
-        - ``face_dimension`` -- integer (default ``None``),
+        - ``face_dimension`` -- integer (default: ``None``);
           yield only faces of this dimension if specified
 
         - ``algorithm`` -- string (optional);
@@ -610,12 +611,12 @@ class Polyhedron_base3(Polyhedron_base2):
 
     def faces(self, face_dimension):
         """
-        Return the faces of given dimension
+        Return the faces of given dimension.
 
         INPUT:
 
-        - ``face_dimension`` -- integer. The dimension of the faces
-          whose representation will be returned.
+        - ``face_dimension`` -- integer; the dimension of the faces
+          whose representation will be returned
 
         OUTPUT:
 
@@ -627,7 +628,7 @@ class Polyhedron_base3(Polyhedron_base2):
         .. SEEALSO::
 
             :meth:`face_generator`,
-            :meth:`~sage.geometry.polyhedron.base0.Polyhedron_base0.facet`.
+            :meth:`~sage.geometry.polyhedron.base3.Polyhedron_base3.facets`.
 
         EXAMPLES:
 
@@ -807,7 +808,7 @@ class Polyhedron_base3(Polyhedron_base2):
             sage: Polyhedron(ieqs=[[1,-1,0,0],[1,1,0,0]]).f_vector()
             (1, 0, 0, 2, 1)
 
-        However, the method :meth:`Polyhedron_base.vertices` returns
+        However, the method :meth:`~sage.geometry.polyhedron.base0.Polyhedron_base0.vertices` returns
         two points that belong to the ``Vrepresentation``::
 
             sage: P = Polyhedron(ieqs=[[1,-1,0],[1,1,0]])
@@ -838,9 +839,7 @@ class Polyhedron_base3(Polyhedron_base2):
         """
         Return the bounded edges (excluding rays and lines).
 
-        OUTPUT:
-
-        A generator for pairs of vertices, one pair per edge.
+        OUTPUT: a generator for pairs of vertices, one pair per edge
 
         EXAMPLES::
 
@@ -885,7 +884,7 @@ class Polyhedron_base3(Polyhedron_base2):
             [1 1 1 1 0]
 
         The rows and columns of the vertex adjacency matrix correspond
-        to the :meth:`Vrepresentation` objects: vertices, rays, and
+        to the :meth:`~sage.geometry.polyhedron.base0.Polyhedron_base0.Vrepresentation` objects: vertices, rays, and
         lines. The `(i,j)` matrix entry equals `1` if the `i`-th and
         `j`-th V-representation object are adjacent.
 
@@ -1101,7 +1100,7 @@ class Polyhedron_base3(Polyhedron_base2):
                 for face in comb_chain] + \
                [universe]
 
-    def is_simplex(self):
+    def is_simplex(self) -> bool:
         r"""
         Return whether the polyhedron is a simplex.
 
@@ -1153,7 +1152,7 @@ class Polyhedron_base3(Polyhedron_base2):
             raise NotImplementedError("this function is implemented for polytopes only")
         return self.combinatorial_polyhedron().simplicity()
 
-    def is_simple(self):
+    def is_simple(self) -> bool:
         """
         Test for simplicity of a polytope.
 
@@ -1204,9 +1203,9 @@ class Polyhedron_base3(Polyhedron_base2):
             raise NotImplementedError("this function is implemented for polytopes only")
         return self.combinatorial_polyhedron().simpliciality()
 
-    def is_simplicial(self):
+    def is_simplicial(self) -> bool:
         """
-        Tests if the polytope is simplicial
+        Test if the polytope is simplicial.
 
         A polytope is simplicial if every facet is a simplex.
 
@@ -1253,9 +1252,7 @@ class Polyhedron_base3(Polyhedron_base2):
           to return a vertex of the polytope which is the apex of a pyramid,
           if found
 
-        OUTPUT:
-
-        If ``certificate`` is ``True``, returns a tuple containing:
+        OUTPUT: if ``certificate`` is ``True``, returns a tuple containing:
 
         1. Boolean.
         2. The apex of the pyramid or ``None``.
@@ -1303,9 +1300,7 @@ class Polyhedron_base3(Polyhedron_base2):
           to return two vertices of the polytope which are the apices of a
           bipyramid, if found
 
-        OUTPUT:
-
-        If ``certificate`` is ``True``, returns a tuple containing:
+        OUTPUT: if ``certificate`` is ``True``, returns a tuple containing:
 
         1. Boolean.
         2. ``None`` or a tuple containing:
@@ -1360,9 +1355,7 @@ class Polyhedron_base3(Polyhedron_base2):
           to return two facets of the polytope which are the bases of a prism,
           if found
 
-        OUTPUT:
-
-        If ``certificate`` is ``True``, returns a tuple containing:
+        OUTPUT: if ``certificate`` is ``True``, returns a tuple containing:
 
         1. Boolean.
         2. ``None`` or a tuple containing:
@@ -1500,7 +1493,6 @@ class Polyhedron_base3(Polyhedron_base2):
             3
             sage: [polytopes.cyclic_polytope(5,n).neighborliness() for n in range(6,10)]
             [6, 2, 2, 2]
-
         """
         return self.combinatorial_polyhedron().neighborliness()
 
@@ -1550,7 +1542,6 @@ class Polyhedron_base3(Polyhedron_base2):
             sage: testpolys = [polytopes.cube(), polytopes.cyclic_polytope(6, 9), polytopes.simplex(6)]
             sage: [(P.neighborliness() >= P.dim() // 2) == P.is_neighborly() for P in testpolys]
             [True, True, True]
-
         """
         return self.combinatorial_polyhedron().is_neighborly()
 

@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-categories
 r"""
 G-Sets
 """
@@ -65,7 +64,7 @@ class GSets(Category):
     @classmethod
     def an_instance(cls):
         """
-        Returns an instance of this class.
+        Return an instance of this class.
 
         EXAMPLES::
 

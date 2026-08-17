@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-objects
 from libc.stdint cimport uint32_t
 from cpython.object cimport (Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE,
                              PyObject_RichCompare)
@@ -13,8 +12,8 @@ cpdef inline richcmp(x, y, int op):
 
     - ``x``, ``y`` -- arbitrary Python objects
 
-    - ``op`` -- comparison operator (one of ``op_LT`, ``op_LE``,
-      ``op_EQ``, ``op_NE``, ``op_GT``, ``op_GE``).
+    - ``op`` -- comparison operator (one of ``op_LT``, ``op_LE``,
+      ``op_EQ``, ``op_NE``, ``op_GT``, ``op_GE``)
 
     EXAMPLES::
 
@@ -113,7 +112,7 @@ cpdef inline richcmp_not_equal(x, y, int op):
     """
     if op == Py_EQ:
         return False
-    elif op == Py_NE:
+    if op == Py_NE:
         return True
     return richcmp(x, y, op)
 
@@ -127,7 +126,7 @@ cpdef inline bint rich_to_bool(int op, int c) noexcept:
 
     - ``op`` -- a rich comparison operation (e.g. ``Py_EQ``)
 
-    - ``c`` -- the result of an old-style comparison: -1, 0 or 1.
+    - ``c`` -- the result of an old-style comparison: -1, 0 or 1
 
     OUTPUT: 1 or 0 (corresponding to ``True`` and ``False``)
 

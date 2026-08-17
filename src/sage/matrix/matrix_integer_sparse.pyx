@@ -53,6 +53,7 @@ from sage.libs.gmp.mpz cimport *
 from sage.rings.integer cimport Integer
 from sage.rings.polynomial.polynomial_integer_dense_flint cimport Polynomial_integer_dense_flint
 from sage.matrix.matrix cimport Matrix
+cimport sage.matrix.matrix0 as matrix0
 
 from sage.matrix.args cimport SparseEntry, MatrixArgs_init
 from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
@@ -98,9 +99,15 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         - ``copy`` -- ignored (for backwards compatibility)
 
-        - ``coerce`` -- if False, assume without checking that the
-          entries are of type :class:`Integer`.
+        - ``coerce`` -- if ``False``, assume without checking that the
+          entries are of type :class:`Integer`
         """
+        if entries is None:
+            # ``__cinit__`` already initialized the matrix to the (empty)
+            # zero matrix. Returning here avoids building a ``MatrixArgs``
+            # object and iterating over an empty generator, which makes
+            # creating a zero matrix from scratch faster (see :issue:`36146`).
+            return
         ma = MatrixArgs_init(parent, entries)
         cdef Integer z
         for t in ma.iter(coerce, True):
@@ -117,6 +124,51 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         x = Integer()
         mpz_vector_get_entry(x.value, &self._matrix[i], j)
         return x
+
+    cdef copy_from_unsafe(self, Py_ssize_t iDst, Py_ssize_t jDst, src, Py_ssize_t iSrc, Py_ssize_t jSrc):
+        """
+        Copy position iSrc,jSrc of ``src`` to position iDst,jDst of ``self``.
+
+        The object ``src`` must be of type ``Matrix_integer_sparse`` and have
+        the same base ring as ``self``.
+
+        INPUT:
+
+        - ``iDst`` - the row to be copied to in ``self``.
+        - ``jDst`` - the column to be copied to in ``self``.
+        - ``src`` - the matrix to copy from. Should be a Matrix_integer_sparse
+                    with the same base ring as ``self``.
+        - ``iSrc``  - the row to be copied from in ``src``.
+        - ``jSrc`` - the column to be copied from in ``src``.
+
+        TESTS::
+
+            sage: m = matrix(ZZ,3,4,[i if is_prime(i) else 0 for i in range(12)],sparse=True)
+            sage: m
+            [ 0  0  2  3]
+            [ 0  5  0  7]
+            [ 0  0  0 11]
+            sage: m.transpose()
+            [ 0  0  0]
+            [ 0  5  0]
+            [ 2  0  0]
+            [ 3  7 11]
+            sage: m.matrix_from_rows([0,2])
+            [ 0  0  2  3]
+            [ 0  0  0 11]
+            sage: m.matrix_from_columns([1,3])
+            [ 0  3]
+            [ 5  7]
+            [ 0 11]
+            sage: m.matrix_from_rows_and_columns([1,2],[0,3])
+            [ 0  7]
+            [ 0 11]
+        """
+        cdef Integer x
+        x = Integer()
+        cdef Matrix_integer_sparse _src = <Matrix_integer_sparse> src
+        mpz_vector_get_entry(x.value, &_src._matrix[iSrc], jSrc)
+        mpz_vector_set_entry(&self._matrix[iDst], jDst, x.value)
 
     cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j) except -1:
         """
@@ -151,7 +203,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
     # def _unpickle(self, data, int version):   # use version >= 0
     # cpdef _add_(self, right):
     # cdef _mul_(self, Matrix right):
-    # cpdef _richcmp_(self, Matrix right, int op):
+    # cpdef _richcmp_(self, Matrix other, int op):
     # def __neg__(self):
     # def __invert__(self):
     # def __copy__(self):
@@ -234,7 +286,10 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         Return the product of the sparse integer matrices
         ``self`` and ``_right``.
 
-       EXAMPLES::
+        The result matrix is allocated and then written by
+        :meth:`_set_to_product_classical`.
+
+        EXAMPLES::
 
             sage: a = matrix(ZZ, 2, [1,2,3,4], sparse=True)
             sage: b = matrix(ZZ, 2, 3, [1..6], sparse=True)
@@ -244,6 +299,61 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         """
         cdef Matrix_integer_sparse right, ans
         right = _right
+
+        ans = self.new_matrix(self._nrows, right._ncols)
+        ans._set_to_product_classical(self, right)
+        return ans
+
+    cdef void _set_to_product_classical(self, matrix0.Matrix _left,
+                                        matrix0.Matrix _right) except *:
+        r"""
+        Set ``self`` to ``_left * _right`` using the specialized sparse
+        integer algorithm.
+
+        This overrides
+        :meth:`~sage.matrix.matrix_sparse.Matrix_sparse._set_to_product_classical`
+        so that :meth:`set_to_product` keeps the specialized ``mpz_vector``
+        algorithm used by ``*``, rather than falling back to the generic sparse
+        one.  It is the shared core of :meth:`_matrix_times_matrix_`, which
+        allocates the result and then calls this method.
+
+        The destination's rows are cleared first, since it may hold the
+        result of an earlier product.
+
+        INPUT:
+
+        - ``_left`` -- a sparse integer matrix
+        - ``_right`` -- a sparse integer matrix
+
+        OUTPUT: none; ``self`` is modified in place
+
+        EXAMPLES::
+
+            sage: a = matrix(ZZ, 2, [1,2,3,4], sparse=True)
+            sage: b = matrix(ZZ, 2, 3, [1..6], sparse=True)
+            sage: C = matrix(ZZ, 2, 3, [7] * 6, sparse=True)
+            sage: C.set_to_product(a, b)
+            sage: C
+            [ 9 12 15]
+            [19 26 33]
+            sage: C == a * b
+            True
+
+        TESTS:
+
+        Reusing the destination must not leave entries of the previous
+        product behind::
+
+            sage: C.set_to_product(2 * a, b)
+            sage: C == (2 * a) * b
+            True
+            sage: C.set_to_product(matrix(ZZ, 2, 0, sparse=True),
+            ....:                  matrix(ZZ, 0, 3, sparse=True))
+            sage: C.is_zero()
+            True
+        """
+        cdef Matrix_integer_sparse left = <Matrix_integer_sparse>_left
+        cdef Matrix_integer_sparse right = <Matrix_integer_sparse>_right
 
         cdef mpz_vector* v
 
@@ -259,7 +369,19 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         right_indices = [j for j in range(right._ncols)
                          if nonzero_positions_in_columns[j]]
 
-        ans = self.new_matrix(self._nrows, right._ncols)
+        # Clear any previous entries, while avoiding a second initialization
+        # pass for the empty rows of a freshly allocated destination.  Reset
+        # each cleared row to the empty state by hand rather than calling
+        # ``mpz_vector_init``: an empty vector needs no storage, and an
+        # allocation here could raise after ``mpz_vector_clear`` has already
+        # freed the row, leaving it with a stale ``num_nonzero`` and dangling
+        # pointers for the next ``mpz_vector_clear`` to walk.
+        for i in range(self._nrows):
+            if self._matrix[i].num_nonzero:
+                mpz_vector_clear(&self._matrix[i])
+                self._matrix[i].entries = NULL
+                self._matrix[i].positions = NULL
+                self._matrix[i].num_nonzero = 0
 
         # Now do the multiplication, getting each row completely before filling it in.
         cdef set c
@@ -267,8 +389,8 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         mpz_init(x)
         mpz_init(y)
         mpz_init(s)
-        for i in range(self._nrows):
-            v = &(self._matrix[i])
+        for i in range(left._nrows):
+            v = &(left._matrix[i])
             if not v.num_nonzero:
                 continue
             for j in right_indices:
@@ -279,12 +401,11 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
                         mpz_vector_get_entry(y, &right._matrix[v.positions[k]], j)
                         mpz_mul(x, v.entries[k], y)
                         mpz_add(s, s, x)
-                mpz_vector_set_entry(&ans._matrix[i], j, s)
+                mpz_vector_set_entry(&self._matrix[i], j, s)
 
         mpz_clear(x)
         mpz_clear(y)
         mpz_clear(s)
-        return ans
 
     ########################################################################
     # LEVEL 3 functionality (Optional)
@@ -297,7 +418,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
     def _nonzero_positions_by_row(self, copy=True):
         """
-        Returns the list of pairs (i,j) such that self[i,j] != 0.
+        Return the list of pairs (i,j) such that ``self[i,j] != 0``.
 
         It is safe to change the resulting list (unless you give the option copy=False).
 
@@ -326,7 +447,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
     def _nonzero_positions_by_column(self, copy=True):
         """
-        Returns the list of pairs (i,j) such that self[i,j] != 0, but
+        Return the list of pairs (i,j) such that ``self[i,j] != 0``, but
         sorted by columns, i.e., column j=0 entries occur first, then
         column j=1 entries, etc.
 
@@ -358,16 +479,14 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         return nzc
 
     def _mod_int(self, modulus):
-        """
+        r"""
         Helper function in reducing matrices mod n.
 
         INPUT:
 
-        - `modulus` -- a number
+        - ``modulus`` -- a number
 
-        OUTPUT:
-
-        This matrix, over `ZZ/nZZ`.
+        OUTPUT: this matrix, over `\ZZ/n\ZZ`
 
         TESTS::
 
@@ -375,7 +494,6 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             sage: B = M._mod_int(7)
             sage: B.parent()
             Full MatrixSpace of 0 by 0 sparse matrices over Ring of integers modulo 7
-
         """
         return self._mod_int_c(modulus)
 
@@ -424,20 +542,20 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
     def _right_kernel_matrix(self, **kwds):
         r"""
-        Returns a pair that includes a matrix of basis vectors
+        Return a pair that includes a matrix of basis vectors
         for the right kernel of ``self``.
 
         INPUT:
 
         - ``algorithm`` -- determines which algorithm to use, options are:
 
-          - 'pari' -- use the :pari:`matkerint` function from the PARI library
-          - 'padic' -- use the p-adic algorithm from the IML library
-          - 'default' -- use a heuristic to decide which of the two above
+          - ``'pari'`` -- use the :pari:`matkerint` function from the PARI library
+          - ``'padic'`` -- use the `p`-adic algorithm from the IML library
+          - ``'default'`` -- use a heuristic to decide which of the two above
             routines is fastest.  This is the default value.
 
-        - ``proof`` -- this is passed to the p-adic IML algorithm.
-          If not specified, the global flag for linear algebra will be used.
+        - ``proof`` -- this is passed to the `p`-adic IML algorithm
+          If not specified, the global flag for linear algebra will be used
 
         OUTPUT:
 
@@ -539,15 +657,13 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         INPUT:
 
-        - self -- matrix
-        - algorithm -- (default: 'pari')
+        - ``self`` -- matrix
+        - ``algorithm`` -- (default: ``'pari'``)
 
-          * 'pari': works robustly, but is slower.
+          * 'pari': works robustly, but is slower
           * 'linbox' -- use linbox (currently off, broken)
 
-        OUTPUT:
-
-        list of integers
+        OUTPUT: list of integers
 
         EXAMPLES::
 
@@ -579,12 +695,12 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         INPUT:
 
-        - ``transformation`` -- a boolean (default: ``True``); whether to
+        - ``transformation`` -- boolean (default: ``True``); whether to
           return the transformation matrices `U` and `V` such that `S = U\cdot
-          self\cdot V`.
+          self\cdot V`
 
         - ``integral`` -- a subring of the base ring or ``True`` (default:
-          ``None``); ignored for matrices with integer entries.
+          ``None``); ignored for matrices with integer entries
 
         This version is for sparse matrices and simply makes the matrix
         dense and calls the version for dense integer matrices.
@@ -678,7 +794,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             r = Matrix_sparse.rank(self)
             self.cache("rank", r)
         else:
-            raise ValueError("no algorithm '%s'"%algorithm)
+            raise ValueError("no algorithm '%s'" % algorithm)
 
         return r
 
@@ -803,9 +919,9 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         TESTS::
 
-            sage: matrix(ZZ, 0, 0, sparse=True).charpoly(algorithm="linbox")
+            sage: matrix(ZZ, 0, 0, sparse=True).charpoly(algorithm='linbox')
             1
-            sage: matrix(ZZ, 0, 0, sparse=True).charpoly(algorithm="generic")
+            sage: matrix(ZZ, 0, 0, sparse=True).charpoly(algorithm='generic')
             1
         """
         if self._nrows != self._ncols:
@@ -861,16 +977,19 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         cdef linbox.DensePolynomial_integer * p = new linbox.DensePolynomial_integer(givZZ, <size_t> self._nrows)
         cdef Polynomial_integer_dense_flint g = (<Polynomial_integer_dense_flint> R.gen())._new()
 
-        sig_on()
-        linbox.charpoly(p[0], M[0])
-        sig_off()
+        while True:  # linbox is unreliable, see :issue:`37068`
+            sig_on()
+            linbox.charpoly(p[0], M[0])
+            sig_off()
 
-        cdef size_t i
-        fmpz_poly_fit_length(g._poly, p.size())
-        for i in range(p.size()):
-            tmp = p[0][i].get_mpz_const()
-            fmpz_poly_set_coeff_mpz(g._poly, i, tmp)
-        _fmpz_poly_set_length(g._poly, p.size())
+            fmpz_poly_fit_length(g._poly, p.size())
+            for i in range(p.size()):
+                tmp = p[0][i].get_mpz_const()
+                fmpz_poly_set_coeff_mpz(g._poly, i, tmp)
+            _fmpz_poly_set_length(g._poly, p.size())
+
+            if g.lc() == 1 and g.degree() == self._nrows:
+                break
 
         del M
         del p
@@ -888,7 +1007,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         - ``algorithm`` -- (default: ``None``) one of ``None``,
           ``'linbox'``, or an algorithm accepted by
-          :meth:`sage.matrix.matrix_sparse.Matrix_sparse.minpoly`
+          :meth:`~sage.matrix.matrix2.Matrix.minpoly`
 
         EXAMPLES::
 
@@ -904,9 +1023,9 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         TESTS::
 
-            sage: matrix(ZZ, 0, 0, sparse=True).minpoly(algorithm="linbox")
+            sage: matrix(ZZ, 0, 0, sparse=True).minpoly(algorithm='linbox')
             1
-            sage: matrix(ZZ, 0, 0, sparse=True).minpoly(algorithm="generic")
+            sage: matrix(ZZ, 0, 0, sparse=True).minpoly(algorithm='generic')
             1
         """
         if self._nrows != self._ncols:
@@ -960,18 +1079,21 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         cdef linbox.SparseMatrix_integer * M = new_linbox_matrix_integer_sparse(givZZ, self)
         cdef linbox.DensePolynomial_integer * p = new linbox.DensePolynomial_integer(givZZ, <size_t> self._nrows)
         cdef Polynomial_integer_dense_flint g = (<Polynomial_integer_dense_flint> R.gen())._new()
-
-        sig_on()
-        linbox.minpoly(p[0], M[0])
-        sig_off()
-
-        cdef size_t i
         cdef mpz_t tmp
-        fmpz_poly_fit_length(g._poly, p.size())
-        for i in range(p.size()):
-            tmp = p[0][i].get_mpz_const()
-            fmpz_poly_set_coeff_mpz(g._poly, i, tmp)
-        _fmpz_poly_set_length(g._poly, p.size())
+
+        while True:  # linbox is unreliable, see :issue:`37068`
+            sig_on()
+            linbox.minpoly(p[0], M[0])
+            sig_off()
+
+            fmpz_poly_fit_length(g._poly, p.size())
+            for i in range(p.size()):
+                tmp = p[0][i].get_mpz_const()
+                fmpz_poly_set_coeff_mpz(g._poly, i, tmp)
+            _fmpz_poly_set_length(g._poly, p.size())
+
+            if g.lc() == 1:
+                break
 
         del M
         del p
@@ -980,7 +1102,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
     def _solve_right_nonsingular_square(self, B, algorithm=None, check_rank=False):
         r"""
-        If self is a matrix `A`, then this function returns a
+        If ``self`` is a matrix `A`, then this function returns a
         vector or matrix `X` such that `A X = B`. If
         `B` is a vector then `X` is a vector and if
         `B` is a matrix, then `X` is a matrix.
@@ -993,25 +1115,24 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         INPUT:
 
+        - ``B`` -- a matrix or vector
 
-        -  ``B`` -- a matrix or vector
-
-        -  ``algorithm`` -- one of the following:
+        - ``algorithm`` -- one of the following:
 
             - ``'linbox'`` or ``'linbox_default'`` -- (default) use LinBox
               and let it chooses the appropriate algorithm
 
-            -  ``linbox_dense_elimination'`` -- use LinBox dense elimination
+            - ``linbox_dense_elimination'`` -- use LinBox dense elimination
 
             - ``'linbox_sparse_elimination'`` -- use LinBox sparse elimination
 
-            -  ``'linbox_ blackbox'`` -- LinBox via a Blackbox algorithm
+            - ``'linbox_ blackbox'`` -- LinBox via a Blackbox algorithm
 
-            -  ``'linbox_wiedemann'`` -- use LinBox implementation of
-               Wiedemann's algorithm
+            - ``'linbox_wiedemann'`` -- use LinBox implementation of
+              Wiedemann's algorithm
 
-            -  ``'generic'`` -- use the Sage generic implementation
-               (via inversion)
+            - ``'generic'`` -- use the Sage generic implementation
+              (via inversion)
 
         - ``check_rank`` -- whether to check that the rank is maximal
 
@@ -1061,22 +1182,22 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
     def _solve_vector_linbox(self, v, algorithm=None):
         r"""
-        Return a pair ``(a, d)`` so that ``d * b = m * a``
+        Return a pair ``(a, d)`` so that ``d * b = m * a``.
 
-        If there is no solution a ``ValueError`` is raised.
+        If there is no solution a :exc:`ValueError` is raised.
 
         INPUT:
 
-        - ``b`` -- a dense integer vector
+        - ``b`` -- dense integer vector
 
         - ``algorithm`` -- (optional) either ``None``, ``'dense_elimination'``,
-          ``'sparse_elimination'``, ``'wiedemann'`` or ``'blackbox'``.
+          ``'sparse_elimination'``, ``'wiedemann'`` or ``'blackbox'``
 
         OUTPUT: a pair ``(a, d)`` consisting of
 
-        - ``a`` -- a dense integer vector
+        - ``a`` -- dense integer vector
 
-        - ``d`` -- an integer
+        - ``d`` -- integer
 
         EXAMPLES::
 

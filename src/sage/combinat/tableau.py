@@ -84,22 +84,21 @@ For display options, see :meth:`Tableaux.options`.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from itertools import repeat
+from collections import Counter
 
 import sage.misc.prandom as random
-
 from sage.arith.misc import binomial, factorial, multinomial
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
 from sage.combinat import permutation
 from sage.combinat.combinatorial_map import combinatorial_map
-from sage.combinat.composition import Composition, Compositions
+from sage.combinat.composition import Compositions
 from sage.combinat.integer_vector import IntegerVectors, integer_vectors_nk_fast_iter
 from sage.combinat.subset import powerset
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.misc.misc_c import prod
 from sage.misc.lazy_import import lazy_import
-from sage.misc.persist import register_unpickle_override
+from sage.misc.misc_c import prod
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.infinity import PlusInfinity
 from sage.rings.integer import Integer
@@ -126,9 +125,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
 
     - ``t`` -- a Tableau, a list of iterables, or an empty list
 
-    OUTPUT:
-
-    - A Tableau object constructed from ``t``.
+    OUTPUT: a Tableau object constructed from ``t``
 
     A tableau is abstractly a mapping from the cells in a partition to
     arbitrary objects (called entries). It is often represented as a
@@ -181,10 +178,9 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         Traceback (most recent call last):
         ...
         ValueError: a tableau must be a list of iterables
-
     """
     @staticmethod
-    def __classcall_private__(cls, t):
+    def __classcall_private__(cls, t, check=True):
         r"""
         This ensures that a tableau is only ever constructed as an
         ``element_class`` call of an appropriate parent.
@@ -211,7 +207,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         except TypeError:
             raise ValueError("a tableau must be a list of iterables")
 
-        return Tableaux_all().element_class(Tableaux_all(), t)
+        return Tableaux_all().element_class(Tableaux_all(), t, check=check)
 
     def __init__(self, parent, t, check=True):
         r"""
@@ -279,9 +275,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
 
         - ``other`` -- the element that ``self`` is compared to
 
-        OUTPUT:
-
-        A Boolean.
+        OUTPUT: boolean
 
         TESTS::
 
@@ -304,8 +298,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         """
         if isinstance(other, Tableau):
             return richcmp(list(self), list(other), op)
-        else:
-            return richcmp(list(self), other, op)
+        return richcmp(list(self), other, op)
 
     def __hash__(self):
         """
@@ -342,7 +335,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         if lens and lens[-1] == 0:
             raise ValueError("a tableau must not have empty rows")
 
-    def _repr_(self):
+    def _repr_(self) -> str:
         """
         Return a string representation of ``self``.
 
@@ -362,7 +355,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         """
         return self.parent().options._dispatch(self, '_repr_', 'display')
 
-    def _repr_list(self):
+    def _repr_list(self) -> str:
         """
         Return a string representation of ``self`` as a list.
 
@@ -379,7 +372,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
     # CombinatorialObject is removed.
     __str__ = _repr_list
 
-    def _repr_diagram(self):
+    def _repr_diagram(self) -> str:
         """
         Return a string representation of ``self`` as an array.
 
@@ -446,7 +439,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
                                     for i, e in enumerate(row))
                          for row in str_tab)
 
-    def _repr_compact(self):
+    def _repr_compact(self) -> str:
         """
         Return a compact string representation of ``self``.
 
@@ -469,12 +462,12 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
             [                              1 ]
             [              1  3    1  2    2 ]
             [   1  2  3,   2   ,   3   ,   3 ]
-            sage: Tableaux.options(ascii_art="compact")
+            sage: Tableaux.options(ascii_art='compact')
             sage: ascii_art(list(StandardTableaux(3)))
             [                        |1| ]
             [          |1|3|  |1|2|  |2| ]
             [ |1|2|3|, |2|  , |3|  , |3| ]
-            sage: Tableaux.options(convention="french", ascii_art="table")
+            sage: Tableaux.options(convention='french', ascii_art='table')
             sage: ascii_art(list(StandardTableaux(3)))
             [                                      +---+ ]
             [                                      | 3 | ]
@@ -483,12 +476,12 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
             [ +---+---+---+  +---+---+  +---+---+  +---+ ]
             [ | 1 | 2 | 3 |  | 1 | 3 |  | 1 | 2 |  | 1 | ]
             [ +---+---+---+, +---+---+, +---+---+, +---+ ]
-            sage: Tableaux.options(ascii_art="repr")
+            sage: Tableaux.options(ascii_art='repr')
             sage: ascii_art(list(StandardTableaux(3)))
             [                              3 ]
             [              2       3       2 ]
             [   1  2  3,   1  3,   1  2,   1 ]
-            sage: Tableaux.options(convention="russian", ascii_art="table")
+            sage: Tableaux.options(convention='russian', ascii_art='table')
             sage: ascii_art(list(StandardTableaux(3)))
             [       / \                             / \      ]
             [      / 3 /                           \ 3 \     ]
@@ -497,7 +490,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
             [   / \ /       \ / \ /     \ / \ /       \ / \  ]
             [  \ 1 /         \ 1 /       \ 1 /         \ 1 / ]
             [   \ /     ,     \ /   ,     \ /   ,       \ /  ]
-            sage: Tableaux.options(ascii_art="repr")
+            sage: Tableaux.options(ascii_art='repr')
             sage: ascii_art(list(StandardTableaux(3)))
             [      3                           3             ]
             [    2       2    3     3    2        2          ]
@@ -662,7 +655,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         return ascii_art_table(self, use_unicode=use_unicode,
                                convention=self.parent().options('convention'))
 
-    def _ascii_art_compact(self):
+    def _ascii_art_compact(self) -> str:
         r"""
         TESTS:
 
@@ -715,7 +708,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
                                     for i, e in enumerate(row))
                          + "|" for row in str_tab)
 
-    def _latex_(self):
+    def _latex_(self) -> str:
         r"""
         Return a LaTeX version of ``self``.
 
@@ -755,7 +748,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
 
     _latex_list = _repr_list
 
-    def _latex_diagram(self):
+    def _latex_diagram(self) -> str:
         r"""
         Return a LaTeX representation of ``self`` as a Young diagram.
 
@@ -775,6 +768,21 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
             return "{\\emptyset}"
         from sage.combinat.output import tex_from_array
         return tex_from_array(self)
+
+    def _repr_svg_(self) -> str:
+        """
+        Return the svg picture of the tableau.
+
+        This can be displayed by Jupyter.
+
+        EXAMPLES::
+
+            sage: T = Tableau([[2, 1, 1], [1, 1]])
+            sage: T._repr_svg_()
+            '<?xml...</g></svg>'
+        """
+        from sage.combinat.output import svg_from_array
+        return svg_from_array(self)
 
     def __truediv__(self, t):
         """
@@ -820,9 +828,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         - ``cell`` -- a pair of integers, tuple, or list specifying a cell in
           the tableau
 
-        OUTPUT:
-
-        - The value in the corresponding cell.
+        OUTPUT: the value in the corresponding cell
 
         EXAMPLES::
 
@@ -1020,8 +1026,8 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
             ...
             ValueError: the tableau must be standard for 'descents=True'
         """
-        from sage.plot.polygon import polygon
         from sage.plot.line import line
+        from sage.plot.polygon import polygon
         from sage.plot.text import text
 
         if descents and not self.is_standard():
@@ -1155,12 +1161,10 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
             sage: Tableau( [[1,2,3],[4,5]] ).descents()
             [(1, 0), (1, 1)]
         """
-        descents = []
-        for i in range(1, len(self)):
-            for j in range(len(self[i])):
-                if self[i][j] > self[i-1][j]:
-                    descents.append((i, j))
-        return descents
+        return [(i, j)
+                for i in range(1, len(self))
+                for j, selfij in enumerate(self[i])
+                if selfij > self[i-1][j]]
 
     def major_index(self):
         """
@@ -1221,15 +1225,15 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
             for j, entry in enumerate(row):
                 # c is in position (i,j)
                 # find the d that satisfy condition 1
-                for k in range(j+1, len(row)):
-                    if entry > row[k]:
-                        inversions.append(((i, j), (i, k)))
+                inversions.extend(((i, j), (i, k))
+                                  for k in range(j + 1, len(row))
+                                  if entry > row[k])
                 # find the d that satisfy condition 2
                 if i == 0:
                     continue
-                for k in range(j):
-                    if entry > previous_row[k]:
-                        inversions.append(((i, j), (i-1, k)))
+                inversions.extend(((i, j), (i - 1, k))
+                                  for k in range(j)
+                                  if entry > previous_row[k])
             previous_row = row
         return inversions
 
@@ -1264,15 +1268,14 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         r"""
         Return the sign matrix of ``self``.
 
-        A sign matrix is an `m \times n` matrix of 0's, 1's and -1's such that the
+        A sign matrix is an `m \times n` matrix of 0s, 1s, and -1s such that the
         partial sums of each column is either 0 or 1 and the partial sums of
-        each row is non-negative. [Ava2007]_
+        each row is nonnegative. [Ava2007]_
 
         INPUT:
 
-        - ``max_entry`` -- A non-negative integer, the  maximum allowable number in
-          the tableau. Defaults to the largest entry in the tableau if not specified.
-
+        - ``max_entry`` -- nonnegative integer; the maximum allowable number in
+          the tableau (defaults to the largest entry in the tableau if not specified)
 
         EXAMPLES::
 
@@ -1298,17 +1301,17 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
             sage: s.to_sign_matrix(6)
             Traceback (most recent call last):
             ...
-            ValueError: the entries must be non-negative integers
+            ValueError: the entries must be nonnegative integers
         """
         from sage.rings.integer_ring import ZZ
         from sage.sets.positive_integers import PositiveIntegers
         PI = PositiveIntegers()
         for row in self:
             if any(c not in PI for c in row):
-                raise ValueError("the entries must be non-negative integers")
+                raise ValueError("the entries must be nonnegative integers")
         from sage.matrix.matrix_space import MatrixSpace
         if max_entry is None:
-            max_entry = max([max(c) for c in self])
+            max_entry = max(max(c) for c in self)
         MS = MatrixSpace(ZZ, len(self[0]), max_entry)
         Tconj = self.conjugate()
         conj_len = len(Tconj)
@@ -1335,14 +1338,12 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
 
         INPUT:
 
-        - ``n`` -- an integer specifying the maximal letter in the
+        - ``n`` -- integer specifying the maximal letter in the
           alphabet (optional)
-        - ``check`` -- (Default: ``True``) Check to make sure ``self`` is
-          semistandard. Set to ``False`` to avoid this check. (optional)
+        - ``check`` -- boolean (default: ``True``); check to make sure ``self``
+          is semistandard
 
-        OUTPUT:
-
-        - a tableau, the Schuetzenberger involution of ``self``
+        OUTPUT: a tableau, the Schuetzenberger involution of ``self``
 
         EXAMPLES::
 
@@ -1402,14 +1403,12 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
 
         INPUT:
 
-        - ``n`` -- an integer specifying the maximal letter in the
+        - ``n`` -- integer specifying the maximal letter in the
           alphabet (optional)
-        - ``check`` -- (Default: ``True``) Check to make sure ``self`` is
-          semistandard. Set to ``False`` to avoid this check. (optional)
+        - ``check`` -- boolean (default: ``True``); check to make sure ``self``
+          is semistandard
 
-        OUTPUT:
-
-        - a tableau, the evacuation of ``self``
+        OUTPUT: a tableau, the evacuation of ``self``
 
         EXAMPLES::
 
@@ -1436,7 +1435,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         """
         return self.schuetzenberger_involution(n, check)
 
-    @combinatorial_map(name="standardization")
+    @combinatorial_map(name='standardization')
     def standardization(self, check=True):
         r"""
         Return the standardization of ``self``, assuming ``self`` is a
@@ -1451,12 +1450,12 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         `w` by `1, 2, \ldots, k_1` from left to right, all `2`'s in `w` by
         `k_1 + 1, k_1 + 2, \ldots, k_2`, and repeating for all letters which
         appear in `w`.
-        See also :meth:`Word.standard_permutation()`.
+        See also :meth:`sage.combinat.words.finite_word.FiniteWord_class.standard_permutation`.
 
         INPUT:
 
-        - ``check`` -- (Default: ``True``) Check to make sure ``self`` is
-          semistandard. Set to ``False`` to avoid this check.
+        - ``check`` -- (default: ``True``) check to make sure ``self`` is
+          semistandard; set to ``False`` to avoid this check
 
         EXAMPLES::
 
@@ -1511,17 +1510,17 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
 
         INPUT:
 
-        - ``k`` -- an integer
+        - ``k`` -- integer
 
-        - ``rows`` -- (Default ``None``) When set to ``None``, the method
+        - ``rows`` -- (default: ``None``) when set to ``None``, the method
           computes the `k`-th Bender--Knuth involution as defined above.
           When an iterable, this computes the composition of the `k`-th
           Bender--Knuth switches at row `i` over all `i` in ``rows``. When set
           to an integer `i`, the method computes the `k`-th Bender--Knuth
           switch at row `i`. Note the indexing of the rows starts with `1`.
 
-        - ``check`` -- (Default: ``True``) Check to make sure ``self`` is
-          semistandard. Set to ``False`` to avoid this check.
+        - ``check`` -- (default: ``True``) check to make sure ``self`` is
+          semistandard; Set to ``False`` to avoid this check
 
         OUTPUT:
 
@@ -1708,7 +1707,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
 
     evaluation = weight
 
-    def is_row_strict(self):
+    def is_row_strict(self) -> bool:
         """
         Return ``True`` if ``self`` is a row strict tableau and ``False``
         otherwise.
@@ -1729,7 +1728,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         """
         return all(row[i] < row[i+1] for row in self for i in range(len(row)-1))
 
-    def is_row_increasing(self, weak=False):
+    def is_row_increasing(self, weak=False) -> bool:
         r"""
         Return ``True`` if the entries in each row are in increasing order,
         and ``False`` otherwise.
@@ -1755,7 +1754,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
                 return a < b
         return all(test(a, b) for row in self for (a, b) in zip(row, row[1:]))
 
-    def is_column_increasing(self, weak=False):
+    def is_column_increasing(self, weak=False) -> bool:
         r"""
         Return ``True`` if the entries in each column are in increasing order,
         and ``False`` otherwise.
@@ -1784,7 +1783,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
             return all(test(a[i], b_i) for i, b_i in enumerate(b))
         return all(tworow(self[r], self[r + 1]) for r in range(len(self) - 1))
 
-    def is_column_strict(self):
+    def is_column_strict(self) -> bool:
         """
         Return ``True`` if ``self`` is a column strict tableau and ``False``
         otherwise.
@@ -1815,7 +1814,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
             return all(a[i] < b_i for i, b_i in enumerate(b))
         return all(tworow(self[r], self[r+1]) for r in range(len(self)-1))
 
-    def is_semistandard(self):
+    def is_semistandard(self) -> bool:
         r"""
         Return ``True`` if ``self`` is a semistandard tableau, and ``False``
         otherwise.
@@ -1838,7 +1837,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         """
         return self.is_row_increasing(weak=True) and self.is_column_increasing()
 
-    def is_standard(self):
+    def is_standard(self) -> bool:
         """
         Return ``True`` if ``self`` is a standard tableau and ``False``
         otherwise.
@@ -1857,7 +1856,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         entries = sorted(self.entries())
         return entries == list(range(1, self.size() + 1)) and self.is_row_strict() and self.is_column_strict()
 
-    def is_increasing(self):
+    def is_increasing(self) -> bool:
         """
         Return ``True`` if ``self`` is an increasing tableau and
         ``False`` otherwise.
@@ -1879,7 +1878,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         """
         return self.is_row_strict() and self.is_column_strict()
 
-    def is_rectangular(self):
+    def is_rectangular(self) -> bool:
         """
         Return ``True`` if the tableau ``self`` is rectangular and
         ``False`` otherwise.
@@ -2069,21 +2068,21 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         w = self.weight()
         s = self.cells()
 
-        for l in range(1, len(w)+1):
+        for l in range(1, len(w) + 1):
             new_s = [(i, j) for i, j in s if self[i][j] == l]
 
             # If there are no elements that meet the condition
-            if new_s == []:
+            if not new_s:
                 res.append(0)
                 continue
-            x = set((i-j) % (k+1) for i, j in new_s)
+            x = {(i - j) % (k + 1) for i, j in new_s}
             res.append(len(x))
 
         return res
 
-    def is_k_tableau(self, k):
+    def is_k_tableau(self, k) -> bool:
         r"""
-        Checks whether ``self`` is a valid weak `k`-tableau.
+        Check whether ``self`` is a valid weak `k`-tableau.
 
         EXAMPLES::
 
@@ -2353,7 +2352,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         INPUT:
 
         - ``i`` -- a number to insert
-        - ``left`` -- (default: ``False``) boolean; if set to
+        - ``left`` -- boolean (default: ``False``); if set to
           ``True``, the insertion will be done from the left. That
           is, if one thinks of the algorithm as appending a letter
           to the reading word of ``self``, we append the letter to
@@ -2369,8 +2368,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         """
         if left:
             return self._left_schensted_insert(i)
-        else:
-            return self.bump(i)
+        return self.bump(i)
 
     def _left_schensted_insert(self, letter):
         """
@@ -2466,7 +2464,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
 
         INPUT:
 
-        - ``loc`` -- Can be either of the following:
+        - ``loc`` -- can be either of the following:
 
           - The coordinates ``(r, c)`` of the square to reverse-bump
             (which must be a corner of the tableau);
@@ -2476,9 +2474,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
           topmost row and the leftmost column are the `0`-th row
           and the `0`-th column.
 
-        OUTPUT:
-
-        An ordered pair consisting of:
+        OUTPUT: an ordered pair consisting of:
 
         1. The resulting (smaller) tableau;
         2. The entry bumped out at the end of the process.
@@ -2530,12 +2526,11 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
             Reverse row bumping is only implemented for tableaux with weakly increasing
             and strictly increasing columns (though the tableau does not need to be an
             instance of class :class:`SemistandardTableau`).
-
         """
         if not (self.is_semistandard()):
             raise ValueError("reverse bumping is only defined for semistandard tableaux")
         try:
-            (r, c) = loc
+            r, c = loc
             if (r, c) not in self.corners():
                 raise ValueError("invalid corner")
         except TypeError:
@@ -2618,8 +2613,8 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         if len(self) == 0:
             return other
 
-        l = len(self[0])
-        st = [(None,) * l + row for row in other]
+        pfx = (None,) * len(self[0])
+        st = [pfx + row for row in other]
         st.extend(self)
 
         from sage.combinat.skew_tableau import SkewTableau
@@ -2646,7 +2641,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         """
         new_st = self.to_list()
         spotl, spotc = c
-        while [spotl, spotc] != [0, 0]:
+        while spotl or spotc:
             # once moving box is in first column, just move letters up
             # (French notation!)
             if spotc == 0:
@@ -2654,24 +2649,22 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
                 spotl -= 1
                 continue
             # once moving box is in first row, just move letters up
-            elif spotl == 0:
+            if spotl == 0:
                 new_st[spotl][spotc] = new_st[spotl][spotc-1]
                 spotc -= 1
                 continue
-            else:
-                # If we get to this stage, we need to compare
-                below = new_st[spotl-1][spotc]
-                left = new_st[spotl][spotc-1]
-                if below >= left:
-                    # Swap with the cell below
-                    new_st[spotl][spotc] = new_st[spotl-1][spotc]
-                    spotl -= 1
-                    continue
-                else:
-                    # Swap with the cell to the left
-                    new_st[spotl][spotc] = new_st[spotl][spotc-1]
-                    spotc -= 1
-                    continue
+            # If we get to this stage, we need to compare
+            below = new_st[spotl-1][spotc]
+            left = new_st[spotl][spotc-1]
+            if below >= left:
+                # Swap with the cell below
+                new_st[spotl][spotc] = new_st[spotl-1][spotc]
+                spotl -= 1
+                continue
+            # Swap with the cell to the left
+            new_st[spotl][spotc] = new_st[spotl][spotc-1]
+            spotc -= 1
+            continue
         # set box in position (0,0) to 0
         new_st[0][0] = 0
         return Tableau(new_st)
@@ -2972,9 +2965,8 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         # tableau, by including the identity permutation on the set [1..k].
         k = self.size()
         gens = [list(range(1, k + 1))]
-        for row in self:
-            for j in range(len(row) - 1):
-                gens.append((row[j], row[j + 1]))
+        gens.extend((row[j], row[j + 1])
+                    for row in self for j in range(len(row) - 1))
         return PermutationGroup(gens)
 
     def column_stabilizer(self):
@@ -3193,10 +3185,9 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
             Traceback (most recent call last):
             ...
             IndexError: (2, 2) is not an addable cell of the tableau
-
         """
         tab = self.to_list()
-        (r, c) = cell
+        r, c = cell
         try:
             tab[r][c] = m   # will work if we are replacing an entry
         except IndexError:
@@ -3209,7 +3200,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
                     raise IndexError('%s is not an addable cell of the tableau' % ((r, c),))
             else:
                 tab_r = tab[r]
-                if c == len(tab_r):
+                if c == len(tab_r) and (r == 0 or len(tab_r) < len(tab[r-1])):
                     tab_r.append(m)
                 else:
                     raise IndexError('%s is not an addable cell of the tableau' % ((r, c),))
@@ -3217,11 +3208,10 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         # attempt to return a tableau of the same type as self
         if tab in self.parent():
             return self.parent()(tab)
-        else:
-            try:
-                return self.parent().Element(tab)
-            except Exception:
-                return Tableau(tab)
+        try:
+            return self.parent().Element(tab)
+        except ValueError:
+            return Tableau(tab)
 
     ##############
     # catabolism #
@@ -3246,9 +3236,8 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         h = self.height()
         if h == 0:
             return self
-        else:
-            # Remove the top row and insert it back in
-            return Tableau(self[1:]).insert_word(self[0], left=True)
+        # Remove the top row and insert it back in
+        return Tableau(self[1:]).insert_word(self[0], left=True)
 
     def catabolism_sequence(self):
         """
@@ -3372,8 +3361,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
 
         if t_part == tt_part:
             return res
-        else:
-            return 0
+        return 0
 
     def catabolism_projector(self, parts):
         """
@@ -3397,8 +3385,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
 
         if res == []:
             return self
-        else:
-            return Tableau([])
+        return Tableau([])
 
     def promotion_operator(self, i):
         r"""
@@ -3635,7 +3622,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         except Exception:
             return Tableau([[w[entry-1] for entry in row] for row in self])
 
-    def is_key_tableau(self):
+    def is_key_tableau(self) -> bool:
         r"""
         Return ``True`` if ``self`` is a key tableau or ``False`` otherwise.
 
@@ -3709,7 +3696,6 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
 
             sage: Tableau([]).right_key_tableau()
             []
-
         """
         if not self:
             return self
@@ -3736,7 +3722,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         Return the left key tableau of ``self``.
 
         The left key tableau of a tableau `T` is the key tableau whose entries
-        are weakly lesser than the corresponding entries in `T`, and whose column
+        are weakly less than the corresponding entries in `T`, and whose column
         reading word is subject to certain conditions. See [LS1990]_ for the full definition.
 
         ALGORITHM:
@@ -3778,7 +3764,6 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
 
             sage: Tableau([]).left_key_tableau()
             []
-
         """
         if not self:
             return self
@@ -3945,19 +3930,17 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
 
         INPUT:
 
-        - ``k`` -- an integer in `\{1, 2, \ldots, n\}`
-        - ``e`` -- an integer in `\{0, 2, 3, 4, 5, \ldots\}`
+        - ``k`` -- integer in `\{1, 2, \ldots, n\}`
+        - ``e`` -- integer in `\{0, 2, 3, 4, 5, \ldots\}`
         - ``multicharge`` -- (default: ``[0]``) a list of length 1
 
         Here `n` is its size of ``self``.
 
         The ``multicharge`` is a list of length 1 which gives an offset for
         all of the contents. It is included mainly for compatibility with
-        :meth:`~sage.combinat.tableau_tuples.TableauTuple.residue`.
+        :meth:`~sage.combinat.tableau_tuple.TableauTuple.residue`.
 
-        OUTPUT:
-
-        The residue in `\ZZ / e\ZZ`.
+        OUTPUT: the residue in `\ZZ / e\ZZ`
 
         EXAMPLES::
 
@@ -3990,18 +3973,18 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
 
         INPUT:
 
-        - ``e`` -- an integer in `\{0, 2, 3, 4, 5, \ldots\}`
+        - ``e`` -- integer in `\{0, 2, 3, 4, 5, \ldots\}`
         - ``multicharge`` -- (default: ``[0]``) a sequence of integers
           of length 1
 
         The `multicharge` is a list of length 1 which gives an offset for
         all of the contents. It is included mainly for compatibility with
-        :meth:`~sage.combinat.tableau_tuples.StandardTableauTuple.residue`.
+        :meth:`~sage.combinat.tableau_tuple.TableauTuple.residue`.
 
         OUTPUT:
 
         The corresponding residue sequence of the tableau;
-        see :class:`ResidueSequence`.
+        see :class:`~sage.combinat.tableau_residues.ResidueSequence`.
 
         EXAMPLES::
 
@@ -4037,9 +4020,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         - ``e`` -- the *quantum characteristic*
         - ``multicharge`` -- (default: ``[0]``) the multicharge
 
-        OUTPUT:
-
-        The degree of the tableau ``self``, which is an integer.
+        OUTPUT: the degree of the tableau ``self``, which is an integer
 
         EXAMPLES::
 
@@ -4082,9 +4063,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         - ``e`` -- the *quantum characteristic*
         - ``multicharge`` -- (default: ``[0]``) the multicharge
 
-        OUTPUT:
-
-        The codegree of the tableau ``self``, which is an integer.
+        OUTPUT: the codegree of the tableau ``self``, which is an integer
 
         EXAMPLES::
 
@@ -4170,9 +4149,10 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
     def reduced_row_word(self):
         r"""
         Return the lexicographically minimal reduced expression for the
-        permutation that maps the :meth:`initial_tableau` to ``self``.
+        permutation that maps the :meth:`~sage.combinat.partition.Partition.initial_tableau`
+        to ``self``.
 
-        Ths reduced expression is a minimal length coset representative for the
+        This reduced expression is a minimal length coset representative for the
         corresponding Young subgroup.  In one line notation, the permutation is
         obtained by concatenating the rows of the tableau in order from top to
         bottom.
@@ -4195,10 +4175,11 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
     def reduced_column_word(self):
         r"""
         Return the lexicographically minimal reduced expression for the
-        permutation that maps the conjugate of the :meth:`initial_tableau`
+        permutation that maps the conjugate of the
+        :meth:`~sage.combinat.partition.Partition.initial_tableau`
         to ``self``.
 
-        Ths reduced expression is a minimal length coset representative for
+        This reduced expression is a minimal length coset representative for
         the corresponding Young subgroup.  In one line notation, the
         permutation is obtained by concatenating the columns of the
         tableau in order from top to bottom.
@@ -4288,8 +4269,10 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
             sage: A.parent(), a.parent()
             (Weak Reverse Plane Partitions, Tableaux)
         """
-        from sage.combinat.hillman_grassl import (hillman_grassl,
-                                                  WeakReversePlanePartition)
+        from sage.combinat.hillman_grassl import (
+            WeakReversePlanePartition,
+            hillman_grassl,
+        )
         return WeakReversePlanePartition(hillman_grassl(list(self)))
 
     def sulzgruber_correspondence(self):
@@ -4308,7 +4291,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         `\xi_\lambda^{-1}` from [Pak2002]_ Section 5.
         It is denoted by `\mathcal{RSK}` in [Hopkins2017]_.
         It is the inverse of the Pak correspondence
-        (:meth:`pak_correspondence`).
+        (:func:`~sage.combinat.hillman_grassl.pak_correspondence`).
         The following description of the Sulzgruber correspondence
         follows [Hopkins2017]_ (which denotes it by `\mathcal{RSK}`):
 
@@ -4404,8 +4387,10 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
             sage: a.sulzgruber_correspondence()
             [[0, 4], [1, 5]]
         """
-        from sage.combinat.hillman_grassl import (sulzgruber_correspondence,
-                                                  WeakReversePlanePartition)
+        from sage.combinat.hillman_grassl import (
+            WeakReversePlanePartition,
+            sulzgruber_correspondence,
+        )
         return WeakReversePlanePartition(sulzgruber_correspondence(list(self)))
 
 
@@ -4417,9 +4402,7 @@ class SemistandardTableau(Tableau):
 
     - ``t`` -- a tableau, a list of iterables, or an empty list
 
-    OUTPUT:
-
-    - A SemistandardTableau object constructed from ``t``.
+    OUTPUT: a SemistandardTableau object constructed from ``t``
 
     A semistandard tableau is a tableau whose entries are positive integers,
     which are weakly increasing in rows and strictly increasing down columns.
@@ -4474,7 +4457,7 @@ class SemistandardTableau(Tableau):
         Semistandard tableaux of size 3 and maximum entry 3
     """
     @staticmethod
-    def __classcall_private__(self, t):
+    def __classcall_private__(self, t, check=True):
         r"""
         This ensures that a SemistandardTableau is only ever constructed as an
         element_class call of an appropriate parent.
@@ -4493,8 +4476,9 @@ class SemistandardTableau(Tableau):
         """
         if isinstance(t, SemistandardTableau):
             return t
-        if t in SemistandardTableaux():
-            return SemistandardTableaux_all().element_class(SemistandardTableaux_all(), t)
+        if not check or t in SemistandardTableaux():
+            SST = SemistandardTableaux_all()
+            return SST.element_class(SST, t, check=check)
 
         # t is not a semistandard tableau so we give an appropriate error message
         if t not in Tableaux():
@@ -4560,7 +4544,7 @@ class SemistandardTableau(Tableau):
 
         for row in self:
             if any(c not in PI for c in row):
-                raise ValueError("the entries of a semistandard tableau must be non-negative integers")
+                raise ValueError("the entries of a semistandard tableau must be nonnegative integers")
             if any(row[c] > row[c+1] for c in range(len(row)-1)):
                 raise ValueError("the entries in each row of a semistandard tableau must be weakly increasing")
 
@@ -4636,7 +4620,7 @@ class RowStandardTableau(Tableau):
         True
     """
     @staticmethod
-    def __classcall_private__(self, t):
+    def __classcall_private__(self, t, check=True):
         r"""
         This ensures that a :class:`RowStandardTableau` is only
         constructed as an ``element_class`` call of an appropriate parent.
@@ -4655,7 +4639,7 @@ class RowStandardTableau(Tableau):
             return t
 
         RST = RowStandardTableaux_all()
-        return RST.element_class(RST, t)
+        return RST.element_class(RST, t, check=check)
 
     def check(self):
         r"""
@@ -4742,7 +4726,7 @@ class StandardTableau(SemistandardTableau):
         True
     """
     @staticmethod
-    def __classcall_private__(self, t):
+    def __classcall_private__(self, t, check=True):
         r"""
         This ensures that a :class:`StandardTableau` is only ever constructed
         as an ``element_class`` call of an appropriate parent.
@@ -4760,7 +4744,8 @@ class StandardTableau(SemistandardTableau):
         if isinstance(t, StandardTableau):
             return t
 
-        return StandardTableaux_all().element_class(StandardTableaux_all(), t)
+        S = StandardTableaux_all()
+        return S.element_class(S, t, check=check)
 
     def check(self):
         """
@@ -4812,13 +4797,12 @@ class StandardTableau(SemistandardTableau):
             True
             sage: s.dominates([[1,2,3,4,5]])
             False
-
         """
         t = StandardTableau(t)
         return all(self.restrict(m).shape().dominates(t.restrict(m).shape())
                    for m in range(1, 1 + self.size()))
 
-    def is_standard(self):
+    def is_standard(self) -> bool:
         """
         Return ``True`` since ``self`` is a standard tableau.
 
@@ -4995,7 +4979,8 @@ class StandardTableau(SemistandardTableau):
         [Sag2011]_ (p. 23) and in [Stan2009]_, and is the inverse of the map
         called "promotion" in [Hai1992]_ (p. 90).
 
-        See the :meth:`~sage.combinat.tableau.promotion_inverse` method for a
+        See the :meth:`~sage.combinat.tableau.Tableau.promotion_inverse`
+        method for a
         more general operator.
 
         EXAMPLES::
@@ -5038,7 +5023,8 @@ class StandardTableau(SemistandardTableau):
         (p. 90). It is the inverse of the maps called "promotion" in [Sag2011]_
         (p. 23) and in [Stan2009]_.
 
-        See the :meth:`~sage.combinat.tableau.promotion` method for a
+        See the :meth:`~sage.combinat.tableau.Tableau.promotion`
+        method for a
         more general operator.
 
         EXAMPLES::
@@ -5076,7 +5062,7 @@ def from_chain(chain):
     return T.element_class(T, res)
 
 
-def from_shape_and_word(shape, w, convention="French"):
+def from_shape_and_word(shape, w, convention='French'):
     r"""
     Return a tableau from a shape and word.
 
@@ -5086,15 +5072,15 @@ def from_shape_and_word(shape, w, convention="French"):
 
     - ``w`` -- a word whose length equals that of the partition
 
-    - ``convention`` -- a string which can take values ``"French"`` or
-      ``"English"``; the default is ``"French"``
+    - ``convention`` -- string (default: ``'French'``); can take values
+      ``'French'`` or ``'English'``
 
     OUTPUT:
 
     A tableau, whose shape is ``shape`` and whose reading word is ``w``.
-    If the ``convention`` is specified as ``"French"``, the reading word is to be read
+    If the ``convention`` is specified as ``'French'``, the reading word is to be read
     starting from the top row in French convention (= the bottom row in English
-    convention). If the ``convention`` is specified as ``"English"``, the reading word
+    convention). If the ``convention`` is specified as ``'English'``, the reading word
     is to be read starting with the top row in English convention.
 
     EXAMPLES::
@@ -5108,7 +5094,7 @@ def from_shape_and_word(shape, w, convention="French"):
         sage: from_shape_and_word(shape, word)
         [[1, 3], [2], [4]]
         sage: word = Word(flatten(t))
-        sage: from_shape_and_word(shape, word, convention="English")
+        sage: from_shape_and_word(shape, word, convention='English')
         [[1, 3], [2], [4]]
     """
     res = []
@@ -5187,7 +5173,7 @@ class IncreasingTableau(Tableau):
         Increasing tableaux of size 3 and maximum entry 3
     """
     @staticmethod
-    def __classcall_private__(self, t):
+    def __classcall_private__(self, t, check=True):
         r"""
         Construct an :class:`IncreasingTableau` from the appropriate parent.
 
@@ -5206,7 +5192,7 @@ class IncreasingTableau(Tableau):
         if isinstance(t, IncreasingTableau):
             return t
         IT = IncreasingTableaux()
-        return IT.element_class(IT, t)  # The check() will raise the appropriate error
+        return IT.element_class(IT, t, check=check)
 
     def check(self):
         """
@@ -5227,7 +5213,7 @@ class IncreasingTableau(Tableau):
             sage: IncreasingTableau([[0,1]])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: the entries of an increasing tableau must be non-negative integers
+            ValueError: the entries of an increasing tableau must be nonnegative integers
         """
         if not self:
             # Empty tableau, so trivially an increasing tableau
@@ -5244,7 +5230,7 @@ class IncreasingTableau(Tableau):
         for row in self:
             if any(c not in PI for c in row):
                 raise ValueError("the entries of an increasing tableau"
-                                 " must be non-negative integers")
+                                 " must be nonnegative integers")
             if any(row[c] >= row[c+1] for c in range(len(row)-1)):
                 raise ValueError("the entries in each row of an increasing"
                                  " tableau must be strictly increasing")
@@ -5459,7 +5445,7 @@ class Tableaux(UniqueRepresentation, Parent):
 
     INPUT:
 
-    - ``n`` (optional) -- a non-negative integer
+    - ``n`` -- (optional) nonnegative integer
 
     OUTPUT:
 
@@ -5510,7 +5496,7 @@ class Tableaux(UniqueRepresentation, Parent):
         sage: Tableaux(t)
         Traceback (most recent call last):
         ...
-        ValueError: the argument to Tableaux() must be a non-negative integer
+        ValueError: the argument to Tableaux() must be a nonnegative integer
         sage: Tableaux(3)([[1, 1]])
         Traceback (most recent call last):
         ...
@@ -5539,7 +5525,7 @@ class Tableaux(UniqueRepresentation, Parent):
         False
     """
     @staticmethod
-    def __classcall_private__(cls, *args, **kwargs):
+    def __classcall_private__(cls, n=None, *args, **kwargs):
         r"""
         This is a factory class which returns the appropriate parent based on
         arguments.  See the documentation for :class:`Tableaux` for more
@@ -5554,26 +5540,18 @@ class Tableaux(UniqueRepresentation, Parent):
             sage: Tableaux(n=3)
             Tableaux of size 3
         """
-        if args:
-            n = args[0]
-        elif 'n' in kwargs:
-            n = kwargs['n']
-        else:
-            n = None
-
         if n is None:
             return Tableaux_all()
-        else:
-            if not isinstance(n, (int, Integer)) or n < 0:
-                raise ValueError("the argument to Tableaux() must be a non-negative integer")
-            return Tableaux_size(n)
+        if not isinstance(n, (int, Integer)) or n < 0:
+            raise ValueError("the argument to Tableaux() must be a nonnegative integer")
+        return Tableaux_size(n)
 
     Element = Tableau
 
     # add options to class
     class options(GlobalOptions):
         r"""
-        Sets the global options for elements of the tableau, skew_tableau,
+        Set the global options for elements of the tableau, skew_tableau,
         and tableau tuple classes. The defaults are for tableau to be
         displayed as a list, latexed as a Young diagram using the English
         convention.
@@ -5640,25 +5618,25 @@ class Tableaux(UniqueRepresentation, Parent):
         """
         NAME = 'Tableaux'
         module = 'sage.combinat.tableau'
-        display = dict(default="list",
+        display = dict(default='list',
                      description='Controls the way in which tableaux are printed',
                      values=dict(list='print tableaux as lists',
                                  diagram='display as Young diagram (similar to :meth:`~sage.combinat.tableau.Tableau.pp()`',
                                  compact='minimal length string representation'),
-                     alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
+                     alias=dict(array='diagram', ferrers_diagram='diagram', young_diagram='diagram'),
                      case_sensitive=False)
-        ascii_art = dict(default="repr",
+        ascii_art = dict(default='repr',
                      description='Controls the ascii art output for tableaux',
                      values=dict(repr='display using the diagram string representation',
                                  table='display as a table',
                                  compact='minimal length ascii art'),
                      case_sensitive=False)
-        latex = dict(default="diagram",
+        latex = dict(default='diagram',
                    description='Controls the way in which tableaux are latexed',
                    values=dict(list='as a list', diagram='as a Young diagram'),
-                   alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
+                   alias=dict(array='diagram', ferrers_diagram='diagram', young_diagram='diagram'),
                    case_sensitive=False)
-        convention = dict(default="English",
+        convention = dict(default='English',
                           description='Sets the convention used for displaying tableaux and partitions',
                           values=dict(
                               English='use the English convention',
@@ -5666,21 +5644,19 @@ class Tableaux(UniqueRepresentation, Parent):
                               Russian='use the Russian convention',
                           ),
                           case_sensitive=False)
-        notation = dict(alt_name="convention")
+        notation = dict(alt_name='convention')
 
     def _element_constructor_(self, t):
         r"""
-        Constructs an object from ``t`` as an element of ``self``, if
+        Construct an object from ``t`` as an element of ``self``, if
         possible. This is inherited by all Tableaux, SemistandardTableaux, and
         StandardTableaux classes.
 
         INPUT:
 
-        - ``t`` -- Data which can be interpreted as a tableau
+        - ``t`` -- data which can be interpreted as a tableau
 
-        OUTPUT:
-
-        - The corresponding tableau object
+        OUTPUT: the corresponding tableau object
 
         TESTS::
 
@@ -5736,15 +5712,14 @@ class Tableaux(UniqueRepresentation, Parent):
                 return False
             # any list of lists of partition shape is a tableau
             return [len(row) for row in x] in _Partitions
-        else:
-            return False
+        return False
 
 
 class Tableaux_all(Tableaux):
 
     def __init__(self):
         r"""
-        Initializes the class of all tableaux
+        Initialize the class of all tableaux.
 
         TESTS::
 
@@ -5762,7 +5737,7 @@ class Tableaux_all(Tableaux):
         """
         return "Tableaux"
 
-    def an_element(self):
+    def _an_element_(self):
         r"""
         Return a particular element of the class.
 
@@ -5782,7 +5757,7 @@ class Tableaux_size(Tableaux):
 
     def __init__(self, n):
         r"""
-        Initializes the class of tableaux of size ``n``.
+        Initialize the class of tableaux of size `n`.
 
         TESTS::
 
@@ -5822,7 +5797,7 @@ class Tableaux_size(Tableaux):
         """
         return "Tableaux of size %s" % self.size
 
-    def an_element(self):
+    def _an_element_(self):
         r"""
         Return a particular element of the class.
 
@@ -5855,11 +5830,11 @@ class SemistandardTableaux(Tableaux):
 
     Keyword arguments:
 
-    - ``size`` -- The size of the tableaux
-    - ``shape`` -- The shape of the tableaux
-    - ``eval`` -- The weight (also called content or evaluation) of
+    - ``size`` -- the size of the tableaux
+    - ``shape`` -- the shape of the tableaux
+    - ``eval`` -- the weight (also called content or evaluation) of
       the tableaux
-    - ``max_entry`` -- A maximum entry for the tableaux.  This can be a
+    - ``max_entry`` -- a maximum entry for the tableaux.  This can be a
       positive integer or infinity (``oo``). If ``size`` or ``shape`` are
       specified, ``max_entry`` defaults to be ``size`` or the size of
       ``shape``.
@@ -5873,7 +5848,7 @@ class SemistandardTableaux(Tableaux):
     OUTPUT:
 
     - The appropriate class, after checking basic consistency tests. (For
-      example, specifying ``eval`` implies a value for `max_entry`).
+      example, specifying ``eval`` implies a value for ``max_entry``).
 
     A semistandard tableau is a tableau whose entries are positive integers,
     which are weakly increasing in rows and strictly increasing down columns.
@@ -6065,7 +6040,7 @@ class SemistandardTableaux(Tableaux):
             if not isinstance(size, (int, Integer)):
                 raise ValueError("size must be an integer")
             if size < 0:
-                raise ValueError("size must be non-negative")
+                raise ValueError("size must be nonnegative")
 
         if shape is not None:
             from sage.combinat.skew_partition import SkewPartitions
@@ -6080,9 +6055,9 @@ class SemistandardTableaux(Tableaux):
                 raise ValueError("shape must be a (skew) partition")
 
         if mu is not None:
-            if mu not in Compositions() and mu not in _Partitions:
-                raise ValueError("mu must be a composition")
-            mu = Composition(mu)
+            if mu not in IntegerVectors() and mu not in Compositions() and mu not in _Partitions:
+                raise ValueError("mu must be an integer vector with non-negative entries")
+            mu = IntegerVectors()(mu)
 
         is_inf = max_entry is PlusInfinity()
 
@@ -6217,7 +6192,7 @@ class SemistandardTableaux(Tableaux):
         """
         if isinstance(r, (int, Integer)):
             return self.unrank(r)
-        elif isinstance(r, slice):
+        if isinstance(r, slice):
             start = 0 if r.start is None else r.start
             stop = r.stop
             if stop is None and not self.is_finite():
@@ -6283,8 +6258,7 @@ class SemistandardTableaux(Tableaux):
                 if not all(row[c] < next[c] for c in range(len(next))):
                     return False
             return self.max_entry is None or max(max(row) for row in t) <= self.max_entry
-        else:
-            return False
+        return False
 
 
 class SemistandardTableaux_all(SemistandardTableaux, DisjointUnionEnumeratedSets):
@@ -6294,7 +6268,7 @@ class SemistandardTableaux_all(SemistandardTableaux, DisjointUnionEnumeratedSets
 
     def __init__(self, max_entry=None):
         r"""
-        Initializes the class of all semistandard tableaux.
+        Initialize the class of all semistandard tableaux.
 
         .. WARNING::
 
@@ -6428,10 +6402,10 @@ class SemistandardTableaux_size_inf(SemistandardTableaux):
                     for k in range(1, self.size+1):
                         for c in integer_vectors_nk_fast_iter(self.size - k, i-1):
                             c.append(k)
-                            for sst in SemistandardTableaux_shape_weight(part, Composition(c)):
+                            for sst in SemistandardTableaux_shape_weight(part, IntegerVectors()(c)):
                                 yield self.element_class(self, sst)
                 else:
-                    for sst in SemistandardTableaux_shape_weight(part, Composition([self.size])):
+                    for sst in SemistandardTableaux_shape_weight(part, IntegerVectors()([self.size])):
                         yield self.element_class(self, sst)
             i += 1
 
@@ -6454,7 +6428,7 @@ class SemistandardTableaux_shape_inf(SemistandardTableaux):
 
     def __init__(self, p):
         r"""
-        Initializes the class of semistandard tableaux of shape ``p`` and no
+        Initialize the class of semistandard tableaux of shape ``p`` and no
         maximum entry.
 
         .. WARNING::
@@ -6527,10 +6501,10 @@ class SemistandardTableaux_shape_inf(SemistandardTableaux):
                 for k in range(1, n+1):
                     for c in integer_vectors_nk_fast_iter(n - k, i-1):
                         c.append(k)
-                        for sst in SemistandardTableaux_shape_weight(self.shape, Composition(c)):
+                        for sst in SemistandardTableaux_shape_weight(self.shape, IntegerVectors()(c)):
                             yield self.element_class(self, sst)
             else:
-                for sst in SemistandardTableaux_shape_weight(self.shape, Composition([n])):
+                for sst in SemistandardTableaux_shape_weight(self.shape, IntegerVectors()([n])):
                     yield self.element_class(self, sst)
             i += 1
 
@@ -6542,7 +6516,7 @@ class SemistandardTableaux_size(SemistandardTableaux):
 
     def __init__(self, n, max_entry=None):
         r"""
-        Initializes the class of semistandard tableaux of size ``n``.
+        Initialize the class of semistandard tableaux of size `n`.
 
         .. WARNING::
 
@@ -6635,9 +6609,9 @@ class SemistandardTableaux_size(SemistandardTableaux):
             sage: SemistandardTableaux(6, max_entry=7).random_element()  # random       # needs sage.modules
             [[2, 4, 4, 6, 6, 6]]
         """
-        from sage.rings.integer_ring import ZZ
-        from sage.matrix.constructor import diagonal_matrix
         from sage.combinat.rsk import RSK
+        from sage.matrix.constructor import diagonal_matrix
+        from sage.rings.integer_ring import ZZ
         kchoose2m1 = self.max_entry * (self.max_entry - 1) // 2 - 1
         km1 = self.max_entry - 1
         weights = [binomial(self.size - i + km1, km1) * binomial((i//2) + kchoose2m1, kchoose2m1)
@@ -6675,15 +6649,25 @@ class SemistandardTableaux_size(SemistandardTableaux):
             sage: SemistandardTableaux(4, max_entry=10).cardinality()
             4225
             sage: ns = list(range(1, 6))
-            sage: ssts = [ SemistandardTableaux(n) for n in ns ]
-            sage: all(sst.cardinality() == len(sst.list()) for sst in ssts)             # needs sage.modules
+            sage: ssts = [SemistandardTableaux(n) for n in ns]
+            sage: all(sst.cardinality() == len(sst.list()) for sst in ssts)
             True
+
+        TESTS:
+
+        Check that we can compute large cardinalities::
+
+            sage: SemistandardTableaux(50, max_entry=100).cardinality()
+            9680859464176053556183499527252114760388193143191787221809144649430208
         """
-        from sage.combinat.partition import Partitions
-        c = 0
-        for part in Partitions(self.size):
-            c += SemistandardTableaux_shape(part, self.max_entry).cardinality()
-        return c
+        # this is the coefficient of t^n in the generating function
+        # \sum_\mu s_\mu(t,...,t), which evaluates by the Cauchy
+        # identity to (1-t)^m (1-t^2)^{\binom{m}{2}}
+        m = self.max_entry
+        n = self.size
+        return sum(binomial(binomial(m, 2) + k - 1, k)
+                   * binomial(m + n - 2*k - 1, m - 1)
+                   for k in range(n // 2 + 1))
 
     def __iter__(self):
         """
@@ -6741,12 +6725,12 @@ class SemistandardTableaux_shape(SemistandardTableaux):
     INPUT:
 
     - ``p`` -- a partition
-    - ``max_entry`` -- the max entry; defaults to the size of ``p``
+    - ``max_entry`` -- the max entry; defaults to the size of `p`
     """
 
     def __init__(self, p, max_entry=None):
         r"""
-        Initializes the class of semistandard tableaux of shape ``p``, with a
+        Initialize the class of semistandard tableaux of shape `p`, with a
         given ``max_entry``.
 
         .. WARNING::
@@ -6809,7 +6793,7 @@ class SemistandardTableaux_shape(SemistandardTableaux):
             True
         """
         for c in integer_vectors_nk_fast_iter(sum(self.shape), self.max_entry):
-            for sst in SemistandardTableaux_shape_weight(self.shape, Composition(c)):
+            for sst in SemistandardTableaux_shape_weight(self.shape, IntegerVectors()(c)):
                 yield self.element_class(self, sst)
 
     def __contains__(self, x):
@@ -6859,7 +6843,6 @@ class SemistandardTableaux_shape(SemistandardTableaux):
             sage: S = SemistandardTableaux([2, 2, 1, 1], max_entry=7)
             sage: S.random_element() in S
             True
-
         """
         from sage.misc.prandom import randint
         with_sentinels = [max(i, j) for i, j in zip([0]+list(self.shape), [k+1 for k in self.shape]+[0])]
@@ -6943,10 +6926,10 @@ class SemistandardTableaux_shape(SemistandardTableaux):
                     num *= self.max_entry + j - i
                     den *= l + conj[j] - i - j - 1
             return Integer(num / den)
-        elif algorithm == 'sum':
+        if algorithm == 'sum':
             c = 0
             for comp in integer_vectors_nk_fast_iter(sum(self.shape), self.max_entry):
-                c += SemistandardTableaux_shape_weight(self.shape, Composition(comp)).cardinality()
+                c += SemistandardTableaux_shape_weight(self.shape, IntegerVectors()(comp)).cardinality()
             return c
         raise ValueError("unknown algorithm {}".format(algorithm))
 
@@ -6958,7 +6941,7 @@ class SemistandardTableaux_shape_weight(SemistandardTableaux_shape):
 
     def __init__(self, p, mu):
         r"""
-        Initializes the class of all semistandard tableaux of shape ``p`` and
+        Initialize the class of all semistandard tableaux of shape ``p`` and
         weight ``mu``.
 
         .. WARNING::
@@ -6997,24 +6980,13 @@ class SemistandardTableaux_shape_weight(SemistandardTableaux_shape):
         """
         if x not in SemistandardTableaux_shape(self.shape, self.max_entry):
             return False
-        n = sum(self.shape)
 
-        if n == 0 and len(x) == 0:
+        if not self.shape and not x:
             return True
 
-        content = {}
-        for row in x:
-            for i in row:
-                content[i] = content.get(i, 0) + 1
-        content_list = [0]*int(max(content))
-
-        for key in content:
-            content_list[key-1] = content[key]
-
-        if content_list != self.weight:
-            return False
-
-        return True
+        content = Counter(i for row in x for i in row)
+        content_list = [content[i] for i in range(1, max(content) + 1)]
+        return content_list == list(self.weight)
 
     def cardinality(self):
         """
@@ -7067,6 +7039,8 @@ class SemistandardTableaux_shape_weight(SemistandardTableaux_shape):
         """
         return symmetrica.kostka_tab(self.shape, self.weight)
 
+    random_element = FiniteEnumeratedSets.ParentMethods._random_element_from_unrank
+
 
 class SemistandardTableaux_size_weight(SemistandardTableaux):
     r"""
@@ -7075,7 +7049,7 @@ class SemistandardTableaux_size_weight(SemistandardTableaux):
 
     def __init__(self, n, mu):
         r"""
-        Initializes the class of semistandard tableaux of size ``n`` and
+        Initialize the class of semistandard tableaux of size ``n`` and
         weight ``mu``.
 
         .. WARNING::
@@ -7162,14 +7136,12 @@ class RowStandardTableaux(Tableaux):
 
     INPUT:
 
-    - either a non-negative integer (possibly specified with the keyword
+    - either a nonnegative integer (possibly specified with the keyword
       ``n``) or a partition
 
-    OUTPUT:
+    OUTPUT: with no argument, the class of all standard tableaux
 
-    - with no argument, the class of all standard tableaux
-
-    - with a non-negative integer argument, ``n``, the class of all standard
+    - with a nonnegative integer argument, ``n``, the class of all standard
       tableaux of size ``n``
 
     - with a partition argument, the class of all standard tableaux of that
@@ -7234,7 +7206,7 @@ class RowStandardTableaux(Tableaux):
         Standard tableaux with 3-residue sequence (2,0,0,1,2) and multicharge (0)
     """
     @staticmethod
-    def __classcall_private__(cls, *args, **kwargs):
+    def __classcall_private__(cls, n=None, *args, **kwargs):
         r"""
         This is a factory class which returns the appropriate parent based on
         arguments.  See the documentation for :class:`RowStandardTableaux` for
@@ -7254,35 +7226,28 @@ class RowStandardTableaux(Tableaux):
             sage: RowStandardTableaux(-1)
             Traceback (most recent call last):
             ...
-            ValueError: the argument must be a non-negative integer or a partition
+            ValueError: the argument must be a nonnegative integer or a partition
             sage: RowStandardTableaux([[1]])
             Traceback (most recent call last):
             ...
-            ValueError: the argument must be a non-negative integer or a partition
+            ValueError: the argument must be a nonnegative integer or a partition
         """
         from sage.combinat.partition import _Partitions
         from sage.combinat.skew_partition import SkewPartitions
 
-        if args:
-            n = args[0]
-        elif 'n' in kwargs:
-            n = kwargs[n]
-        else:
-            n = None
-
         if n is None:
             return RowStandardTableaux_all()
 
-        elif n in _Partitions:
+        if n in _Partitions:
             return RowStandardTableaux_shape(_Partitions(n))
 
-        elif n in SkewPartitions():
+        if n in SkewPartitions():
             # from sage.combinat.skew_tableau import RowStandardSkewTableaux
             # return RowStandardSkewTableaux(n)
             raise NotImplementedError("row standard skew tableaux not yet implemented")
 
         if not isinstance(n, (int, Integer)) or n < 0:
-            raise ValueError("the argument must be a non-negative integer or a partition")
+            raise ValueError("the argument must be a nonnegative integer or a partition")
 
         return RowStandardTableaux_size(n)
 
@@ -7325,7 +7290,7 @@ class RowStandardTableaux_all(RowStandardTableaux, DisjointUnionEnumeratedSets):
 
     def __init__(self):
         r"""
-        Initializes the class of all standard tableaux.
+        Initialize the class of all standard tableaux.
 
         .. WARNING::
 
@@ -7390,7 +7355,7 @@ class RowStandardTableaux_size(RowStandardTableaux, DisjointUnionEnumeratedSets)
 
     def __init__(self, n):
         r"""
-        Initializes the class of all row standard tableaux of size ``n``.
+        Initialize the class of all row standard tableaux of size ``n``.
 
         .. WARNING::
 
@@ -7436,7 +7401,7 @@ class RowStandardTableaux_size(RowStandardTableaux, DisjointUnionEnumeratedSets)
         """
         return RowStandardTableaux.__contains__(self, x) and sum(map(len, x)) == self._size
 
-    def an_element(self):
+    def _an_element_(self):
         r"""
         Return a particular element of the class.
 
@@ -7447,10 +7412,9 @@ class RowStandardTableaux_size(RowStandardTableaux, DisjointUnionEnumeratedSets)
         """
         if self._size == 0:
             return self.element_class(self, [])
-        elif self._size == 1:
+        if self._size == 1:
             return self.element_class(self, [[1]])
-        else:
-            return self.element_class(self, [range(1, self._size + 1)])
+        return self.element_class(self, [range(1, self._size + 1)])
 
 
 class RowStandardTableaux_shape(RowStandardTableaux):
@@ -7460,7 +7424,7 @@ class RowStandardTableaux_shape(RowStandardTableaux):
 
     def __init__(self, p):
         r"""
-        Initializes the class of all row standard tableaux of a given shape.
+        Initialize the class of all row standard tableaux of a given shape.
 
         .. WARNING::
 
@@ -7576,14 +7540,12 @@ class StandardTableaux(SemistandardTableaux):
 
     INPUT:
 
-    - Either a non-negative integer (possibly specified with the keyword ``n``)
+    - Either a nonnegative integer (possibly specified with the keyword ``n``)
       or a partition.
 
-    OUTPUT:
+    OUTPUT: with no argument, the class of all standard tableaux
 
-    - With no argument, the class of all standard tableaux
-
-    - With a non-negative integer argument, ``n``, the class of all standard
+    - With a nonnegative integer argument, ``n``, the class of all standard
       tableaux of size ``n``
 
     - With a partition argument, the class of all standard tableaux of that
@@ -7634,7 +7596,7 @@ class StandardTableaux(SemistandardTableaux):
         Standard tableaux with 3-residue sequence (0,1,2,2,0) and multicharge (0)
     """
     @staticmethod
-    def __classcall_private__(cls, *args, **kwargs):
+    def __classcall_private__(cls, n=None, *args, **kwargs):
         r"""
         This is a factory class which returns the appropriate parent based on
         arguments.  See the documentation for :class:`StandardTableaux` for
@@ -7656,34 +7618,27 @@ class StandardTableaux(SemistandardTableaux):
             sage: StandardTableaux(-1)
             Traceback (most recent call last):
             ...
-            ValueError: the argument must be a non-negative integer or a partition
+            ValueError: the argument must be a nonnegative integer or a partition
             sage: StandardTableaux([[1]])
             Traceback (most recent call last):
             ...
-            ValueError: the argument must be a non-negative integer or a partition
+            ValueError: the argument must be a nonnegative integer or a partition
         """
         from sage.combinat.partition import _Partitions
         from sage.combinat.skew_partition import SkewPartitions
 
-        if args:
-            n = args[0]
-        elif 'n' in kwargs:
-            n = kwargs['n']
-        else:
-            n = None
-
         if n is None:
             return StandardTableaux_all()
 
-        elif n in _Partitions:
+        if n in _Partitions:
             return StandardTableaux_shape(_Partitions(n))
 
-        elif n in SkewPartitions():
+        if n in SkewPartitions():
             from sage.combinat.skew_tableau import StandardSkewTableaux
             return StandardSkewTableaux(n)
 
         if not isinstance(n, (int, Integer)) or n < 0:
-            raise ValueError("the argument must be a non-negative integer or a partition")
+            raise ValueError("the argument must be a nonnegative integer or a partition")
 
         return StandardTableaux_size(n)
 
@@ -7711,9 +7666,9 @@ class StandardTableaux(SemistandardTableaux):
         """
         if isinstance(x, StandardTableau):
             return True
-        elif Tableaux.__contains__(self, x):
+        if Tableaux.__contains__(self, x):
             flatx = sorted(c for row in x for c in row)
-            return flatx == list(range(1, len(flatx)+1)) and (len(x) == 0 or
+            return all(i == fi for i, fi in enumerate(flatx, start=1)) and (len(x) == 0 or
                      (all(row[i] < row[i+1] for row in x for i in range(len(row)-1)) and
                       all(x[r][c] < x[r+1][c] for r in range(len(x)-1)
                           for c in range(len(x[r+1])))
@@ -7728,7 +7683,7 @@ class StandardTableaux_all(StandardTableaux, DisjointUnionEnumeratedSets):
 
     def __init__(self):
         r"""
-        Initializes the class of all standard tableaux.
+        Initialize the class of all standard tableaux.
 
         TESTS::
 
@@ -7780,7 +7735,7 @@ class StandardTableaux_size(StandardTableaux, DisjointUnionEnumeratedSets):
 
     def __init__(self, n):
         r"""
-        Initializes the class of all standard tableaux of size ``n``.
+        Initialize the class of all standard tableaux of size `n`.
 
         .. WARNING::
 
@@ -7924,10 +7879,9 @@ class StandardTableaux_size(StandardTableaux, DisjointUnionEnumeratedSets):
             sage: all(StandardTableaux(10).random_element() in StandardTableaux(10) for i in range(20))
             True
         """
-        from sage.misc.prandom import randrange
-        from sage.misc.prandom import sample
         from sage.combinat.perfect_matching import PerfectMatchings
         from sage.combinat.permutation import from_cycles
+        from sage.misc.prandom import randrange, sample
         # We compute the number of involutions of size ``size``.
         involution_index = randrange(0, StandardTableaux(self.size).cardinality())
         # ``involution_index`` is our random integer `r`.
@@ -7967,7 +7921,7 @@ class StandardTableaux_shape(StandardTableaux):
 
     def __init__(self, p):
         r"""
-        Initializes the class of all semistandard tableaux of a given shape.
+        Initialize the class of all semistandard tableaux of a given shape.
 
         .. WARNING::
 
@@ -8170,8 +8124,6 @@ class StandardTableaux_shape(StandardTableaux):
 
             yield self.element_class(self, tableau)
 
-        return
-
     def list(self):
         r"""
         Return a list of the standard Young tableaux of the specified shape.
@@ -8219,25 +8171,20 @@ class StandardTableaux_shape(StandardTableaux):
         t = [[None] * n for n in p]
 
         # Get the cells in the Young diagram
-        cells = []
-        for i in range(len(p)):
-            for j in range(p[i]):
-                cells.append((i, j))
+        cells = [(i, j) for i in range(len(p)) for j in range(p[i])]
 
         m = sum(p)
-        while m > 0:
+        while m:
             # Choose a cell at random
             cell = random.choice(cells)
 
             # Find a corner
             inner_corners = p.corners()
             while cell not in inner_corners:
-                hooks = []
-                for k in range(cell[1] + 1, p[cell[0]]):
-                    hooks.append((cell[0], k))
-                for k in range(cell[0] + 1, len(p)):
-                    if p[k] > cell[1]:
-                        hooks.append((k, cell[1]))
+                c0, c1 = cell
+                hooks = [(c0, k) for k in range(c1 + 1, p[c0])]
+                hooks.extend((k, c1)
+                             for k in range(c0 + 1, len(p)) if p[k] > c1)
                 cell = random.choice(hooks)
 
             # Assign m to cell
@@ -8351,26 +8298,6 @@ def symmetric_group_action_on_values(word, perm):
             for i in places_r[nbr-dif:]:
                 w[i] = l
     return w
-
-
-class Tableau_class(Tableau):
-    """
-    This exists solely for unpickling ``Tableau_class`` objects.
-    """
-
-    def __setstate__(self, state):
-        r"""
-        Unpickle old ``Tableau_class`` objects.
-
-        TESTS::
-
-            sage: loads(b'x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+IL\xcaIM,\xe5\n\x81\xd0\xf1\xc99\x89\xc5\xc5\\\x85\x8c\x9a\x8d\x85L\xb5\x85\xcc\x1a\xa1\xac\xf1\x19\x89\xc5\x19\x85,~@VNfqI!kl![l!;\xc4\x9c\xa2\xcc\xbc\xf4b\xbd\xcc\xbc\x92\xd4\xf4\xd4"\xae\xdc\xc4\xec\xd4x\x18\xa7\x90#\x94\xd1\xb05\xa8\x9031\xb14I\x0f\x00\xf6\xae)7')
-            [[1]]
-            sage: loads(dumps( Tableau([[1]]) ))
-            [[1]]
-        """
-        self.__class__ = Tableau
-        self.__init__(Tableaux(), state['_list'])
 
 
 ##########################
@@ -8597,7 +8524,7 @@ class IncreasingTableaux(Tableaux):
         # Consistency checks
         if size is not None:
             if size not in NonNegativeIntegers():
-                raise ValueError("size must be a non-negative integer")
+                raise ValueError("size must be a nonnegative integer")
             size = Integer(size)
 
         if shape is not None:
@@ -8631,7 +8558,7 @@ class IncreasingTableaux(Tableaux):
             if not is_inf and not isinstance(max_entry, (int, Integer)):
                 raise ValueError("max_entry must be an integer or PlusInfinity")
             elif max_entry < 0:
-                raise ValueError("max_entry must be non-negative")
+                raise ValueError("max_entry must be nonnegative")
 
         if size is not None and shape is not None:
             if sum(shape) != size:
@@ -8756,7 +8683,7 @@ class IncreasingTableaux(Tableaux):
         """
         if isinstance(r, (int, Integer)):
             return self.unrank(r)
-        elif isinstance(r, slice):
+        if isinstance(r, slice):
             start = 0 if r.start is None else r.start
             stop = r.stop
             if stop is None and not self.is_finite():
@@ -8866,7 +8793,7 @@ class IncreasingTableaux_all(IncreasingTableaux, DisjointUnionEnumeratedSets):
 
     def __init__(self, max_entry=None):
         r"""
-        Initializes the class of all increasing tableaux.
+        Initialize the class of all increasing tableaux.
 
         .. WARNING::
 
@@ -8921,7 +8848,7 @@ class IncreasingTableaux_size_inf(IncreasingTableaux):
 
     def __init__(self, n):
         r"""
-        Initializes the class of increasing tableaux of size ``n`` with no
+        Initialize the class of increasing tableaux of size `n` with no
         maximum entry.
 
         .. WARNING::
@@ -9002,7 +8929,7 @@ class IncreasingTableaux_shape_inf(IncreasingTableaux):
 
     def __init__(self, p):
         r"""
-        Initializes the class of increasing tableaux of shape ``p`` and no
+        Initialize the class of increasing tableaux of shape `p` and no
         maximum entry.
 
         .. WARNING::
@@ -9084,7 +9011,7 @@ class IncreasingTableaux_size(IncreasingTableaux):
 
     def __init__(self, n, max_entry=None):
         r"""
-        Initializes the class of increasing tableaux of size ``n``.
+        Initialize the class of increasing tableaux of size `n`.
 
         .. WARNING::
 
@@ -9204,7 +9131,7 @@ class IncreasingTableaux_shape(IncreasingTableaux):
 
     def __init__(self, p, max_entry=None):
         r"""
-        Initializes the class of increasing tableaux of shape ``p``, with a
+        Initialize the class of increasing tableaux of shape `p`, with a
         given ``max_entry``.
 
         .. WARNING::
@@ -9323,7 +9250,7 @@ class IncreasingTableaux_shape_weight(IncreasingTableaux_shape):
 
     def __init__(self, p, wt):
         r"""
-        Initializes the class of all increasing tableaux of shape ``p`` and
+        Initialize the class of all increasing tableaux of shape ``p`` and
         weight ``mu``.
 
         .. WARNING::
@@ -9382,10 +9309,7 @@ class IncreasingTableaux_shape_weight(IncreasingTableaux_shape):
             for i in row:
                 content_list[i-1] = 1
 
-        if tuple(content_list) != self.weight:
-            return False
-
-        return True
+        return tuple(content_list) == self.weight
 
     def __iter__(self):
         """
@@ -9467,7 +9391,7 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
 
     def __init__(self, n, wt):
         r"""
-        Initializes the class of increasing tableaux of size ``n`` and
+        Initialize the class of increasing tableaux of size `n` and
         weight ``wt``.
 
         .. WARNING::
@@ -9530,14 +9454,3 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
         if shape not in _Partitions:
             return False
         return x in IncreasingTableaux_shape_weight(_Partitions(shape), self.weight)
-
-
-# October 2012: fixing outdated pickles which use classed being deprecated
-register_unpickle_override('sage.combinat.tableau', 'Tableau_class', Tableau_class)
-register_unpickle_override('sage.combinat.tableau', 'Tableaux_n', Tableaux_size)
-register_unpickle_override('sage.combinat.tableau', 'StandardTableaux_n', StandardTableaux_size)
-register_unpickle_override('sage.combinat.tableau', 'StandardTableaux_partition', StandardTableaux_shape)
-register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_n', SemistandardTableaux_size)
-register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_p', SemistandardTableaux_shape)
-register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_nmu', SemistandardTableaux_size_weight)
-register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_pmu', SemistandardTableaux_shape_weight)

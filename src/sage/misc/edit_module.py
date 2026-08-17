@@ -214,7 +214,7 @@ def edit(obj, editor=None, bg=None):
 
     INPUT:
 
-    - editor -- str (default: None); If given, use specified editor.
+    - editor -- string (default: ``None``); if given, use specified editor.
       Choice is stored for next time.
 
     AUTHOR:
@@ -249,8 +249,6 @@ def edit(obj, editor=None, bg=None):
 
         sage: edit(edit)           # not tested
     """
-    global edit_template
-
     if editor:
         set_editor(editor)
     elif not edit_template:

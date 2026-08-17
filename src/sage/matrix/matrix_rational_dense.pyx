@@ -54,9 +54,10 @@ Test hashing::
     ...
     TypeError: mutable matrices are unhashable
     sage: m.set_immutable()
-    sage: hash(m)
-    2212268000387745777  # 64-bit
-    1997752305           # 32-bit
+    sage: hash32 = 1997752305
+    sage: hash64 = 2212268000387745777
+    sage: hash(m) in [hash32, hash64]
+    True
 """
 
 # ****************************************************************************
@@ -73,7 +74,7 @@ Test hashing::
 from libc.string cimport strcpy, strlen
 
 from sage.categories.rings import Rings
-from sage.cpython.string cimport char_to_str, str_to_bytes
+from sage.cpython.string cimport char_to_str
 
 from sage.modules.vector_rational_dense cimport Vector_rational_dense
 from sage.ext.stdsage cimport PY_NEW
@@ -106,8 +107,10 @@ cimport sage.structure.element
 from sage.structure.richcmp cimport rich_to_bool
 from sage.rings.rational cimport Rational
 from sage.matrix.matrix cimport Matrix
+from sage.matrix.matrix0 cimport Matrix as Matrix0
 from sage.matrix.args cimport SparseEntry, MatrixArgs_init
 from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense, _lift_crt
+from sage.matrix.matrix_utils cimport check_matrix_multiplication_sizes
 from sage.structure.element cimport Element, Vector
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ, IntegerRing_class
@@ -119,7 +122,7 @@ from sage.misc.verbose import verbose
 
 # ########################################################
 # PARI C library
-from sage.libs.pari.all import PariError
+from cypari2.handle_error import PariError
 from sage.libs.pari.convert_gmp cimport INTFRAC_to_mpq
 from sage.libs.pari.convert_flint cimport rational_matrix, _new_GEN_from_fmpq_mat_t
 from cypari2.stack cimport clear_stack
@@ -127,6 +130,10 @@ from cypari2.paridecl cimport *
 # ########################################################
 
 cdef class Matrix_rational_dense(Matrix_dense):
+    """
+    .. automethod:: _right_kernel_matrix
+    """
+
     def __cinit__(self):
         """
         Create and allocate memory for the matrix.
@@ -168,8 +175,8 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         - ``copy`` -- ignored (for backwards compatibility)
 
-        - ``coerce`` -- if False, assume without checking that the
-          entries are of type :class:`Rational`.
+        - ``coerce`` -- if ``False``, assume without checking that the
+          entries are of type :class:`Rational`
 
         TESTS::
 
@@ -184,6 +191,13 @@ cdef class Matrix_rational_dense(Matrix_dense):
             [1/2   0]
             [  0 1/2]
         """
+        if entries is None:
+            # ``__cinit__`` already initialized the matrix to zero
+            # (``fmpq_mat_init``). Returning here avoids building a
+            # ``MatrixArgs`` object and iterating over an empty generator,
+            # which makes creating a zero matrix from scratch significantly
+            # faster (see :issue:`36146`).
+            return
         ma = MatrixArgs_init(parent, entries)
         cdef Rational z
         for t in ma.iter(coerce, True):
@@ -193,7 +207,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
     def matrix_from_columns(self, columns):
         """
-        Return the matrix constructed from self using columns with indices
+        Return the matrix constructed from ``self`` using columns with indices
         in the columns list.
 
         EXAMPLES::
@@ -227,7 +241,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
     def add_to_entry(self, Py_ssize_t i, Py_ssize_t j, elt):
         r"""
-        Add ``elt`` to the entry at position ``(i,j)``
+        Add ``elt`` to the entry at position ``(i,j)``.
 
         EXAMPLES::
 
@@ -236,7 +250,23 @@ cdef class Matrix_rational_dense(Matrix_dense):
             sage: m
             [-1/3    0]
             [   0    0]
+
+        The cache is cleared and immutable matrices cannot be changed
+        (:issue:`42532`)::
+
+            sage: m = matrix(QQ, [[1, 2], [3, 4]])
+            sage: m.det()
+            -2
+            sage: m.add_to_entry(0, 0, 10)
+            sage: m.det()
+            38
+            sage: m.set_immutable()
+            sage: m.add_to_entry(0, 0, 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
         """
+        self.check_mutability()
         if not isinstance(elt, Rational):
             elt = Rational(elt)
         if i < 0:
@@ -263,6 +293,46 @@ cdef class Matrix_rational_dense(Matrix_dense):
         x = Rational.__new__(Rational)
         fmpq_get_mpq(x.value, fmpq_mat_entry(self._matrix, i, j))
         return x
+
+    cdef copy_from_unsafe(self, Py_ssize_t iDst, Py_ssize_t jDst, src, Py_ssize_t iSrc, Py_ssize_t jSrc):
+        r"""
+        Copy the ``(iSrc, jSrc)`` entry of ``src`` into the ``(iDst, jDst)``
+        entry of ``self``.
+
+        INPUT:
+
+        - ``iDst`` - the row to be copied to in ``self``.
+        - ``jDst`` - the column to be copied to in ``self``.
+        - ``src`` - the matrix to copy from. Should be a Matrix_rational_dense
+                    with the same base ring as ``self``.
+        - ``iSrc``  - the row to be copied from in ``src``.
+        - ``jSrc`` - the column to be copied from in ``src``.
+
+        TESTS::
+
+            sage: M = matrix(QQ,3,4,[i + 1/(i+1) for i in range(12)])
+            sage: M
+            [     1    3/2    7/3   13/4]
+            [  21/5   31/6   43/7   57/8]
+            [  73/9  91/10 111/11 133/12]
+            sage: M.transpose()
+            [     1   21/5   73/9]
+            [   3/2   31/6  91/10]
+            [   7/3   43/7 111/11]
+            [  13/4   57/8 133/12]
+            sage: M.matrix_from_rows([0,2])
+            [     1    3/2    7/3   13/4]
+            [  73/9  91/10 111/11 133/12]
+            sage: M.matrix_from_columns([1,3])
+            [   3/2   13/4]
+            [  31/6   57/8]
+            [ 91/10 133/12]
+            sage: M.matrix_from_rows_and_columns([1,2],[0,3])
+            [  21/5   57/8]
+            [  73/9 133/12]
+        """
+        cdef Matrix_rational_dense _src = <Matrix_rational_dense> src
+        fmpq_set(fmpq_mat_entry(self._matrix, iDst, jDst), fmpq_mat_entry(_src._matrix, iSrc, jSrc))
 
     cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j) except -1:
         """
@@ -308,7 +378,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         INPUT:
 
-        - ``base`` -- an optional integer (default is ``10``)
+        - ``base`` -- integer (default: `10`)
 
         EXAMPLES::
 
@@ -374,13 +444,13 @@ cdef class Matrix_rational_dense(Matrix_dense):
                 s = data[k]
                 k += 1
                 if '/' in s:
-                    num, den = [str_to_bytes(n) for n in s.split('/')]
+                    num, den = (n.encode() for n in s.split('/'))
                     if fmpz_set_str(fmpq_mat_entry_num(self._matrix, i, j), num, 32) or \
                        fmpz_set_str(fmpq_mat_entry_den(self._matrix, i, j), den, 32):
                         raise RuntimeError("invalid pickle data")
                 else:
-                    s = str_to_bytes(s)
-                    if fmpz_set_str(fmpq_mat_entry_num(self._matrix, i, j), s, 32):
+                    num = s.encode()
+                    if fmpz_set_str(fmpq_mat_entry_num(self._matrix, i, j), num, 32):
                         raise RuntimeError("invalid pickle data")
                     fmpz_one(fmpq_mat_entry_den(self._matrix, i, j))
 
@@ -461,7 +531,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         sig_off()
         return ans
 
-    cpdef _richcmp_(self, right, int op):
+    cpdef _richcmp_(self, other, int op):
         r"""
         TESTS::
 
@@ -494,12 +564,9 @@ cdef class Matrix_rational_dense(Matrix_dense):
         for i in range(self._nrows):
             for j in range(self._ncols):
                 k = fmpq_cmp(fmpq_mat_entry(self._matrix, i, j),
-                             fmpq_mat_entry((<Matrix_rational_dense> right)._matrix, i, j))
+                             fmpq_mat_entry((<Matrix_rational_dense> other)._matrix, i, j))
                 if k:
-                    if k > 0:
-                        return rich_to_bool(op, 1)
-                    else:
-                        return rich_to_bool(op, -1)
+                    return rich_to_bool(op, 1 if k > 0 else -1)
         return rich_to_bool(op, 0)
 
     cdef _vector_times_matrix_(self, Vector v):
@@ -510,7 +577,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         - ``v`` -- a free module element
 
-        OUTPUT: The vector times matrix product v\*A
+        OUTPUT: the vector times matrix product v\*A
 
         EXAMPLES::
 
@@ -646,10 +713,9 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
     def inverse(self, algorithm=None, check_invertible=True):
         """
-        Return the inverse of this matrix
+        Return the inverse of this matrix.
 
         INPUT:
-
 
         - ``algorithm`` -- an optional specification of an algorithm. It can be one of
 
@@ -661,8 +727,8 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
           - ``'iml'``: uses IML library
 
-        -  ``check_invertible`` -- only used when ``algorithm=iml``. Whether to
-           check that matrix is invertible
+        - ``check_invertible`` -- only used when ``algorithm=iml``; whether to
+          check that matrix is invertible
 
         EXAMPLES::
 
@@ -673,40 +739,40 @@ cdef class Matrix_rational_dense(Matrix_dense):
             [1/2 1/2  -2]
 
             sage: a = matrix(QQ, 2, [1, 5, 17, 3])
-            sage: a.inverse(algorithm="flint")
+            sage: a.inverse(algorithm='flint')
             [-3/82  5/82]
             [17/82 -1/82]
-            sage: a.inverse(algorithm="flint")  * a
+            sage: a.inverse(algorithm='flint')  * a
             [1 0]
             [0 1]
 
             sage: a = matrix(QQ, 2, [-1, 5, 12, -3])
-            sage: a.inverse(algorithm="iml")
+            sage: a.inverse(algorithm='iml')
             [1/19 5/57]
             [4/19 1/57]
-            sage: a.inverse(algorithm="iml") * a
+            sage: a.inverse(algorithm='iml') * a
             [1 0]
             [0 1]
 
             sage: a = matrix(QQ, 4, primes_first_n(16))
-            sage: a.inverse(algorithm="pari")
+            sage: a.inverse(algorithm='pari')
             [   3/11  -12/55    -1/5    2/11]
             [  -5/11   -2/55    3/10   -3/22]
             [ -13/22 307/440   -1/10   -9/88]
             [  15/22  -37/88       0    7/88]
 
-        On singular matrices this method raises a ``ZeroDivisionError``::
+        On singular matrices this method raises a :exc:`ZeroDivisionError`::
 
             sage: a = matrix(QQ, 2)
-            sage: a.inverse(algorithm="flint")
+            sage: a.inverse(algorithm='flint')
             Traceback (most recent call last):
             ...
             ZeroDivisionError: input matrix must be nonsingular
-            sage: a.inverse(algorithm="iml")
+            sage: a.inverse(algorithm='iml')
             Traceback (most recent call last):
             ...
             ZeroDivisionError: input matrix must be nonsingular
-            sage: a.inverse(algorithm="pari")
+            sage: a.inverse(algorithm='pari')
             Traceback (most recent call last):
             ...
             ZeroDivisionError: input matrix must be nonsingular
@@ -771,8 +837,8 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
           - ``'generic'``: calls the generic Sage implementation
 
-        -  ``proof`` -- bool or None; if None use
-           proof.linear_algebra(); only relevant for the padic algorithm.
+        - ``proof`` -- boolean or ``None``; if ``None`` use
+          proof.linear_algebra(); only relevant for the padic algorithm
 
         .. NOTE::
 
@@ -788,18 +854,18 @@ cdef class Matrix_rational_dense(Matrix_dense):
             x^3 - 17/5*x^2 - 122/15*x + 34/15
 
             sage: m = matrix(QQ, 3, [(1/i)**j for i in range(2,5) for j in range(3)])
-            sage: m.determinant(algorithm="flint")
+            sage: m.determinant(algorithm='flint')
             -1/288
 
             sage: m = matrix(QQ, 4, [(-1)**n/n for n in range(1,17)])
-            sage: m.determinant(algorithm="pari")
+            sage: m.determinant(algorithm='pari')
             2/70945875
 
             sage: m = matrix(QQ, 5, [1/(i+j+1) for i in range(5) for j in range(5)])
-            sage: m.determinant(algorithm="integer")
+            sage: m.determinant(algorithm='integer')
             1/266716800000
 
-        On non-square matrices, the method raises a ``ValueError``::
+        On non-square matrices, the method raises a :exc:`ValueError`::
 
             sage: matrix(QQ, 2, 3).determinant(algorithm='flint')
             Traceback (most recent call last):
@@ -857,7 +923,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
     def _det_flint(self):
         r"""
-        Return the determinant (computed using flint)
+        Return the determinant (computed using flint).
 
         EXAMPLES::
 
@@ -918,7 +984,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         - ``self`` -- a matrix
 
-        OUTPUT: D\*self, D
+        OUTPUT: ``D*self, D``
 
         The product is a matrix over `\ZZ`.
 
@@ -976,10 +1042,10 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         INPUT:
 
-        -  ``var`` -- (optional) name of the variable as a string
+        - ``var`` -- (optional) name of the variable as a string
 
-        -  ``algorithm`` -- an optional specification of an algorithm. It can be
-           one of:
+        - ``algorithm`` -- an optional specification of an algorithm. It can be
+          one of:
 
            - ``None``: (default) will use flint for small dimensions and linbox
              otherwise
@@ -990,7 +1056,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
            - ``'generic'``: uses Sage generic implementation
 
-        OUTPUT: a polynomial over the rational numbers.
+        OUTPUT: a polynomial over the rational numbers
 
         EXAMPLES::
 
@@ -1035,7 +1101,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             return poly.change_variable_name(var)
 
         if algorithm is None:
-            algorithm = 'flint' if self._nrows <= 40 else 'linbox'
+            algorithm = 'flint'
 
         if algorithm == 'flint' or algorithm == 'linbox':
             A, denom = self._clear_denom()
@@ -1052,15 +1118,14 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
     def minpoly(self, var='x', algorithm=None):
         """
-        Return the minimal polynomial of this matrix
+        Return the minimal polynomial of this matrix.
 
         INPUT:
 
+        - ``var`` -- (optional) the variable name as a string (default: ``'x'``)
 
-        -  ``var`` -- (optional) the variable name as a string (default is 'x')
-
-        -  ``algorithm`` -- an optional specification of an algorithm. It can
-           be one of
+        - ``algorithm`` -- an optional specification of an algorithm. It can
+          be one of
 
            - ``None``: (default) will use linbox
 
@@ -1145,6 +1210,53 @@ cdef class Matrix_rational_dense(Matrix_dense):
         """
         return self._multiply_flint(right)
 
+    cdef void _set_to_product(self, Matrix0 left, Matrix0 right) except *:
+        r"""
+        Set ``self`` to ``left * right`` using FLINT.
+
+        ``fmpq_mat_mul`` takes the destination as its first argument, so the
+        product is written straight into the destination's FLINT storage.  This
+        is the shared core of :meth:`_multiply_flint` and of
+        :meth:`set_to_product`.
+
+        FLINT handles a zero inner dimension by zeroing the destination, so no
+        special case is needed here.
+
+        INPUT:
+
+        - ``left`` -- a matrix of the same type and base ring as ``self``
+        - ``right`` -- a matrix of the same type and base ring as ``self``
+
+        OUTPUT: none; ``self`` is modified in place
+
+        EXAMPLES::
+
+            sage: a = matrix(QQ, 3, range(9))/3
+            sage: b = matrix(QQ, 3, range(1, 10))/5
+            sage: c = matrix(QQ, 3, 3)
+            sage: c.set_to_product(a, b)
+            sage: c
+            [ 6/5  7/5  8/5]
+            [18/5 22/5 26/5]
+            [   6 37/5 44/5]
+            sage: c == a * b
+            True
+
+        TESTS:
+
+        A zero inner dimension zeroes the destination::
+
+            sage: c.set_to_product(matrix(QQ, 3, 0), matrix(QQ, 0, 3))
+            sage: c.is_zero()
+            True
+        """
+        cdef Matrix_rational_dense _left = <Matrix_rational_dense>left
+        cdef Matrix_rational_dense _right = <Matrix_rational_dense>right
+
+        sig_on()
+        fmpq_mat_mul(self._matrix, _left._matrix, _right._matrix)
+        sig_off()
+
     def _multiply_flint(self, Matrix_rational_dense right):
         r"""
         Multiply this matrix by ``right`` using the flint library.
@@ -1171,9 +1283,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         cdef Matrix_rational_dense ans
         ans = Matrix_rational_dense.__new__(Matrix_rational_dense, parent, None, None, None)
 
-        sig_on()
-        fmpq_mat_mul(ans._matrix, self._matrix, (<Matrix_rational_dense> right)._matrix)
-        sig_off()
+        ans._set_to_product(self, right)
         return ans
 
     def _multiply_over_integers(self, Matrix_rational_dense right, algorithm='default'):
@@ -1183,11 +1293,11 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         INPUT:
 
-        -  ``self`` -- matrix over QQ
+        - ``self`` -- matrix over QQ
 
-        -  ``right`` -- matrix over QQ
+        - ``right`` -- matrix over QQ
 
-        -  ``algorithm``
+        - ``algorithm``
 
            - 'default': use whatever is the default for A\*B when A, B
              are over ZZ.
@@ -1247,7 +1357,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         absolute values of all numerators and denominators of entries in
         this matrix.
 
-        OUTPUT: an Integer
+        OUTPUT: integer
 
         EXAMPLES::
 
@@ -1268,7 +1378,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
     cdef int fmpz_height(self, fmpz_t h) except -1:
         cdef fmpz_t x
-        cdef int i, j
+        cdef Py_ssize_t i, j
         sig_on()
         fmpz_init(x)
         fmpz_zero(h)
@@ -1288,7 +1398,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         """
         Return the adjugate of this matrix.
 
-        Assumes self is a square matrix (checked in adjugate).
+        Assumes ``self`` is a square matrix (checked in adjugate).
 
         EXAMPLES::
 
@@ -1343,7 +1453,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
     def _right_kernel_matrix(self, **kwds):
         r"""
-        Returns a pair that includes a matrix of basis vectors
+        Return a pair that includes a matrix of basis vectors
         for the right kernel of ``self``.
 
         INPUT:
@@ -1419,7 +1529,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
     # ###############################################
     def change_ring(self, R):
         """
-        Create the matrix over R with entries the entries of self coerced
+        Create the matrix over R with entries the entries of ``self`` coerced
         into R.
 
         EXAMPLES::
@@ -1499,27 +1609,36 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         INPUT:
 
-        -  ``algorithm`` -- an optional specification of an algorithm. One of
+        - ``algorithm`` -- an optional specification of an algorithm. One of
 
-          - ``None``: (default) uses flint for small dimension and multimodular otherwise
+          - ``None``: (default) try to pick the best choice,
 
-          - ``'flint'``: use the flint library,
+          - ``'flint'``: use flint library
+            `function <https://flintlib.org/doc/fmpq_mat.html#c.fmpq_mat_rref>`_,
+            which automatically chooses between
+            `classical algorithm <https://flintlib.org/doc/fmpq_mat.html#c.fmpq_mat_rref_classical>`_
+            (Gaussian elimination),
+            `fraction-free multimodular <https://flintlib.org/doc/fmpz_mat.html#c.fmpz_mat_rref_mul>`_,
+            and `fraction-free LU decomposition <https://flintlib.org/doc/fmpz_mat.html#c.fmpz_mat_rref_fflu>`_,
 
-          - ``'padic'``: an algorithm based on the IML p-adic solver,
+          - ``'flint:classical'``, ``'flint:multimodular'``, ``'flint:fflu'``: use the
+            flint library as above, but select an algorithm explicitly,
 
-          - ``'multimodular'``: uses a multimodular algorithm the uses
-            linbox modulo many primes (likely to be faster when coefficients
-            are huge),
+          - ``'padic'``: an algorithm based on the IML `p`-adic solver,
+
+          - ``'multimodular'``: uses a multimodular algorithm implemented in Cython
+            that uses linbox modulo many primes,
+            see :func:`~sage.matrix.misc.matrix_rational_echelon_form_multimodular`,
 
           - ``'classical'``: just clear each column using Gauss elimination.
 
-        -  ``height_guess``, ``**kwds`` -- all passed to the
-           multimodular algorithm; ignored by other algorithms.
+        - ``height_guess``, ``**kwds`` -- all passed to the
+          ``'multimodular'`` algorithm; ignored by other algorithms
 
-        -  ``proof`` -- bool or None (default: None, see
-           proof.linear_algebra or sage.structure.proof). Passed to the
-           multimodular algorithm. Note that the Sage global default is
-           ``proof=True``.
+        - ``proof`` -- boolean or ``None`` (default: None, see
+          proof.linear_algebra or sage.structure.proof). Passed to the
+          ``'multimodular'`` algorithm. Note that the Sage global default is
+          ``proof=True``.
 
         EXAMPLES::
 
@@ -1550,25 +1669,60 @@ cdef class Matrix_rational_dense(Matrix_dense):
         Echelonizing a matrix in place throws away the cache of
         the old matrix (:issue:`14506`)::
 
-            sage: for algo in ["flint", "padic", "multimodular", "classical"]:
+            sage: for algo in ["flint", "padic", "multimodular", "classical", "flint:classical",
+            ....:              "flint:multimodular", "flint:fflu"]:
             ....:      a = Matrix(QQ, [[1,2],[3,4]])
             ....:      _ = a.det()          # fills the cache
             ....:      _ = a._clear_denom() # fills the cache
             ....:      a.echelonize(algorithm=algo)
             ....:      assert sorted(a._cache.keys()) == ['echelon_form', 'in_echelon_form', 'pivots', 'rank'], (algo, a._cache.keys())
+
+        Check that :issue:`41267` is fixed::
+
+            sage: Parallelism().set(nproc=2)
+            sage: M = matrix(QQ, [
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,-70,0,0,0,0,28,-28,0,0,0,0,0,-1,1],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,70,0,0,0,0,-28,28,0,0,0,0,0,1,-1],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-14,0,0,0,0,1,-1],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,-35,0,0,0,0,7,-21,0,0,0,0,0,-1,1],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,35,0,0,0,0,-21,7,0,0,0,0,0,0,0],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-14,0,0,0,0,1,-1],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,-15,0,0,0,0,0,-15,1,0,0,0,0,-1,1],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,15,0,0,0,0,-14,1,-1,0,0,0,0,0,0],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,-10,0,0,0,0,1,-1],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,-5,0,0,0,0,0,-10,3,0,0,0,0,-1,1],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,5,0,0,0,0,-7,0,0,0,0,0,0,0,0],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,-6,0,0,0,0,1,-1],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-6,6,0,0,0,0,-1,1],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,5,0,0,0,0,0,10,-3,0,0,0,0,1,-1],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3,10,0,0,0,0,-1,1],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,-5,0,0,0,0,7,0,0,0,0,0,0,0,0],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,15,0,0,0,0,0,15,-1,0,0,0,0,1,-1],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,14,0,0,0,0,-1,1],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,-15,0,0,0,0,14,-1,1,0,0,0,0,0,0],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,35,0,0,0,0,-7,21,0,0,0,0,0,1,-1],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,14,0,0,0,0,-1,1],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,-35,0,0,0,0,21,-7,0,0,0,0,0,0,0],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,70,0,0,0,0,-28,28,0,0,0,0,0,1,-1],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            ....:     [0,0,0,0,0,0,0,0,0,0,0,0,0,-70,0,0,0,0,28,-28,0,0,0,0,0,-1,1]])
+            sage: Mf = copy(M)
+            sage: M.echelonize(algorithm='multimodular')
+            sage: Mf.echelonize(algorithm='flint:multimodular')
+            sage: assert(M == Mf)
+            sage: Parallelism().set(nproc=1)
         """
         if self.fetch('in_echelon_form'):
             return  # already known to be in echelon form
         self.check_mutability()
 
         if algorithm is None:
-            if self._nrows <= 25 or self._ncols <= 25:
-                algorithm = 'flint'
-            else:
-                algorithm = 'multimodular'
+            algorithm = 'flint:multimodular'
 
-        if algorithm == 'flint':
-            pivots = self._echelonize_flint()
+        if algorithm in ('flint', 'flint:classical', 'flint:multimodular', 'flint:fflu'):
+            pivots = self._echelonize_flint(algorithm)
         elif algorithm == 'multimodular':
             pivots = self._echelonize_multimodular(height_guess, proof, **kwds)
         elif algorithm == 'classical':
@@ -1658,12 +1812,16 @@ cdef class Matrix_rational_dense(Matrix_dense):
         self.cache('rank', len(E.pivots()))
         return E
 
-    def _echelonize_flint(self):
+    def _echelonize_flint(self, algorithm: str):
         r"""
+        INPUT: See :meth:`echelonize` for the options.
+        Only options that use flint are allowed, passing other algorithms may
+        trigger undefined behavior.
+
         EXAMPLES::
 
             sage: m = matrix(QQ, 4, range(16))
-            sage: m._echelonize_flint()
+            sage: m._echelonize_flint("flint")
             (0, 1)
             sage: m
             [ 1  0 -1 -2]
@@ -1671,7 +1829,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             [ 0  0  0  0]
             [ 0  0  0  0]
             sage: m = matrix(QQ, 4, 6, [-1,0,0,-2,-1,-2,-1,0,0,-2,-1,0,3,3,-2,0,0,3,-2,-3,1,1,-2,3])
-            sage: m._echelonize_flint()
+            sage: m._echelonize_flint("flint")
             (0, 1, 2, 5)
             sage: m
             [   1    0    0    2    1    0]
@@ -1680,10 +1838,40 @@ cdef class Matrix_rational_dense(Matrix_dense):
             [   0    0    0    0    0    1]
         """
         self.clear_cache()
+
+        if fmpq_mat_is_empty(self._matrix):
+            return ()
+
         cdef long r
+        cdef fmpz_mat_t Aclear
+        cdef fmpz_t den
 
         sig_on()
-        r = fmpq_mat_rref(self._matrix, self._matrix)
+
+        if algorithm == 'flint':
+            r = fmpq_mat_rref(self._matrix, self._matrix)
+        elif algorithm == 'flint:classical':
+            r = fmpq_mat_rref_classical(self._matrix, self._matrix)
+        else:
+            # copied from fmpq_mat_rref_fraction_free
+            fmpz_mat_init(Aclear, self._nrows, self._ncols)
+            fmpq_mat_get_fmpz_mat_rowwise(Aclear, NULL, self._matrix)
+            fmpz_init(den)
+
+            if algorithm == 'flint:fflu':
+                r = fmpz_mat_rref_fflu(Aclear, den, Aclear)
+            else:
+                assert algorithm == 'flint:multimodular'
+                r = fmpz_mat_rref_mul(Aclear, den, Aclear)
+
+            if r == 0:
+                fmpq_mat_zero(self._matrix)
+            else:
+                fmpq_mat_set_fmpz_mat_div_fmpz(self._matrix, Aclear, den)
+
+            fmpz_mat_clear(Aclear)
+            fmpz_clear(den)
+
         sig_off()
 
         # compute pivots
@@ -1702,7 +1890,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
     def _echelonize_padic(self):
         """
-        Echelonize self using a p-adic nullspace algorithm.
+        Echelonize ``self`` using a `p`-adic nullspace algorithm.
 
         EXAMPLES::
 
@@ -1777,12 +1965,11 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         INPUT:
 
+        - ``height_guess`` -- integer or ``None``
 
-        -  ``height_guess`` -- integer or None
-
-        -  ``proof`` -- boolean (default: None, see
-           proof.linear_algebra or sage.structure.proof) Note that the Sage
-           global default is proof=True.
+        - ``proof`` -- boolean (default: ``None``, see
+          proof.linear_algebra or sage.structure.proof); Note that the Sage
+          global default is ``proof=True``
 
         EXAMPLES::
 
@@ -1843,7 +2030,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
     def decomposition(self, is_diagonalizable=False, dual=False,
                       algorithm=None, height_guess=None, proof=None):
         """
-        Returns the decomposition of the free module on which this matrix A
+        Return the decomposition of the free module on which this matrix A
         acts from the right (i.e., the action is x goes to x A), along with
         whether this matrix acts irreducibly on each factor. The factors
         are guaranteed to be sorted in the same way as the corresponding
@@ -1865,13 +2052,12 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         INPUT:
 
+        - ``is_diagonalizable`` -- ignored
 
-        -  ``is_diagonalizable`` -- ignored
+        - ``dual`` -- whether to also return decompositions for
+          the dual
 
-        -  ``dual`` -- whether to also return decompositions for
-           the dual
-
-        -  ``algorithm`` -- an optional specification of an algorithm
+        - ``algorithm`` -- an optional specification of an algorithm
 
            - ``None`` -- (default) use default algorithm for computing Echelon
              forms
@@ -1879,13 +2065,13 @@ cdef class Matrix_rational_dense(Matrix_dense):
            - 'multimodular': much better if the answers
              factors have small height
 
-        -  ``height_guess`` -- positive integer; only used by
-           the multimodular algorithm
+        - ``height_guess`` -- positive integer; only used by
+          the multimodular algorithm
 
-        -  ``proof`` -- bool or None (default: None, see
-           proof.linear_algebra or sage.structure.proof); only used by the
-           multimodular algorithm. Note that the Sage global default is
-           proof=True.
+        - ``proof`` -- boolean or ``None`` (default: ``None``, see
+          proof.linear_algebra or sage.structure.proof); only used by the
+          multimodular algorithm. Note that the Sage global default is
+          proof=True.
 
 
         .. NOTE::
@@ -1904,16 +2090,15 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
             sage: a = matrix(QQ,3,[1..9])
             sage: a.decomposition()
-            [
-            (Vector space of degree 3 and dimension 1 over Rational Field
-            Basis matrix:
-            [ 1 -2  1], True),
-            (Vector space of degree 3 and dimension 2 over Rational Field
-            Basis matrix:
-            [ 1  0 -1]
-            [ 0  1  2], True)
-            ]
-
+            [(Vector space of degree 3 and dimension 1 over Rational Field
+              Basis matrix:
+              [ 1 -2  1],
+              True),
+             (Vector space of degree 3 and dimension 2 over Rational Field
+              Basis matrix:
+              [ 1  0 -1]
+              [ 0  1  2],
+              True)]
         """
         X = self._decomposition_rational(is_diagonalizable=is_diagonalizable,
                                          echelon_algorithm=algorithm,
@@ -1930,7 +2115,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
                                 kernel_algorithm='default',
                                 **kwds):
         """
-        Returns the decomposition of the free module on which this matrix A
+        Return the decomposition of the free module on which this matrix A
         acts from the right (i.e., the action is x goes to x A), along with
         whether this matrix acts irreducibly on each factor. The factors
         are guaranteed to be sorted in the same way as the corresponding
@@ -1938,17 +2123,16 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         INPUT:
 
+        - ``self`` -- a square matrix over the rational
+          numbers
 
-        -  ``self`` -- a square matrix over the rational
-           numbers
+        - ``echelon_algorithm`` -- an optional algorithm to be passed to the
+          method ``echelon_form``
 
-        -  ``echelon_algorithm`` -- an optional algorithm to be passed to the
-           method ``echelon_form``
+        - ``'multimodular'`` -- use this if the answers have
+          small height
 
-        -  ``'multimodular'`` -- use this if the answers have
-           small height
-
-        -  ``**kwds`` -- passed on to echelon function.
+        - ``**kwds`` -- passed on to echelon function
 
         .. NOTE::
 
@@ -1959,14 +2143,12 @@ cdef class Matrix_rational_dense(Matrix_dense):
            will be very small, use algorithm='multimodular',
            height_guess=bound on height, proof=False
 
-
         OUTPUT:
 
-
-        -  ``Sequence`` -- list of tuples (V,t), where V is a
-           vector spaces and t is True if and only if the charpoly of self on
-           V is irreducible. The tuples are in order corresponding to the
-           elements of the sorted list self.charpoly().factor().
+        - ``Sequence`` -- list of tuples (V,t), where V is a
+          vector spaces and t is ``True`` if and only if the charpoly of ``self`` on
+          V is irreducible. The tuples are in order corresponding to the
+          elements of the sorted list self.charpoly().factor().
         """
         cdef Py_ssize_t k
 
@@ -2111,7 +2293,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 #          v = V.random_element()
 #          num_iterates = max([squarefree_degree - g.degree() for g in G]) + 1
 
-#          S = [ ]
+#          S = []
 
 #          F.sort()
 #          for i in range(len(F)):
@@ -2185,16 +2367,18 @@ cdef class Matrix_rational_dense(Matrix_dense):
         cdef mpq_t tmp2
         mpz_init(tmp)
         mpq_init(tmp2)
-        ZA = _lift_crt(res, mm)
-        QA = Matrix_rational_dense.__new__(Matrix_rational_dense, self.parent(), None, None, None)
-        m = mm.prod()
-        for i in range(ZA._nrows):
-            for j in range(ZA._ncols):
-                fmpz_get_mpz(tmp, fmpz_mat_entry(ZA._matrix,i,j))
-                mpq_rational_reconstruction(tmp2, tmp, m.value)
-                fmpq_set_mpq(fmpq_mat_entry(QA._matrix, i, j), tmp2)
-        mpz_clear(tmp)
-        mpq_clear(tmp2)
+        try:
+            ZA = _lift_crt(res, mm)
+            QA = Matrix_rational_dense.__new__(Matrix_rational_dense, self.parent(), None, None, None)
+            m = mm.prod()
+            for i in range(ZA._nrows):
+                for j in range(ZA._ncols):
+                    fmpz_get_mpz(tmp, fmpz_mat_entry(ZA._matrix,i,j))
+                    mpq_rational_reconstruction(tmp2, tmp, m.value)
+                    fmpq_set_mpq(fmpq_mat_entry(QA._matrix, i, j), tmp2)
+        finally:
+            mpz_clear(tmp)
+            mpq_clear(tmp2)
         return QA
 
     def randomize(self, density=1, num_bound=2, den_bound=2,
@@ -2209,19 +2393,17 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         INPUT:
 
-        -  ``density`` -- number between 0 and 1 (default: 1)
+        - ``density`` -- number between 0 and 1 (default: 1)
 
-        -  ``num_bound`` -- numerator bound (default: 2)
+        - ``num_bound`` -- numerator bound (default: 2)
 
-        -  ``den_bound`` -- denominator bound (default: 2)
+        - ``den_bound`` -- denominator bound (default: 2)
 
-        -  ``distribution`` -- ``None`` or '1/n' (default: ``None``); if '1/n'
-           then ``num_bound``, ``den_bound`` are ignored and numbers are chosen
-           using the GMP function ``mpq_randomize_entry_recip_uniform``
+        - ``distribution`` -- ``None`` or '1/n' (default: ``None``); if '1/n'
+          then ``num_bound``, ``den_bound`` are ignored and numbers are chosen
+          using the GMP function ``mpq_randomize_entry_recip_uniform``
 
-        OUTPUT:
-
-        -  None, the matrix is modified in-space
+        OUTPUT: none; the matrix is modified in-space
 
         EXAMPLES:
 
@@ -2474,13 +2656,13 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         - ``algorithm`` -- an optional specification of an algorithm. One of
 
-          - ``None``: (default) will use flint
+          - ``None`` -- (default) will use flint
 
-          - ``'flint'``: uses the flint library
+          - ``'flint'`` -- uses the flint library
 
-          - ``'pari'``: uses the PARI library
+          - ``'pari'`` -- uses the PARI library
 
-          - ``'integer'``: eliminate denominators and calls the rank function
+          - ``'integer'`` -- eliminate denominators and calls the rank function
             on the corresponding integer matrix
 
         EXAMPLES::
@@ -2523,7 +2705,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
     def transpose(self):
         """
-        Returns the transpose of self, without changing self.
+        Return the transpose of ``self``, without changing ``self``.
 
         EXAMPLES:
 
@@ -2579,7 +2761,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
     def antitranspose(self):
         """
-        Returns the antitranspose of self, without changing self.
+        Return the antitranspose of ``self``, without changing ``self``.
 
         EXAMPLES::
 
@@ -2660,10 +2842,9 @@ cdef class Matrix_rational_dense(Matrix_dense):
                                                                  Py_ssize_t r, cols,
                                                                  cols_index=None):
         """
-        Set row i of self to -(row r of A), but where we only take the
+        Set row i of ``self`` to -(row r of A), but where we only take the
         given column positions in that row of A. We do not zero out the
-        other entries of self's row i either.
-
+        other entries of ``self``'s row i either.
 
         .. NOTE::
 
@@ -2671,15 +2852,13 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         INPUT:
 
+        - ``i`` -- integer, index into the rows of self
 
-        -  ``i`` -- integer, index into the rows of self
+        - ``A`` -- a matrix
 
-        -  ``A`` -- a matrix
+        - ``r`` -- integer, index into rows of A
 
-        -  ``r`` -- integer, index into rows of A
-
-        -  ``cols`` -- a *sorted* list of integers.
-
+        - ``cols`` -- a *sorted* list of integers
 
         EXAMPLES::
 
@@ -2712,8 +2891,8 @@ cdef class Matrix_rational_dense(Matrix_dense):
     def _add_col_j_of_A_to_col_i_of_self(self, Py_ssize_t i,
                                          Matrix_rational_dense A, Py_ssize_t j):
         """
-        Unsafe technical function that very quickly adds the j-th column of
-        A to the i-th column of self.
+        Unsafe technical function that very quickly adds the `j`-th column of
+        A to the `i`-th column of ``self``.
 
         Does not check mutability.
         """
@@ -2779,7 +2958,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
     def _multiply_pari(self, Matrix_rational_dense right):
         """
-        Return the product of self and right, computed using PARI.
+        Return the product of ``self`` and ``right``, computed using PARI.
 
         EXAMPLES::
 
@@ -2789,18 +2968,19 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         We verify that 0 rows or columns works::
 
-            sage: x = matrix(QQ,2,0); y= matrix(QQ,0,2); x*y
+            sage: x = matrix(QQ,2,0); y = matrix(QQ,0,2); x*y
             [0 0]
             [0 0]
             sage: matrix(ZZ, 0, 0) * matrix(QQ, 0, 5)
             []
         """
-        if self._ncols != right._nrows:
-            raise ArithmeticError("self must be a square matrix")
-        if not self._ncols*self._nrows or not right._ncols*right._nrows:
+        check_matrix_multiplication_sizes(self, right)
+        if self._ncols == 0 or self._nrows == 0 or right._ncols == 0:
+            # We know right._nrows == self._ncols because check_matrix_multiplication_sizes passed
             # pari doesn't work in case of 0 rows or columns
             # This case is easy, since the answer must be the 0 matrix.
-            return self.matrix_space(self._nrows, right._ncols).zero_matrix().__copy__()
+            MS = self.matrix_space(self._nrows, right._ncols)
+            return MS.element_class(MS, None, False, False)
         sig_on()
         cdef GEN M = gmul(_new_GEN_from_fmpq_mat_t(self._matrix),
                           _new_GEN_from_fmpq_mat_t(right._matrix))
@@ -2837,13 +3017,13 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
     def row(self, Py_ssize_t i, from_list=False):
         """
-        Return the i-th row of this matrix as a dense vector.
+        Return the `i`-th row of this matrix as a dense vector.
 
         INPUT:
 
-        -  ``i`` -- integer
+        - ``i`` -- integer
 
-        -  ``from_list`` -- ignored
+        - ``from_list`` -- ignored
 
         EXAMPLES::
 
@@ -2881,13 +3061,13 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
     def column(self, Py_ssize_t i, from_list=False):
         """
-        Return the i-th column of this matrix as a dense vector.
+        Return the `i`-th column of this matrix as a dense vector.
 
         INPUT:
 
-        -  ``i`` -- integer
+        - ``i`` -- integer
 
-        -  ``from_list`` -- ignored
+        - ``from_list`` -- ignored
 
         EXAMPLES::
 
@@ -2968,6 +3148,9 @@ cdef class Matrix_rational_dense(Matrix_dense):
             [ 1/28 -1/40 -1/18]
             [ 1/28 -1/40  1/18]
             [    0 -3/40     0]
+            sage: L, U = A.LLL(transformation=True)
+            sage: U * A == L
+            True
 
             sage: A = random_matrix(QQ, 10, 10)
             sage: d = lcm(a.denom() for a in A.list())
@@ -2975,6 +3158,9 @@ cdef class Matrix_rational_dense(Matrix_dense):
             True
         """
         A, d = self._clear_denom()
+        if kwargs.get('transformation', False):
+            L, U = A.LLL(*args, **kwargs)
+            return L / d, U
         return A.LLL(*args, **kwargs) / d
 
     def is_LLL_reduced(self, delta=None, eta=None):

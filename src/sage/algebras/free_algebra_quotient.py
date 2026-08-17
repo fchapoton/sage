@@ -1,4 +1,3 @@
-# sage.doctest: needs sage.combinat sage.modules
 """
 Finite dimensional free algebra quotients
 
@@ -226,7 +225,7 @@ class FreeAlgebraQuotient(UniqueRepresentation, Parent):
             sage: H.gen(2)
             k
 
-        An :class:`IndexError` is raised if an invalid generator is requested::
+        An :exc:`IndexError` is raised if an invalid generator is requested::
 
             sage: H.gen(3)
             Traceback (most recent call last):

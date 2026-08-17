@@ -23,39 +23,6 @@ from sage.rings.rational_field import RationalField
 from sage.sets.set import Set
 from pprint import pformat
 
-################################################################################
-################################################################################
-
-def is_ProbabilitySpace(S):
-    from sage.misc.superseded import deprecation
-    deprecation(38184,
-                "The function is_ProbabilitySpace is deprecated; "
-                "use 'isinstance(..., ProbabilitySpace_generic)' instead.")
-    return isinstance(S, ProbabilitySpace_generic)
-
-def is_DiscreteProbabilitySpace(S):
-    from sage.misc.superseded import deprecation
-    deprecation(38184,
-                "The function is_DiscreteProbabilitySpace is deprecated; "
-                "use 'isinstance(..., DiscreteProbabilitySpace)' instead.")
-    return isinstance(S, DiscreteProbabilitySpace)
-
-def is_RandomVariable(X):
-    from sage.misc.superseded import deprecation
-    deprecation(38184,
-                "The function is_RandomVariable is deprecated; "
-                "use 'isinstance(..., RandomVariable_generic)' instead.")
-    return isinstance(X, RandomVariable_generic)
-
-def is_DiscreteRandomVariable(X):
-    from sage.misc.superseded import deprecation
-    deprecation(38184,
-                "The function is_DiscreteRandomVariable is deprecated; "
-                "use 'isinstance(..., DiscreteRandomVariable)' instead.")
-    return isinstance(X, DiscreteRandomVariable)
-
-################################################################################
-################################################################################
 
 # We could inherit from a functions class here but use Parent
 
@@ -93,8 +60,8 @@ class DiscreteRandomVariable(RandomVariable_generic):
 
         INPUT:
 
-        - X -- a probability space
-        - f -- a dictionary such that X[x] = value for x in X
+        - ``X`` -- a probability space
+        - ``f`` -- dictionary such that X[x] = value for x in X
           is the discrete function on X
         """
         if not isinstance(X, DiscreteProbabilitySpace):
@@ -134,7 +101,7 @@ class DiscreteRandomVariable(RandomVariable_generic):
     def expectation(self):
         r"""
         The expectation of the discrete random variable, namely
-        `\sum_{x \in S} p(x) X[x]`, where `X` = self and
+        `\sum_{x \in S} p(x) X[x]`, where `X` = ``self`` and
         `S` is the probability space of `X`.
         """
         E = 0
@@ -197,8 +164,8 @@ class DiscreteRandomVariable(RandomVariable_generic):
 
     def covariance(self, other):
         r"""
-        The covariance of the discrete random variable X = self with Y =
-        other.
+        The covariance of the discrete random variable X = ``self`` with Y =
+        ``other``.
 
         Let `S` be the probability space of `X` = self,
         with probability function `p`, and `E(X)` be the
@@ -220,8 +187,8 @@ class DiscreteRandomVariable(RandomVariable_generic):
 
     def translation_covariance(self, other, map):
         r"""
-        The covariance of the probability space X = self with image of Y =
-        other under the given map of the probability space.
+        The covariance of the probability space X = ``self`` with image of Y =
+        ``other`` under the given map of the probability space.
 
         Let `S` be the probability space of `X` = self,
         with probability function `p`, and `E(X)` be the
@@ -259,23 +226,23 @@ class DiscreteRandomVariable(RandomVariable_generic):
     def translation_standard_deviation(self, map):
         r"""
         The standard deviation of the translated discrete random variable
-        `X \circ e`, where `X` = self and `e` =
+        `X \circ e`, where `X` = ``self`` and `e` =
         map.
 
-        Let `S` be the probability space of `X` = self,
+        Let `S` be the probability space of `X` = ``self``,
         with probability function `p`, and `E(X)` be the
         expectation of `X`. Then the standard deviation of
         `X` is defined to be
 
         .. MATH::
 
-                     \sigma(X) = \sqrt{ \sum_{x \in S} p(x) (X(x) - E(x))^2}
+            \sigma(X) = \sqrt{ \sum_{x \in S} p(x) (X(x) - E(x))^2}
         """
         return sqrt(self.translation_variance(map))
 
     def correlation(self, other):
         """
-        The correlation of the probability space X = self with Y = other.
+        The correlation of the probability space X = ``self`` with Y = ``other``.
         """
         cov = self.covariance(other)
         sigX = self.standard_deviation()
@@ -286,8 +253,8 @@ class DiscreteRandomVariable(RandomVariable_generic):
 
     def translation_correlation(self, other, map):
         """
-        The correlation of the probability space X = self with image of Y =
-        other under map.
+        The correlation of the probability space X = ``self`` with image of Y =
+        ``other`` under map.
         """
         cov = self.translation_covariance(other, map)
         sigX = self.standard_deviation()
@@ -298,6 +265,7 @@ class DiscreteRandomVariable(RandomVariable_generic):
 
 ################################################################################
 ################################################################################
+
 
 class ProbabilitySpace_generic(RandomVariable_generic):
     r"""
@@ -342,7 +310,7 @@ class DiscreteProbabilitySpace(ProbabilitySpace_generic,DiscreteRandomVariable):
             (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
             sage: X.set()
             {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
-            sage: X.entropy().n()                                                       # needs sage.libs.pari
+            sage: X.entropy().n()
             1.99993896484375
 
         A probability space can be defined on any list of elements::
@@ -353,7 +321,7 @@ class DiscreteProbabilitySpace(ProbabilitySpace_generic,DiscreteRandomVariable):
             sage: X = DiscreteProbabilitySpace(S,P)
             sage: X
             Discrete probability space defined by {'A': 1/2, 'B': 1/4, 'C': 1/4}
-            sage: X.entropy().n()                                                       # needs sage.libs.pari
+            sage: X.entropy().n()
             1.50000000000000
         """
         if codomain is None:
@@ -399,7 +367,6 @@ class DiscreteProbabilitySpace(ProbabilitySpace_generic,DiscreteRandomVariable):
         def neg_xlog2x(p):
             if p == 0:
                 return 0
-            else:
-                return -p*log(p,2)
+            return -p*log(p,2)
         p = self.function()
         return sum([neg_xlog2x(p[x]) for x in p])

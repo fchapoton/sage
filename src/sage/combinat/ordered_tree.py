@@ -1,5 +1,5 @@
 """
-Ordered Rooted Trees
+Ordered rooted trees
 
 AUTHORS:
 
@@ -277,7 +277,7 @@ class OrderedTree(AbstractClonableTree, ClonableList,
         """
         return False
 
-    def _to_binary_tree_rec(self, bijection="left"):
+    def _to_binary_tree_rec(self, bijection='left'):
         r"""
         Internal recursive method to obtain a binary tree from an ordered
         tree.
@@ -290,12 +290,12 @@ class OrderedTree(AbstractClonableTree, ClonableList,
             sage: T = OrderedTree([[],[]])
             sage: T._to_binary_tree_rec()
             [[., .], .]
-            sage: T._to_binary_tree_rec(bijection="right")
+            sage: T._to_binary_tree_rec(bijection='right')
             [., [., .]]
             sage: T = OrderedTree([[], [[], []], [[], [[]]]])
             sage: T._to_binary_tree_rec()
             [[[., .], [[., .], .]], [[., .], [., .]]]
-            sage: T._to_binary_tree_rec(bijection="right")
+            sage: T._to_binary_tree_rec(bijection='right')
             [., [[., [., .]], [[., [[., .], .]], .]]]
         """
         from sage.combinat.binary_tree import BinaryTree
@@ -411,7 +411,7 @@ class OrderedTree(AbstractClonableTree, ClonableList,
             [[0, 0, 1], [1, 0, 0]]
         """
         from sage.combinat.parallelogram_polyomino import ParallelogramPolyomino
-        if self.node_number() == 1:
+        if self.number_of_nodes() == 1:
             return ParallelogramPolyomino([[1], [1]])
         upper_nodes = []
         lower_nodes = []
@@ -436,28 +436,26 @@ class OrderedTree(AbstractClonableTree, ClonableList,
         def W(path):
             if path in w_coordinate:
                 return w_coordinate[path]
-            else:
-                return w_coordinate[path[:-1]]
+            return w_coordinate[path[:-1]]
 
         def H(path):
             if path in h_coordinate:
                 return h_coordinate[path]
-            else:
-                return h_coordinate[path[:-1]]
+            return h_coordinate[path[:-1]]
 
         lower_path = []
         for i in range(1, len(lower_nodes)):
             lower_path.append(0)
             lower_path += [1] * (W(lower_nodes[i]) - W(lower_nodes[i - 1]))
         lower_path.append(0)
-        lower_path += [1] * (self.node_number() - len(lower_path))
+        lower_path += [1] * (self.number_of_nodes() - len(lower_path))
 
         upper_path = []
         for i in range(1, len(upper_nodes)):
             upper_path.append(1)
             upper_path += [0] * (H(upper_nodes[i]) - H(upper_nodes[i - 1]))
         upper_path.append(1)
-        upper_path += [0] * (self.node_number() - len(upper_path))
+        upper_path += [0] * (self.number_of_nodes() - len(upper_path))
 
         return ParallelogramPolyomino([lower_path, upper_path])
 
@@ -493,7 +491,7 @@ class OrderedTree(AbstractClonableTree, ClonableList,
             sage: T == T.to_binary_tree_right_branch().to_ordered_tree_right_branch()
             True
         """
-        return self._to_binary_tree_rec(bijection="right")
+        return self._to_binary_tree_rec(bijection='right')
 
     @combinatorial_map(name="To Dyck path")
     def to_dyck_word(self):
@@ -591,8 +589,8 @@ class OrderedTree(AbstractClonableTree, ClonableList,
 
         INPUT:
 
-        - ``root_to_leaf`` -- boolean, true if the poset orientation should
-          be from root to leaves. It is false by default.
+        - ``root_to_leaf`` -- boolean (default: ``False``); ``True`` if the
+          poset orientation should be from root to leaves
 
         EXAMPLES::
 
@@ -665,8 +663,9 @@ class OrderedTree(AbstractClonableTree, ClonableList,
 
             For a labelled tree, this will fail unless all labels are
             distinct. For unlabelled trees, some arbitrary labels are chosen.
-            Use :meth:`_latex_`, ``view``,
-            :meth:`_ascii_art_` or ``pretty_print`` for more
+            Use ``_latex_``, ``view``,
+            :meth:`~sage.structure.sage_object.SageObject._ascii_art_` or
+            ``pretty_print`` for more
             faithful representations of the data of the tree.
 
         EXAMPLES::
@@ -709,8 +708,7 @@ class OrderedTree(AbstractClonableTree, ClonableList,
         except AttributeError:
             root = 1
             g = self.canonical_labelling().to_undirected_graph()
-        return g.plot(layout='tree', tree_root=root,
-                      tree_orientation="down")
+        return g.plot(layout='tree', tree_root=root, tree_orientation='down')
 
     def sort_key(self):
         """
@@ -775,7 +773,7 @@ class OrderedTree(AbstractClonableTree, ClonableList,
 
         INPUT:
 
-        - ``inplace`` -- boolean, (default ``False``) if ``True``,
+        - ``inplace`` -- boolean (default: ``False``); if ``True``,
           then ``self`` is modified and nothing returned. Otherwise
           the normalized tree is returned.
 
@@ -825,21 +823,20 @@ class OrderedTree(AbstractClonableTree, ClonableList,
                     resl[i] = resl[i].normalize()
                 resl.sort(key=lambda t: t.sort_key())
             return res
-        else:
-            resl = self._get_list()
-            for i in range(len(resl)):
-                resl[i] = resl[i].normalize()
-            resl.sort(key=lambda t: t.sort_key())
+        resl = self._get_list()
+        for i in range(len(resl)):
+            resl[i] = resl[i].normalize()
+        resl.sort(key=lambda t: t.sort_key())
 
 
 # Abstract class to serve as a Factory no instance are created.
 class OrderedTrees(UniqueRepresentation, Parent):
     """
-    Factory for ordered trees
+    Factory for ordered trees.
 
     INPUT:
 
-    - ``size`` -- (optional) an integer
+    - ``size`` -- integer (optional)
 
     OUTPUT:
 
@@ -879,15 +876,14 @@ class OrderedTrees(UniqueRepresentation, Parent):
         """
         if n is None:
             return OrderedTrees_all()
-        else:
-            if not (isinstance(n, (Integer, int)) and n >= 0):
-                raise ValueError("n must be a non negative integer")
-            return OrderedTrees_size(Integer(n))
+        if not (isinstance(n, (Integer, int)) and n >= 0):
+            raise ValueError("n must be a nonnegative integer")
+        return OrderedTrees_size(Integer(n))
 
     @cached_method
     def leaf(self):
         """
-        Return a leaf tree with ``self`` as parent
+        Return a leaf tree with ``self`` as parent.
 
         EXAMPLES::
 
@@ -963,7 +959,7 @@ class OrderedTrees_all(DisjointUnionEnumeratedSets, OrderedTrees):
 
     def unlabelled_trees(self):
         """
-        Return the set of unlabelled trees associated to ``self``
+        Return the set of unlabelled trees associated to ``self``.
 
         EXAMPLES::
 
@@ -974,7 +970,7 @@ class OrderedTrees_all(DisjointUnionEnumeratedSets, OrderedTrees):
 
     def labelled_trees(self):
         """
-        Return the set of labelled trees associated to ``self``
+        Return the set of labelled trees associated to ``self``.
 
         EXAMPLES::
 
@@ -1006,7 +1002,7 @@ from sage.combinat.composition import Compositions
 
 class OrderedTrees_size(OrderedTrees):
     """
-    The enumerated sets of binary trees of a given size
+    The enumerated sets of binary trees of a given size.
 
     EXAMPLES::
 
@@ -1048,7 +1044,7 @@ class OrderedTrees_size(OrderedTrees):
             sage: T([[],[]]) in T
             True
         """
-        return isinstance(x, self.element_class) and x.node_number() == self._size
+        return isinstance(x, self.element_class) and x.number_of_nodes() == self._size
 
     def _an_element_(self):
         """
@@ -1063,7 +1059,7 @@ class OrderedTrees_size(OrderedTrees):
 
     def cardinality(self):
         """
-        The cardinality of ``self``
+        The cardinality of ``self``.
 
         This is a Catalan number.
 
@@ -1078,9 +1074,8 @@ class OrderedTrees_size(OrderedTrees):
         """
         if self._size == 0:
             return Integer(0)
-        else:
-            from .combinat import catalan_number
-            return catalan_number(self._size - 1)
+        from .combinat import catalan_number
+        return catalan_number(self._size - 1)
 
     def random_element(self):
         """
@@ -1112,7 +1107,7 @@ class OrderedTrees_size(OrderedTrees):
 
     def __iter__(self):
         """
-        A basic generator
+        A basic generator.
 
         .. TODO:: could be optimized.
 
@@ -1138,7 +1133,7 @@ class OrderedTrees_size(OrderedTrees):
     @lazy_attribute
     def _parent_for(self):
         """
-        Return the parent of the element generated by ``self``
+        Return the parent of the element generated by ``self``.
 
         TESTS::
 
@@ -1150,7 +1145,7 @@ class OrderedTrees_size(OrderedTrees):
     @lazy_attribute
     def element_class(self):
         """
-        The class of the element of ``self``
+        The class of the element of ``self``.
 
         EXAMPLES::
 
@@ -1178,7 +1173,7 @@ class OrderedTrees_size(OrderedTrees):
             []
         """
         res = self.element_class(self._parent_for, *args, **keywords)
-        if res.node_number() != self._size:
+        if res.number_of_nodes() != self._size:
             raise ValueError("wrong number of nodes")
         return res
 
@@ -1192,7 +1187,7 @@ class LabelledOrderedTree(AbstractLabelledClonableTree, OrderedTree):
 
     INPUT:
 
-    - ``children`` -- a list or tuple or more generally any iterable
+    - ``children`` -- list or tuple or more generally any iterable
       of trees or object convertible to trees
     - ``label`` -- any Sage object (default: ``None``)
 
@@ -1398,7 +1393,7 @@ class LabelledOrderedTrees(UniqueRepresentation, Parent):
         t = LT([], label=3)
         t1 = LT([t, t], label=42)
         t2 = LT([[]], label=5)
-        return LT([t, t1, t2], label="toto")
+        return LT([t, t1, t2], label='toto')
 
     def _element_constructor_(self, *args, **keywords):
         """

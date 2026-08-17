@@ -13,7 +13,7 @@ cpdef call_registered_function(unsigned serial,
 
     - ``nargs`` -- declared number of args (0 is variadic)
 
-    - ``args`` -- a list of arguments to pass to the function;
+    - ``args`` -- list of arguments to pass to the function;
       each must be an :class:`Expression`
 
     - ``hold`` -- whether to leave the call unevaluated
@@ -21,7 +21,8 @@ cpdef call_registered_function(unsigned serial,
     - ``allow_numeric_result`` -- if ``True``, keep numeric results numeric;
       if ``False``, make all results symbolic expressions
 
-    - ``result_parent`` -- an instance of :class:`SymbolicRing`
+    - ``result_parent`` -- an instance of
+      :class:`~sage.symbolic.ring.SymbolicRing`
 
     EXAMPLES::
 
@@ -47,14 +48,16 @@ cpdef call_registered_function(unsigned serial,
         res = g_function_evalv(serial, vec, hold)
     elif nargs == 1:
         res = g_function_eval1(serial,
-                (<Expression>args[0])._gobj, hold)
+                               (<Expression>args[0])._gobj, hold)
     elif nargs == 2:
-        res = g_function_eval2(serial, (<Expression>args[0])._gobj,
-                (<Expression>args[1])._gobj, hold)
+        res = g_function_eval2(serial,
+                               (<Expression>args[0])._gobj,
+                               (<Expression>args[1])._gobj, hold)
     elif nargs == 3:
         res = g_function_eval3(serial,
-                (<Expression>args[0])._gobj, (<Expression>args[1])._gobj,
-                (<Expression>args[2])._gobj, hold)
+                               (<Expression>args[0])._gobj,
+                               (<Expression>args[1])._gobj,
+                               (<Expression>args[2])._gobj, hold)
 
     if allow_numeric_result and is_a_numeric(res):
         return py_object_from_numeric(res)
@@ -66,11 +69,9 @@ cpdef unsigned find_registered_function(name, int nargs) except -1:
     r"""
     Look up a function registered with Pynac (GiNaC).
 
-    Raise a ``ValueError`` if the function is not registered.
+    Raise a :exc:`ValueError` if the function is not registered.
 
-    OUTPUT:
-
-    - serial number of the function, for use in :func:`call_registered_function`
+    OUTPUT: serial number of the function, for use in :func:`call_registered_function`
 
     EXAMPLES::
 
@@ -93,9 +94,7 @@ cpdef unsigned register_or_update_function(self, name, latex_name, int nargs,
     r"""
     Register the function ``self`` with Pynac (GiNaC).
 
-    OUTPUT:
-
-    - serial number of the function, for use in :func:`call_registered_function`
+    OUTPUT: serial number of the function, for use in :func:`call_registered_function`
 
     EXAMPLES::
 
@@ -175,13 +174,14 @@ cdef dict sfunction_serial_dict = {}
 
 cpdef get_sfunction_from_serial(unsigned int serial):
     """
-    Return an already created :class:`SymbolicFunction` given the serial.
+    Return an already created
+    :class:`~sage.symbolic.function.SymbolicFunction` given the serial.
 
     These are stored in the dictionary ``sfunction_serial_dict``.
 
     EXAMPLES::
 
-        sage: from sage.symbolic.function import get_sfunction_from_serial
+        sage: from sage.symbolic.expression import get_sfunction_from_serial
         sage: get_sfunction_from_serial(65) #random
         f
     """
@@ -191,14 +191,15 @@ cpdef get_sfunction_from_serial(unsigned int serial):
 
 cpdef get_sfunction_from_hash(long myhash):
     """
-    Return an already created :class:`SymbolicFunction` given the hash.
+    Return an already created
+    :class:`~sage.symbolic.function.SymbolicFunction` given the hash.
 
     EXAMPLES::
 
         sage: from sage.symbolic.expression import get_sfunction_from_hash
         sage: get_sfunction_from_hash(1)  # random
     """
-    for sfunc in sfunction_serial_dict.itervalues():
+    for sfunc in sfunction_serial_dict.values():
         if isinstance(sfunc, SymbolicFunction) and \
                 myhash == (<SymbolicFunction>sfunc)._hash_():
             # found one

@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-categories
 r"""
 Algebra modules
 """
@@ -32,7 +31,6 @@ class AlgebraModules(Category_module):
     the categories of left and right modules are isomorphic. Feedback
     and use cases for potential generalizations to the non commutative
     case are welcome.
-
     """
     def __init__(self, A):
         """
@@ -67,7 +65,7 @@ class AlgebraModules(Category_module):
     @classmethod
     def an_instance(cls):
         """
-        Returns an instance of this class
+        Return an instance of this class.
 
         EXAMPLES::
 

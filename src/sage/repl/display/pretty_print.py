@@ -1,9 +1,8 @@
-# sage_setup: distribution = sagemath-repl
 """
 The Sage pretty printer
 
 Any transformation to a string goes through here. In other words, the
-:class:`~sage.repl.displayhook.formatter.SagePlainTextFormatter` is
+:class:`~sage.repl.display.formatter.SagePlainTextFormatter` is
 entirely implemented via :class:`SagePrettyPrinter`. Other formatters
 may or may not use :class:`SagePrettyPrinter` to generate text output.
 
@@ -50,7 +49,7 @@ class SagePrettyPrinter(PrettyPrinter):
 
         OUTPUT:
 
-        Boolean. Whether we are currently pretty-printing an object at
+        boolean; whether we are currently pretty-printing an object at
         the outermost level (``True``), or whether the object is
         inside a container (``False``).
 
@@ -67,7 +66,7 @@ class SagePrettyPrinter(PrettyPrinter):
 
     def __init__(self, output, max_width, newline, max_seq_length=None):
         """
-        Pretty print Sage objects for the commandline
+        Pretty print Sage objects for the commandline.
 
         INPUT:
 
@@ -111,17 +110,15 @@ class SagePrettyPrinter(PrettyPrinter):
 
     def pretty(self, obj):
         r"""
-        Pretty print ``obj``
+        Pretty print ``obj``.
 
         This is the only method that outside code should invoke.
 
         INPUT:
 
-        - ``obj`` -- anything.
+        - ``obj`` -- anything
 
-        OUTPUT:
-
-        String representation for object.
+        OUTPUT: string representation for object
 
         EXAMPLES::
 

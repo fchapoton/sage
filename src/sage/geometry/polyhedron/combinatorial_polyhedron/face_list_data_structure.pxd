@@ -36,7 +36,7 @@ ctypedef face_list_s face_list_t[1]
 
 cdef inline int face_list_init(face_list_t faces, size_t n_faces, size_t n_atoms, size_t n_coatoms) except -1:
     """
-    Sets the initial values for a list of faces with given number of faces
+    Set the initial values for a list of faces with given number of faces
     and number of atoms.
     """
     face_list_shallow_init(faces, n_faces, n_atoms, n_coatoms)
@@ -147,7 +147,7 @@ cdef inline void face_list_delete_faces_by_array(face_list_t faces, bint *delete
 cdef inline void face_list_delete_faces_by_face(face_list_t faces, face_t face) noexcept:
     r"""
     Remove all faces such that the ``i``-th bit in ``face`` is not set
-    descreasing ``faces.n_faces``.
+    decreasing ``faces.n_faces``.
 
     .. WARNING::
 
@@ -207,8 +207,7 @@ cdef inline size_t find_face(face_t face, face_list_t faces) noexcept:
             return middle + start
     if face_cmp(face, faces_pt[start]) == 0:
         return start
-    else:
-        return -1
+    return -1
 
 cdef inline bint is_contained_in_one_fused(face_t face, face_list_t faces, algorithm_variant algorithm) noexcept nogil:
     """
@@ -279,9 +278,7 @@ cdef inline size_t get_next_level_fused(
     - ``new_faces`` -- needs to be of same size as ``faces``
     - ``visited_all`` -- the faces which have been visited before
 
-    OUTPUT:
-
-    - set ``new_faces`` to point to the new faces
+    OUTPUT: set ``new_faces`` to point to the new faces
 
     ALGORITHM:
 

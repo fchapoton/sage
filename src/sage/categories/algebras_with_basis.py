@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-categories
 r"""
 Algebras With Basis
 """
@@ -196,8 +195,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             one = self.parent().one_basis()
             if len(mcs) == 1 and one in mcs:
                 return self.parent().term(one, ~mcs[one])
-            else:
-                raise ValueError("cannot invert self (= %s)" % self)
+            raise ValueError("cannot invert self (= %s)" % self)
 
     class CartesianProducts(CartesianProductsCategory):
         """
@@ -233,7 +231,9 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 ``Monoids.ParentMethods.one``
 
                 It is constructed as the Cartesian product of the ones of the
-                summands, using their :meth:`~AlgebrasWithBasis.ParentMethods.one_basis` methods.
+                summands, using their
+                :meth:`~sage.categories.unital_algebras.UnitalAlgebras.WithBasis.ParentMethods.one_basis`
+                methods.
 
                 This implementation does not require multiplication by
                 scalars nor calling cartesian_product. This might help keeping
@@ -309,7 +309,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             @cached_method
             def one_basis(self):
                 """
-                Returns the index of the one of this tensor product of
+                Return the index of the one of this tensor product of
                 algebras, as per ``AlgebrasWithBasis.ParentMethods.one_basis``
 
                 It is the tuple whose operands are the indices of the
@@ -335,8 +335,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 # all modules provide one_basis
                 if all(hasattr(module, "one_basis") for module in self._sets):
                     return tuple(module.one_basis() for module in self._sets)
-                else:
-                    raise NotImplementedError
+                raise NotImplementedError
 
             def product_on_basis(self, t1, t2):
                 """
@@ -372,6 +371,6 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
         class ElementMethods:
             """
-            Implements operations on elements of tensor products of algebras with basis
+            Implement operations on elements of tensor products of algebras with basis
             """
             pass

@@ -353,9 +353,9 @@ indicar algum problema de performance que vale a pena investigar.
     sage: time g = maple('1938^99484')
     CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
     Wall time: 0.11
-    sage: gap(0)
+    sage: libgap(0)
     0
-    sage: time g = gap.eval('1938^99484;;')
+    sage: time g = libgap.eval('1938^99484;')
     CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
     Wall time: 1.02
 
@@ -370,7 +370,7 @@ Outras Dicas para o IPython
 Como observado acima, o Sage usa o IPython como interface, logo você
 pode usar quaisquer comandos e recursos do IPython. Você pode ler a
 `Documentação completa do IPython
-<http://ipython.scipy.org/moin/Documentation>`_ (em inglês).
+<https://ipython.readthedocs.io/en/stable/>`_ (em inglês).
 
 - Você pode usar ``%edit`` (ou ``%ed`` ou ``ed``) para abrir um
   editor, se você desejar digitar algum código mais complexo. Antes de
@@ -781,7 +781,7 @@ representações impressas não é permitido.
 
 ::
 
-    sage: a = gap(2)
+    sage: a = libgap(2)
     sage: a.save('a')
     sage: load('a')
     Traceback (most recent call last):

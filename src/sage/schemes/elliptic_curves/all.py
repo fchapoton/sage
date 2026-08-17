@@ -20,6 +20,7 @@ Exported elliptic curves functionality
 from sage.schemes.elliptic_curves.constructor import (EllipticCurve,
                                                       EllipticCurve_from_c4c6,
                                                       EllipticCurve_from_j,
+                                                      EllipticCurve_from_montgomery,
                                                       EllipticCurve_from_cubic,
                                                       EllipticCurves_with_good_reduction_outside_S)
 
@@ -27,10 +28,10 @@ from sage.misc.lazy_import import lazy_import
 lazy_import('sage.schemes.elliptic_curves.jacobian', 'Jacobian')
 
 lazy_import('sage.schemes.elliptic_curves.ell_finite_field', 'special_supersingular_curve')
-
 lazy_import('sage.schemes.elliptic_curves.ell_rational_field',
             ['cremona_curves', 'cremona_optimal_curves'])
 
+from sage.schemes.elliptic_curves.ell_finite_field import EllipticCurve_with_prime_order
 from sage.schemes.elliptic_curves.cm import (cm_orders,
                                              cm_j_invariants,
                                              cm_j_invariants_and_orders,

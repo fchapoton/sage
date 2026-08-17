@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-objects
 r"""
 Base class for maps
 
@@ -9,8 +8,14 @@ AUTHORS:
 - Sebastien Besnier (2014-05-5): :class:`FormalCompositeMap` contains
   a list of Map instead of only two Map. See :issue:`16291`.
 
-- Sebastian Oehms   (2019-01-19): :meth:`section` added to :class:`FormalCompositeMap`.
+- Sebastian Oehms   (2019-01-19):
+  :meth:`~sage.categories.map.FormalCompositeMap.section` added to
+  :class:`FormalCompositeMap`.
   See :issue:`27081`.
+
+.. automethod:: sage.categories.map::Map._make_weak_references
+
+.. automethod:: sage.categories.map::Map._make_strong_references
 """
 # ****************************************************************************
 #       Copyright (C) 2008 Robert Bradshaw <robertwb@math.washington.edu>
@@ -26,10 +31,12 @@ from sage.categories import homset
 import weakref
 from sage.ext.stdsage cimport HAS_DICTIONARY
 from sage.arith.power cimport generic_power
-from sage.sets.pythonclass cimport Set_PythonType
-from sage.misc.constant_function import ConstantFunction
 from sage.structure.element cimport parent
 from cpython.object cimport PyObject_RichCompare
+from sage.misc.lazy_import import LazyImport
+
+# Lazy import to avoid circular dependency misc.constant_function > ... > categories.map > misc.constant_function
+ConstantFunction = LazyImport('sage.misc.constant_function', 'ConstantFunction', at_startup=True)
 
 
 def unpickle_map(_class, parent, _dict, _slots):
@@ -128,6 +135,8 @@ cdef class Map(Element):
         """
         if codomain is not None:
             if isinstance(parent, type):
+                # Local import to avoid circular import of the type category.map > sets.pythonclass > structure > category
+                from sage.sets.pythonclass import Set_PythonType
                 parent = Set_PythonType(parent)
             parent = homset.Hom(parent, codomain)
         elif not isinstance(parent, homset.Homset):
@@ -183,7 +192,7 @@ cdef class Map(Element):
         cdef Map out = Element.__copy__(self)
         # Element.__copy__ updates the __dict__, but not the slots.
         # Let's do this now, but with strong references.
-        out._parent = self.parent() # self._parent might be None
+        out._parent = self.parent()  # self._parent might be None
         out._update_slots(self._extra_slots())
         return out
 
@@ -275,7 +284,7 @@ cdef class Map(Element):
         maps::
 
             sage: phi.domain                                                            # needs sage.rings.number_field
-            <weakref at ...; to 'NumberField_quadratic_with_category' at ...>
+            <weakref at ...; to '...NumberField_quadratic_with_category' at ...>
             sage: phi._make_strong_references()                                         # needs sage.rings.number_field
             sage: print(phi.domain)                                                     # needs sage.rings.number_field
             The constant function (...) -> Number Field in a
@@ -343,7 +352,7 @@ cdef class Map(Element):
         maps::
 
             sage: phi.domain                                                            # needs sage.rings.number_field
-            <weakref at ...; to 'NumberField_quadratic_with_category' at ...>
+            <weakref at ...; to '...NumberField_quadratic_with_category' at ...>
             sage: phi._make_strong_references()                                         # needs sage.rings.number_field
             sage: print(phi.domain)                                                     # needs sage.rings.number_field
             The constant function (...) -> Number Field in a
@@ -401,10 +410,10 @@ cdef class Map(Element):
 
         INPUT:
 
-        - ``slots`` -- A dictionary of slots to be updated.
-          The dictionary must have the keys ``'_domain'`` and
+        - ``slots`` -- dictionary of slots to be updated;
+          the dictionary must have the keys ``'_domain'`` and
           ``'_codomain'``, and may have the keys ``'_repr_type_str'``
-          and ``'_is_coercion'``.
+          and ``'_is_coercion'``
 
         TESTS:
 
@@ -462,10 +471,10 @@ cdef class Map(Element):
         Return a dict with attributes to pickle and copy this map.
         """
         return dict(
-                _domain=self.domain(),
-                _codomain=self._codomain,
-                _is_coercion=self._is_coercion,
-                _repr_type_str=self._repr_type_str)
+            _domain=self.domain(),
+            _codomain=self._codomain,
+            _is_coercion=self._is_coercion,
+            _repr_type_str=self._repr_type_str)
 
     def _extra_slots_test(self):
         """
@@ -509,7 +518,7 @@ cdef class Map(Element):
 
         .. NOTE::
 
-            By default, the string ``"Generic"`` is returned. Subclasses may overload this method.
+            By default, the string ``'Generic'`` is returned. Subclasses may overload this method.
 
         EXAMPLES::
 
@@ -524,8 +533,7 @@ cdef class Map(Element):
         """
         if self._repr_type_str is None:
             return "Generic"
-        else:
-            return self._repr_type_str
+        return self._repr_type_str
 
     def _repr_defn(self):
         """
@@ -634,7 +642,7 @@ cdef class Map(Element):
 
     def category_for(self):
         """
-        Returns the category self is a morphism for.
+        Return the category ``self`` is a morphism for.
 
         .. NOTE::
 
@@ -655,9 +663,11 @@ cdef class Map(Element):
             sage: f = R.hom([x+y, x-y], R)
             sage: f.category_for()
             Join of Category of unique factorization domains
-            and Category of commutative algebras
-            over (number fields and quotient fields and metric spaces)
-            and Category of infinite sets
+             and Category of algebras with basis over
+              (number fields and quotient fields and metric spaces)
+             and Category of commutative algebras over
+              (number fields and quotient fields and metric spaces)
+             and Category of infinite sets
             sage: f.category()
             Category of endsets of unital magmas
              and right modules over (number fields and quotient fields and metric spaces)
@@ -801,7 +811,7 @@ cdef class Map(Element):
         """
         P = parent(x)
         cdef Parent D = self.domain()
-        if P is D: # we certainly want to call _call_/with_args
+        if P is D:  # we certainly want to call _call_/with_args
             if not args and not kwds:
                 return self._call_(x)
             return self._call_with_args(x, args, kwds)
@@ -857,7 +867,7 @@ cdef class Map(Element):
 
     def __mul__(self, right):
         r"""
-        The multiplication * operator is operator composition
+        The multiplication * operator is operator composition.
 
         IMPLEMENTATION:
 
@@ -937,7 +947,7 @@ cdef class Map(Element):
 
         INPUT:
 
-        - ``self``  -- a Map in some ``Hom(Y, Z, category_left)``
+        - ``self`` -- a Map in some ``Hom(Y, Z, category_left)``
         - ``right`` -- a Map in some ``Hom(X, Y, category_right)``
 
         OUTPUT:
@@ -977,7 +987,7 @@ cdef class Map(Element):
         INPUT:
 
         - ``self``, ``right`` -- maps
-        - homset -- a homset
+        - ``homset`` -- a homset
 
         ASSUMPTION:
 
@@ -1139,7 +1149,7 @@ cdef class Map(Element):
         OUTPUT:
 
         An element of Hom(X, Z) obtained by composing self with `\phi`.  If
-        no canonical `\phi` exists, a :class:`TypeError` is raised.
+        no canonical `\phi` exists, a :exc:`TypeError` is raised.
 
         EXAMPLES::
 
@@ -1168,10 +1178,9 @@ cdef class Map(Element):
         cdef Map connecting = D._internal_coerce_map_from(new_domain)
         if connecting is None:
             raise TypeError("No coercion from %s to %s" % (new_domain, D))
-        elif connecting.codomain() is not D:
+        if connecting.codomain() is not D:
             raise RuntimeError("BUG: coerce_map_from should always return a map to self (%s)" % D)
-        else:
-            return self.pre_compose(connecting.__copy__())
+        return self.pre_compose(connecting.__copy__())
 
     def extend_codomain(self, new_codomain):
         r"""
@@ -1183,8 +1192,8 @@ cdef class Map(Element):
 
         OUTPUT:
 
-        An element of Hom(X, Z) obtained by composing self with `\phi`.  If
-        no canonical `\phi` exists, a :class:`TypeError` is raised.
+        An element of Hom(X, Z) obtained by composing ``self`` with `\phi`.  If
+        no canonical `\phi` exists, a :exc:`TypeError` is raised.
 
         EXAMPLES::
 
@@ -1208,14 +1217,13 @@ cdef class Map(Element):
         cdef Map connecting = new_codomain._internal_coerce_map_from(self._codomain)
         if connecting is None:
             raise TypeError("No coercion from %s to %s" % (self._codomain, new_codomain))
-        elif connecting.domain() is not self._codomain:
+        if connecting.domain() is not self._codomain:
             raise RuntimeError("BUG: coerce_map_from should always return a map from its input (%s)" % new_codomain)
-        else:
-            return self.post_compose(connecting.__copy__())
+        return self.post_compose(connecting.__copy__())
 
     def is_surjective(self):
         """
-        Tells whether the map is surjective (not implemented in the base class).
+        Tell whether the map is surjective (not implemented in the base class).
 
         TESTS::
 
@@ -1357,7 +1365,7 @@ cdef class Section(Map):
         """
         INPUT:
 
-        A map.
+        - ``map`` -- a map
 
         TESTS::
 
@@ -1499,9 +1507,9 @@ cdef class FormalCompositeMap(Map):
         """
         INPUT:
 
-        - ``parent``: a homset
-        - ``first``: a map or a list of maps
-        - ``second``: a map or None
+        - ``parent`` -- a homset
+        - ``first`` -- a map or a list of maps
+        - ``second`` -- a map or None
 
         .. NOTE::
 
@@ -1711,13 +1719,12 @@ cdef class FormalCompositeMap(Map):
             Traceback (most recent call last):
             ...
             IndexError: list index out of range
-
         """
         return self.__list[i]
 
     cpdef Element _call_(self, x):
         """
-        Call with a single argument
+        Call with a single argument.
 
         TESTS::
 
@@ -1766,7 +1773,7 @@ cdef class FormalCompositeMap(Map):
 
     def _repr_type(self):
         """
-        Return a string describing the type of ``self``, namely "Composite"
+        Return a string describing the type of ``self``, namely "Composite".
 
         TESTS::
 
@@ -1792,7 +1799,7 @@ cdef class FormalCompositeMap(Map):
 
     def _repr_defn(self):
         """
-        Return a string describing the definition of ``self``
+        Return a string describing the definition of ``self``.
 
         The return value is obtained from the string representations
         of the two constituents.
@@ -1887,7 +1894,7 @@ cdef class FormalCompositeMap(Map):
         """
         Tell whether ``self`` is injective.
 
-        It raises :class:`NotImplementedError` if it cannot be determined.
+        It raises :exc:`NotImplementedError` if it cannot be determined.
 
         EXAMPLES::
 
@@ -1932,7 +1939,6 @@ cdef class FormalCompositeMap(Map):
             sage: f = QQ.hom(QQbar) * ZZ.hom(QQ)                                        # needs sage.rings.number_field
             sage: f.is_injective()                                                      # needs sage.rings.number_field
             True
-
         """
         try:
             # we try the category first
@@ -1962,7 +1968,7 @@ cdef class FormalCompositeMap(Map):
         """
         Tell whether ``self`` is surjective.
 
-        It raises :class:`NotImplementedError` if it cannot be determined.
+        It raises :exc:`NotImplementedError` if it cannot be determined.
 
         EXAMPLES::
 
@@ -2072,7 +2078,7 @@ cdef class FormalCompositeMap(Map):
             sage: sect(p-q)
             3
 
-        the following example has been attached to :meth:`_integer_`
+        the following example has been attached to ``_integer_``
         of :class:`sage.rings.polynomial.polynomial_element.Polynomial`
         before (see comment there)::
 

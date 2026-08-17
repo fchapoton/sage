@@ -2,14 +2,14 @@
 r"""
 Gabidulin Code
 
-This module provides the :class:`~sage.coding.gabidulin.GabidulinCode`, which constructs
+This module provides the :class:`~sage.coding.gabidulin_code.GabidulinCode`, which constructs
 Gabidulin Codes that are the rank metric equivalent of Reed Solomon codes and are
 defined as the evaluation codes of degree-restricted skew polynomials.
 
-This module also provides :class:`~sage.coding.gabidulin.GabidulinPolynomialEvaluationEncoder`,
-an encoder with a skew polynomial message space and :class:`~sage.coding.gabidulin.GabidulinVectorEvaluationEncoder`,
+This module also provides :class:`~sage.coding.gabidulin_code.GabidulinPolynomialEvaluationEncoder`,
+an encoder with a skew polynomial message space and :class:`~sage.coding.gabidulin_code.GabidulinVectorEvaluationEncoder`,
 an encoder based on the generator matrix. It also provides a decoder
-:class:`~sage.coding.gabidulin.GabidulinGaoDecoder` which corrects errors using
+:class:`~sage.coding.gabidulin_code.GabidulinGaoDecoder` which corrects errors using
 the Gao algorithm in the rank metric.
 
 AUTHOR:
@@ -207,7 +207,7 @@ class GabidulinCode(AbstractLinearRankMetricCode):
             if not len(evaluation_points) == length:
                 raise ValueError("the number of evaluation points should be equal to the length of the code")
             for i in range(length):
-                if not evaluation_points[i] in base_field:
+                if evaluation_points[i] not in base_field:
                     raise ValueError("evaluation point does not belong to the 'base field'")
             basis = self.matrix_form_of_vector(vector(evaluation_points))
             if basis.rank() != length:
@@ -230,8 +230,7 @@ class GabidulinCode(AbstractLinearRankMetricCode):
         S = self.sub_field()
         if R and S in Fields():
             return "[%s, %s, %s] linear Gabidulin code over GF(%s)/GF(%s)" % (self.length(), self.dimension(), self.minimum_distance(), R.cardinality(), S.cardinality())
-        else:
-            return "[%s, %s, %s] linear Gabidulin code over %s/%s" % (self.length(), self.dimension(), self.minimum_distance(), R, S)
+        return "[%s, %s, %s] linear Gabidulin code over %s/%s" % (self.length(), self.dimension(), self.minimum_distance(), R, S)
 
     def _latex_(self):
         r"""
@@ -257,9 +256,7 @@ class GabidulinCode(AbstractLinearRankMetricCode):
 
         - ``other`` -- another Gabidulin Code object
 
-        OUTPUT:
-
-        - ``True`` or ``False``
+        OUTPUT: boolean
 
         EXAMPLES::
 
@@ -399,7 +396,7 @@ class GabidulinVectorEvaluationEncoder(Encoder):
 
         INPUT:
 
-        - ``code`` -- the associated code of this encoder.
+        - ``code`` -- the associated code of this encoder
 
         EXAMPLES::
 
@@ -467,9 +464,7 @@ class GabidulinVectorEvaluationEncoder(Encoder):
 
         - ``other`` -- another Gabidulin Generator Matrix Encoder
 
-        OUTPUT:
-
-        - ``True`` or ``False``
+        OUTPUT: boolean
 
         EXAMPLES::
 
@@ -625,9 +620,7 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
 
         - ``other`` -- another Gabidulin Polynomial Evaluation Encoder
 
-        OUTPUT:
-
-        - ``True`` or ``False``
+        OUTPUT: boolean
 
         EXAMPLES::
 
@@ -666,9 +659,10 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
         C = self.code()
         return C.base_field()['x', C.twisting_homomorphism()]
 
-    def encode(self, p, form="vector"):
+    def encode(self, p, form='vector'):
         """
-        Transform the polynomial ``p`` into a codeword of :meth:`code`.
+        Transform the polynomial ``p`` into a codeword of
+        :meth:`~sage.coding.encoder.Encoder.code`.
 
         The output codeword can be represented as a vector or a matrix,
         depending on the ``form`` input.
@@ -680,11 +674,9 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
 
         - ``form`` -- type parameter taking strings "vector" or "matrix"
           as values and converting the output codeword into the respective form
-          (default: "vector")
+          (default: ``'vector'``)
 
-        OUTPUT:
-
-        - a codeword corresponding to `p` in vector or matrix form
+        OUTPUT: a codeword corresponding to `p` in vector or matrix form
 
         EXAMPLES::
 
@@ -734,10 +726,9 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
         codeword = p.multi_point_evaluation(eval_pts)
         if form == "vector":
             return vector(codeword)
-        elif form == "matrix":
+        if form == "matrix":
             return C.matrix_form_of_vector(vector(codeword))
-        else:
-            return ValueError("the argument 'form' takes only either 'vector' or 'matrix' as valid input")
+        return ValueError("the argument 'form' takes only either 'vector' or 'matrix' as valid input")
 
     def unencode_nocheck(self, c):
         """
@@ -749,7 +740,7 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
 
         INPUT:
 
-        - ``c`` -- a codeword of :meth:`code`
+        - ``c`` -- a codeword of :meth:`~sage.coding.encoder.Encoder.code`
 
         OUTPUT:
 
@@ -855,9 +846,7 @@ class GabidulinGaoDecoder(Decoder):
 
         - ``other`` -- another Gabidulin Gao Decoder
 
-        OUTPUT:
-
-        - ``True`` or ``False``
+        OUTPUT: boolean
 
         EXAMPLES::
 
@@ -894,9 +883,7 @@ class GabidulinGaoDecoder(Decoder):
         - ``d_stop`` -- the number of iterations for which the algorithm
           is to be run
 
-        OUTPUT:
-
-        - ``r_c`` -- right linearized remainder of `a` and `b`
+        OUTPUT: ``r_c`` -- right linearized remainder of `a` and `b`
 
         - ``u_c`` -- right linearized quotient of `a` and `b`
 
@@ -995,9 +982,7 @@ class GabidulinGaoDecoder(Decoder):
 
         - ``r`` -- received codeword
 
-        OUTPUT:
-
-        - the decoded codeword corresponding to the received codeword
+        OUTPUT: the decoded codeword corresponding to the received codeword
 
         EXAMPLES::
 
@@ -1028,9 +1013,7 @@ class GabidulinGaoDecoder(Decoder):
 
         - ``r`` -- received codeword
 
-        OUTPUT:
-
-        - the message corresponding to the received codeword
+        OUTPUT: the message corresponding to the received codeword
 
         EXAMPLES::
 

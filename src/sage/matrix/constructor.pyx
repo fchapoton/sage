@@ -1,9 +1,8 @@
-# cython: binding=True
 """
 General matrix Constructor and display options
 """
 
-#*****************************************************************************
+# ***************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #       Copyright (C) 2016 Jeroen Demeyer <J.Demeyer@UGent.be>
 #
@@ -12,7 +11,7 @@ General matrix Constructor and display options
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# ***************************************************************************
 
 from sage.matrix.args cimport MatrixArgs
 from sage.structure.global_options import GlobalOptions
@@ -68,7 +67,7 @@ def matrix(*args, **kwds):
     - ``ncols`` -- the number of columns in the matrix, or a finite or
       enumerated family of arbitrary objects that index the columns of the matrix
 
-    - ``entries`` -- see examples below.
+    - ``entries`` -- see examples below
 
     If any of ``nrows``, ``ncols``, ``row_keys``, ``column_keys`` is
     given as keyword argument, then none of these may be given as
@@ -76,7 +75,7 @@ def matrix(*args, **kwds):
 
     Keyword-only arguments:
 
-    - ``sparse`` -- (boolean) create a sparse matrix. This defaults to
+    - ``sparse`` -- boolean; create a sparse matrix. This defaults to
       ``True`` when the entries are given as a dictionary, otherwise
       defaults to ``False``.
 
@@ -90,9 +89,8 @@ def matrix(*args, **kwds):
       matrix. This determines ``base_ring``, ``nrows``, ``row_keys``,
       ``ncols``, ``column_keys``, and ``sparse``.
 
-    - ``immutable`` -- (boolean) make the matrix immutable. By default,
+    - ``immutable`` -- boolean; make the matrix immutable. By default,
       the output matrix is mutable.
-
 
     OUTPUT: a matrix or, more generally, a homomorphism between free
     modules
@@ -608,7 +606,6 @@ def matrix(*args, **kwds):
 
     Check :issue:`24459`::
 
-        sage: # needs sage.libs.linbox
         sage: Matrix(ZZ, sys.maxsize, sys.maxsize)
         Traceback (most recent call last):
         ...
@@ -670,7 +667,7 @@ def matrix(*args, **kwds):
       and :issue:`20016`
 
     - Jeroen Demeyer (2018-02-20): completely rewritten using
-      :class:`MatrixArgs`, see :issue:`24742`
+      :class:`~sage.matrix.args.MatrixArgs`, see :issue:`24742`
     """
     immutable = kwds.pop('immutable', False)
     return MatrixArgs(*args, **kwds).element(immutable=immutable)

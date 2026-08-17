@@ -24,28 +24,10 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.structure.richcmp import richcmp, op_NE
+from typing import Self
+
 from sage.structure.element import ModuleElement
-
-
-def is_HeckeModuleElement(x):
-    """
-    Return ``True`` if x is a Hecke module element, i.e., of type HeckeModuleElement.
-
-    EXAMPLES::
-
-        sage: sage.modular.hecke.all.is_HeckeModuleElement(0)
-        doctest:warning...
-        DeprecationWarning: the function is_HeckeModuleElement is deprecated;
-        use 'isinstance(..., HeckeModuleElement)' instead
-        See https://github.com/sagemath/sage/issues/37895 for details.
-        False
-        sage: sage.modular.hecke.all.is_HeckeModuleElement(BrandtModule(37)([1,2,3]))
-        True
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(37895, "the function is_HeckeModuleElement is deprecated; use 'isinstance(..., HeckeModuleElement)' instead")
-    return isinstance(x, HeckeModuleElement)
+from sage.structure.richcmp import op_NE, richcmp
 
 
 class HeckeModuleElement(ModuleElement):
@@ -209,7 +191,7 @@ class HeckeModuleElement(ModuleElement):
         """
         return self.parent()(-self.element())
 
-    def _pos_(self):
+    def _pos_(self) -> Self:
         """
         EXAMPLES::
 
@@ -282,9 +264,9 @@ class HeckeModuleElement(ModuleElement):
 
     def is_new(self, p=None) -> bool:
         r"""
-        Return ``True`` if this element is p-new.
+        Return ``True`` if this element is `p`-new.
 
-        If p is ``None``, return ``True`` if the element is new.
+        If `p` is ``None``, return ``True`` if the element is new.
 
         EXAMPLES::
 
@@ -299,9 +281,9 @@ class HeckeModuleElement(ModuleElement):
 
     def is_old(self, p=None) -> bool:
         r"""
-        Return ``True`` if this element is p-old.
+        Return ``True`` if this element is `p`-old.
 
-        If p is ``None``, return ``True`` if the element is old.
+        If `p` is ``None``, return ``True`` if the element is old.
 
         EXAMPLES::
 

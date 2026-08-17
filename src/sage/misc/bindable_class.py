@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-objects
 """
 Bindable classes
 """
@@ -18,7 +17,7 @@ from sage.misc.classcall_metaclass import ClasscallMetaclass
 
 class BindableClass(metaclass=ClasscallMetaclass):
     """
-    Bindable classes
+    Bindable classes.
 
     This class implements a binding behavior for nested classes that
     derive from it. Namely, if a nested class ``Outer.Inner`` derives
@@ -100,10 +99,10 @@ class BindableClass(metaclass=ClasscallMetaclass):
         sage: outer.Inner
         <bound class '__main__.Outer.Inner' of <__main__.Outer object at ...>>
 
-    .. note::
+    .. NOTE::
 
         This is not actually a class, but an instance of
-        :class:`functools.partial`::
+        :func:`~functools.partial`::
 
             sage: type(outer.Inner).mro()
             [<class 'sage.misc.bindable_class.BoundClass'>,
@@ -113,7 +112,7 @@ class BindableClass(metaclass=ClasscallMetaclass):
         Still, documentation works as usual::
 
             sage: outer.Inner.__doc__
-            ' some documentation '
+            '...some documentation '
 
     TESTS::
 
@@ -125,7 +124,7 @@ class BindableClass(metaclass=ClasscallMetaclass):
     @staticmethod
     def __classget__(cls, instance, owner):
         """
-        Binds ``cls`` to ``instance``, returning a ``BoundClass``
+        Bind ``cls`` to ``instance``, returning a ``BoundClass``.
 
         INPUT:
 
@@ -191,7 +190,7 @@ class BoundClass(functools.partial):
             sage: c.__class__.__doc__
             sage: c.__class__.__init__.__doc__
 
-    Make sure classes which inherit from :class:`functools.partial` have the correct
+    Make sure classes which inherit from :func:`~functools.partial` have the correct
     syntax, see :issue:`14748`::
 
         sage: import warnings

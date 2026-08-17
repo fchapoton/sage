@@ -1,6 +1,7 @@
-# sage_setup: distribution = sagemath-objects
 """
 Specific category classes
+
+.. automethod:: sage.categories.category_types::Category_over_base._test_category_over_bases
 
 This is placed in a separate file from categories.py to avoid circular imports
 (as morphisms must be very low in the hierarchy with the new coercion model).
@@ -62,7 +63,7 @@ class Elements(Category):
     @classmethod
     def an_instance(cls):
         """
-        Returns an instance of this class
+        Return an instance of this class.
 
         EXAMPLES::
 
@@ -147,7 +148,7 @@ class Elements(Category):
 #############################################################
 class Category_over_base(CategoryWithParameters):
     r"""
-    A base class for categories over some base object
+    A base class for categories over some base object.
 
     INPUT:
 
@@ -202,12 +203,13 @@ class Category_over_base(CategoryWithParameters):
         """
         tester = self._tester(**options)
         from sage.categories.category_singleton import Category_singleton
-
+        from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
         from .bimodules import Bimodules
         from .schemes import Schemes
         for cat in self.super_categories():
             tester.assertTrue(isinstance(cat, (Category_singleton, Category_over_base,
-                                            Bimodules, Schemes)),
+                                               CategoryWithAxiom_over_base_ring,
+                                               Bimodules, Schemes)),
                            "The super categories of a category over base should"
                            " be a category over base (or the related Bimodules)"
                            " or a singleton category")
@@ -253,7 +255,7 @@ class Category_over_base(CategoryWithParameters):
     @classmethod
     def an_instance(cls):
         """
-        Returns an instance of this class
+        Return an instance of this class.
 
         EXAMPLES::
 
@@ -323,8 +325,7 @@ class Category_over_base(CategoryWithParameters):
 #         from sage.categories.homset import Homset, HomsetWithBase
 #         if X._base is not X and X._base is not None: # does this ever fail?
 #             return HomsetWithBase(X, Y, self)
-#         else:
-#             return Homset(X, Y, self)
+#         return Homset(X, Y, self)
 
 #############################################################
 # Category of objects over some base ring
@@ -332,7 +333,7 @@ class Category_over_base(CategoryWithParameters):
 
 
 class AbelianCategory(Category):
-    def is_abelian(self):
+    def is_abelian(self) -> bool:
         """
         Return ``True`` as ``self`` is an abelian category.
 
@@ -386,7 +387,7 @@ class Category_over_base_ring(Category_over_base):
         OUTPUT:
 
         A boolean if it is certain that ``C`` is (or is not) a
-        subcategory of self. :obj:`~sage.misc.unknown.Unknown`
+        subcategory of ``self``. :obj:`~sage.misc.unknown.Unknown`
         otherwise.
 
         EXAMPLES:
@@ -458,7 +459,7 @@ class Category_over_base_ring(Category_over_base):
             ....:            VectorSpaces(GF(3)).parent_class)
             True
 
-        Check that :issue:`16618` is fixed: this `_subcategory_hook_`
+        Check that :issue:`16618` is fixed: this ``_subcategory_hook_``
         method is only valid for :class:`Category_over_base_ring`, not
         :class:`Category_over_base`::
 
@@ -491,7 +492,7 @@ class Category_over_base_ring(Category_over_base):
             return C.base() in base_ring
         return False
 
-    def __contains__(self, x):
+    def __contains__(self, x) -> bool:
         """
         Return whether ``x`` is an object of this category.
 
@@ -514,7 +515,6 @@ class Category_over_base_ring(Category_over_base):
 
             sage: QQ['x'] in Algebras(Fields()) # todo: not implemented
             True
-
         """
         try:
             # The issubclass test handles extension types or when the
@@ -523,10 +523,8 @@ class Category_over_base_ring(Category_over_base):
                issubclass(x.category().parent_class, self.parent_class):
                 if isinstance(self.base(), Category):
                     return True
-                else:
-                    return x.base_ring() is self.base_ring()
-            else:
-                return super().__contains__(x)
+                return x.base_ring() is self.base_ring()
+            return super().__contains__(x)
         except AttributeError:
             return False
 
@@ -606,7 +604,7 @@ class Category_ideal(Category_in_ambient):
         """
         return self.ambient()
 
-    def __contains__(self, x):
+    def __contains__(self, x) -> bool:
         """
         EXAMPLES::
 
@@ -616,8 +614,8 @@ class Category_ideal(Category_in_ambient):
         """
         if super().__contains__(x):
             return True
-        from sage.rings.ideal import is_Ideal
-        return is_Ideal(x) and x.ring() == self.ring()
+        from sage.rings.ideal import Ideal_generic
+        return isinstance(x, Ideal_generic) and x.ring() == self.ring()
 
     def __call__(self, v):
         """

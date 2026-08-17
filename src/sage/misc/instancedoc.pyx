@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-objects
 r"""
 Dynamic documentation for instances of classes
 
@@ -6,8 +5,8 @@ The functionality in this module allows to define specific docstrings
 of *instances* of a class, which are different from the class docstring.
 A typical use case is given by cached methods: the documentation of a
 cached method should not be the documentation of the class
-:class:`CachedMethod`; it should be the documentation of the underlying
-method.
+:class:`~sage.misc.cachefunc.CachedMethod`; it should be the documentation of
+the underlying method.
 
 In order to use this, define a class docstring as usual. Also define a
 method ``def _instancedoc_(self)`` which should return the docstring of
@@ -108,7 +107,7 @@ Check that inheritance works (after passing the subclass to
     'Instance docstring'
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017 Jeroen Demeyer <J.Demeyer@UGent.be>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -116,7 +115,7 @@ Check that inheritance works (after passing the subclass to
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 from cpython.object cimport PyObject, PyTypeObject
 
@@ -137,12 +136,12 @@ cdef class InstanceDocDescriptor:
 
     INPUT:
 
-    - ``classdoc`` -- (string) class documentation
+    - ``classdoc`` -- string; class documentation
 
     - ``instancedoc`` -- (method) documentation for an instance
 
-    - ``attr`` -- (string, default ``__doc__``) attribute name to use
-      for custom docstring on the instance.
+    - ``attr`` -- string (default: ``__doc__``); attribute name to use
+      for custom docstring on the instance
 
     EXAMPLES::
 
@@ -171,7 +170,7 @@ cdef class InstanceDocDescriptor:
     cdef instancedoc
     cdef attr
 
-    def __init__(self, classdoc, instancedoc, attr="__doc__"):
+    def __init__(self, classdoc, instancedoc, attr='__doc__'):
         """
         TESTS::
 

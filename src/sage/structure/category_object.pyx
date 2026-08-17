@@ -1,4 +1,3 @@
-# sage_setup: distribution = sagemath-objects
 # cython: old_style_globals=True
 r"""
 Base class for objects of a category
@@ -78,17 +77,17 @@ cdef class CategoryObject(SageObject):
     """
     An object in some category.
     """
-    def __init__(self, category = None, base = None):
+    def __init__(self, category=None, base=None):
         """
         Initialize an object in a category.
 
         INPUT:
 
-        - ``category`` -- The category this object belongs to. If this object
+        - ``category`` -- the category this object belongs to; if this object
           belongs to multiple categories, those can be passed as a tuple
-        - ``base`` -- If this object has another object that should be
+        - ``base`` -- if this object has another object that should be
           considered a base in its primary category, you can include that base
-          here.
+          here
 
         EXAMPLES::
 
@@ -238,7 +237,7 @@ cdef class CategoryObject(SageObject):
         Return the underlying class (class without the attached
         categories) of the given object.
 
-        OUTPUT: A class
+        OUTPUT: a class
 
         EXAMPLES::
 
@@ -254,8 +253,7 @@ cdef class CategoryObject(SageObject):
         cls = type(self)
         if isinstance(cls, DynamicMetaclass):
             return cls.__bases__[0]
-        else:
-            return cls
+        return cls
 
     ##############################################################################
     # Generators
@@ -277,8 +275,8 @@ cdef class CategoryObject(SageObject):
 
         EXAMPLES::
 
-            sage: B.<a,b,c,d> = BooleanPolynomialRing()                                 # needs sage.rings.polynomial.pbori
-            sage: B.gens_dict()                                                         # needs sage.rings.polynomial.pbori
+            sage: B.<a,b,c,d> = BooleanPolynomialRing()                                 # needs brial
+            sage: B.gens_dict()                                                         # needs brial
             {'a': a, 'b': b, 'c': c, 'd': d}
 
         TESTS::
@@ -291,8 +289,7 @@ cdef class CategoryObject(SageObject):
         """
         if copy:
             return dict(self.__gens_dict())
-        else:
-            return self.__gens_dict()
+        return self.__gens_dict()
 
     def gens_dict_recursive(self):
         r"""
@@ -429,7 +426,6 @@ cdef class CategoryObject(SageObject):
         This can only be done once because objects with generators
         are immutable, and is typically done during creation of the object.
 
-
         EXAMPLES:
         When we create this polynomial ring, self._assign_names is called by the constructor::
 
@@ -490,7 +486,7 @@ cdef class CategoryObject(SageObject):
         """
         Return the first variable name.
 
-        OUTPUT: a string
+        OUTPUT: string
 
         EXAMPLES::
 
@@ -521,7 +517,6 @@ cdef class CategoryObject(SageObject):
             sage: a     #indirect doctest
             [1 0]
             [0 0]
-
         """
         # old = self._names, self._latex_names
         # We cannot assume that self *has* _latex_variable_names.
@@ -546,7 +541,7 @@ cdef class CategoryObject(SageObject):
         Thus, e.g., if the generators of ``self`` are labeled
         'a', 'b', and 'c', then after calling this method the
         variables a, b, and c in the current scope will be set
-        equal to the generators of self.
+        equal to the generators of ``self``.
 
         NOTE: If Foo is a constructor for a Sage object with generators, and
         Foo is defined in Cython, then it would typically call
@@ -585,7 +580,7 @@ cdef class CategoryObject(SageObject):
             sage: F.base_ring()                                                         # needs sage.modules
             Integer Ring
             sage: F.__class__.base_ring                                                 # needs sage.modules
-            <method 'base_ring' of 'sage.structure.category_object.CategoryObject' objects>
+            <cyfunction CategoryObject.base_ring at ...>
 
         Note that the coordinates of the elements of a module can lie
         in a bigger ring, the ``coordinate_ring``::
@@ -606,7 +601,7 @@ cdef class CategoryObject(SageObject):
             sage: F.base_ring()                                                         # needs sage.combinat sage.modules
             Rational Field
             sage: F.__class__.base_ring                                                 # needs sage.combinat sage.modules
-            <method 'base_ring' of 'sage.structure.category_object.CategoryObject' objects>
+            <cyfunction CategoryObject.base_ring at ...>
 
             sage: # needs sage.modules
             sage: E = CombinatorialFreeModule(ZZ, [1,2,3])
@@ -615,7 +610,7 @@ cdef class CategoryObject(SageObject):
             sage: H.base_ring()
             Integer Ring
             sage: H.__class__.base_ring
-            <method 'base_ring' of 'sage.structure.category_object.CategoryObject' objects>
+            <cyfunction CategoryObject.base_ring at ...>
 
         .. TODO::
 
@@ -626,6 +621,11 @@ cdef class CategoryObject(SageObject):
         return self._base
 
     def base(self):
+        """
+        Return the base ring of ``self``.
+
+        See :meth:`base_ring`.
+        """
         return self._base
 
     ############################################################################
@@ -670,7 +670,7 @@ cdef class CategoryObject(SageObject):
 
     def latex_variable_names(self):
         """
-        Returns the list of variable names suitable for latex output.
+        Return the list of variable names suitable for latex output.
 
         All ``_SOMETHING`` substrings are replaced by ``_{SOMETHING}``
         recursively so that subscripts of subscripts work.
@@ -724,7 +724,7 @@ cdef class CategoryObject(SageObject):
 
         return d
 
-    def __setstate__(self,d):
+    def __setstate__(self, d):
         try:
             version = d['_pickle_version']
         except KeyError:
@@ -758,7 +758,7 @@ cdef class CategoryObject(SageObject):
                 pass
         except (AttributeError, KeyError):
             raise
-            #raise RuntimeError, "If you change the pickling code in parent or category_object, you need to update the _pickle_version field"
+            # raise RuntimeError("If you change the pickling code in parent or category_object, you need to update the _pickle_version field")
 
     def __hash__(self):
         """
@@ -773,7 +773,7 @@ cdef class CategoryObject(SageObject):
             sage: h1 = hash(bla)
             sage: h1  # random
             -5279516879544852222
-            sage: bla.rename("toto")
+            sage: bla.rename('toto')
             sage: h2 = hash(bla)
             sage: h2  # random
             -5279516879544852222
@@ -913,7 +913,6 @@ cdef class CategoryObject(SageObject):
             sage: F = GF(9,'a')                                                         # needs sage.rings.finite_rings
             sage: dir(F)                                                                # needs sage.rings.finite_rings
             [..., '__class__', ..., '_test_pickling', ..., 'extension', ...]
-
         """
         return dir_with_other_class(self, self.category().parent_class)
 
@@ -924,7 +923,7 @@ cpdef normalize_names(Py_ssize_t ngens, names):
 
     INPUT:
 
-    - ``ngens`` -- integer: number of generators. The value ``ngens=-1``
+    - ``ngens`` -- integer; number of generators. The value ``ngens=-1``
       means that the number of generators is unknown a priori.
 
     - ``names`` -- any of the following:
@@ -937,7 +936,7 @@ cpdef normalize_names(Py_ssize_t ngens, names):
 
       - a string of single character names, such as 'xyz'
 
-    OUTPUT: a tuple of ``ngens`` strings to be used as variable names.
+    OUTPUT: a tuple of ``ngens`` strings to be used as variable names
 
     EXAMPLES::
 

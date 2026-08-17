@@ -149,7 +149,7 @@ from sage.geometry.toric_lattice_element import ToricLatticeElement
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.geometry.toric_plotter', 'ToricPlotter')
 from sage.misc.latex import latex
-from sage.structure.all import parent
+from sage.structure.element import parent
 from sage.structure.richcmp import (richcmp_method, richcmp, rich_to_bool,
                                     richcmp_not_equal)
 from sage.modules.fg_pid.fgp_element import FGP_Element
@@ -163,101 +163,23 @@ from sage.rings.rational_field import QQ
 from sage.structure.factory import UniqueFactory
 
 
-def is_ToricLattice(x):
-    r"""
-    Check if ``x`` is a toric lattice.
-
-    INPUT:
-
-    - ``x`` -- anything.
-
-    OUTPUT:
-
-    - ``True`` if ``x`` is a toric lattice and ``False`` otherwise.
-
-    EXAMPLES::
-
-        sage: from sage.geometry.toric_lattice import (
-        ....:   is_ToricLattice)
-        sage: is_ToricLattice(1)
-        doctest:warning...
-        DeprecationWarning: The function is_ToricLattice is deprecated;
-        use 'isinstance(..., ToricLattice_generic)' instead.
-        See https://github.com/sagemath/sage/issues/38126 for details.
-        False
-        sage: N = ToricLattice(3)
-        sage: N
-        3-d lattice N
-        sage: is_ToricLattice(N)
-        True
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(38126,
-                "The function is_ToricLattice is deprecated; "
-                "use 'isinstance(..., ToricLattice_generic)' instead.")
-    return isinstance(x, ToricLattice_generic)
-
-
-def is_ToricLatticeQuotient(x):
-    r"""
-    Check if ``x`` is a toric lattice quotient.
-
-    INPUT:
-
-    - ``x`` -- anything.
-
-    OUTPUT:
-
-    - ``True`` if ``x`` is a toric lattice quotient and ``False`` otherwise.
-
-    EXAMPLES::
-
-        sage: from sage.geometry.toric_lattice import (
-        ....:   is_ToricLatticeQuotient)
-        sage: is_ToricLatticeQuotient(1)
-        doctest:warning...
-        DeprecationWarning: The function is_ToricLatticeQuotient is deprecated;
-        use 'isinstance(..., ToricLattice_quotient)' instead.
-        See https://github.com/sagemath/sage/issues/38126 for details.
-        False
-        sage: N = ToricLattice(3)
-        sage: N
-        3-d lattice N
-        sage: is_ToricLatticeQuotient(N)
-        False
-        sage: Q = N / N.submodule([(1,2,3), (3,2,1)])
-        sage: Q
-        Quotient with torsion of 3-d lattice N
-        by Sublattice <N(1, 2, 3), N(0, 4, 8)>
-        sage: is_ToricLatticeQuotient(Q)
-        True
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(38126,
-                "The function is_ToricLatticeQuotient is deprecated; "
-                "use 'isinstance(..., ToricLattice_quotient)' instead.")
-    return isinstance(x, ToricLattice_quotient)
-
-
 class ToricLatticeFactory(UniqueFactory):
     r"""
     Create a lattice for toric geometry objects.
 
     INPUT:
 
-    - ``rank`` -- nonnegative integer, the only mandatory parameter;
+    - ``rank`` -- nonnegative integer; the only mandatory parameter
 
-    - ``name`` -- string;
+    - ``name`` -- string
 
-    - ``dual_name`` -- string;
+    - ``dual_name`` -- string
 
-    - ``latex_name`` -- string;
+    - ``latex_name`` -- string
 
-    - ``latex_dual_name`` -- string.
+    - ``latex_dual_name`` -- string
 
-    OUTPUT:
-
-    - lattice.
+    OUTPUT: lattice
 
     A toric lattice is uniquely determined by its rank and associated names.
     There are four such "associated names" whose meaning should be clear from
@@ -413,9 +335,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
         - anything that can be interpreted as coordinates, except for elements
           of other lattices.
 
-        OUTPUT:
-
-        - :class:`~sage.geometry.toric_lattice_element.ToricLatticeElement`.
+        OUTPUT: :class:`~sage.geometry.toric_lattice_element.ToricLatticeElement`
 
         TESTS::
 
@@ -485,25 +405,22 @@ class ToricLattice_generic(FreeModule_generic_pid):
             Traceback (most recent call last):
             ...
             TypeError: N(1, 2, 3) cannot be converted to 3-d lattice M!
-
         """
         if (isinstance(other, ToricLattice_generic) and
             other.ambient_module() is not self.ambient_module()):
             return None
         return super()._convert_map_from_(other)
 
-    def __contains__(self, point):
+    def __contains__(self, point) -> bool:
         r"""
         Check if ``point`` is an element of ``self``.
 
         INPUT:
 
-        - ``point`` -- anything.
+        - ``point`` -- anything
 
-        OUTPUT:
-
-        - ``True`` if ``point`` is an element of ``self``, ``False``
-          otherwise.
+        OUTPUT: ``True`` if ``point`` is an element of ``self``, ``False``
+        otherwise
 
         TESTS::
 
@@ -541,9 +458,9 @@ class ToricLattice_generic(FreeModule_generic_pid):
 
         OUTPUT:
 
-        - ``None``, we do not think of toric lattices as constructed from
-          simpler objects since we do not want to perform arithmetic involving
-          different lattices.
+        ``None``, we do not think of toric lattices as constructed from
+        simpler objects since we do not want to perform arithmetic involving
+        different lattices.
 
         TESTS::
 
@@ -558,7 +475,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
 
         INPUT:
 
-        - ``other`` -- a toric lattice or more general module.
+        - ``other`` -- a toric lattice or more general module
 
         OUTPUT:
 
@@ -599,8 +516,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
         def make_name(N1, N2, use_latex=False):
             if use_latex:
                 return latex(N1) + r' \oplus ' + latex(N2)
-            else:
-                return N1._name + '+' + N2._name
+            return N1._name + '+' + N2._name
 
         rank = self.rank() + other.rank()
         name = make_name(self, other, False)
@@ -658,10 +574,10 @@ class ToricLattice_generic(FreeModule_generic_pid):
 
         INPUT:
 
-        - ``sub`` -- sublattice of self;
+        - ``sub`` -- sublattice of self
 
-        - ``check`` -- (default: ``True``) whether or not to check that ``sub`` is
-          a valid sublattice.
+        - ``check`` -- boolean (default: ``True``); whether or not to check that ``sub`` is
+          a valid sublattice
 
         If the quotient is one-dimensional and torsion free, the
         following two mutually exclusive keyword arguments are also
@@ -693,7 +609,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
             by Sublattice <N(1, 8, 0), N(0, 12, 0)>
 
         Attempting to quotient one lattice by a sublattice of another
-        will result in a :class:`ValueError`::
+        will result in a :exc:`ValueError`::
 
             sage: N = ToricLattice(3)
             sage: M = ToricLattice(3, name='M')
@@ -755,9 +671,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
         r"""
         Return the saturation of ``self``.
 
-        OUTPUT:
-
-        - a :class:`toric lattice <ToricLatticeFactory>`.
+        OUTPUT: a :class:`toric lattice <ToricLatticeFactory>`
 
         EXAMPLES::
 
@@ -781,13 +695,11 @@ class ToricLattice_generic(FreeModule_generic_pid):
         INPUT:
 
         - ``gens`` -- list of elements of the ambient vector space of
-          ``self``.
+          ``self``
 
-        - ``base_ring`` -- (default: `\ZZ`) base ring for the generated module.
+        - ``base_ring`` -- (default: `\ZZ`) base ring for the generated module
 
-        OUTPUT:
-
-        - submodule spanned by ``gens``.
+        OUTPUT: submodule spanned by ``gens``
 
         .. NOTE::
 
@@ -796,7 +708,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
             vector space.
 
         See also :meth:`span_of_basis`,
-        :meth:`~sage.modules.free_module.FreeModule_generic_pid.submodule`,
+        :meth:`~sage.modules.free_module.Module_free_ambient.submodule`,
         and
         :meth:`~sage.modules.free_module.FreeModule_generic_pid.submodule_with_basis`,
 
@@ -827,13 +739,11 @@ class ToricLattice_generic(FreeModule_generic_pid):
         INPUT:
 
         - ``basis`` -- list of elements of the ambient vector space of
-          ``self``.
+          ``self``
 
-        - ``base_ring`` -- (default: `\ZZ`) base ring for the generated module.
+        - ``base_ring`` -- (default: `\ZZ`) base ring for the generated module
 
-        OUTPUT:
-
-        - submodule spanned by ``basis``.
+        OUTPUT: submodule spanned by ``basis``
 
         .. NOTE::
 
@@ -842,7 +752,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
             vector space.
 
         See also :meth:`span`,
-        :meth:`~sage.modules.free_module.FreeModule_generic_pid.submodule`,
+        :meth:`~sage.modules.free_module.Module_free_ambient.submodule`,
         and
         :meth:`~sage.modules.free_module.FreeModule_generic_pid.submodule_with_basis`,
 
@@ -863,7 +773,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
             sage: Ns.span_of_basis([(1,2,0), (2,4,0)])
             Traceback (most recent call last):
             ...
-            ValueError: The given basis vectors must be linearly independent.
+            ValueError: the given basis vectors must be linearly independent
         """
         A = self.ambient_module()
         if base_ring is ZZ and all(g in A for g in basis):
@@ -937,19 +847,17 @@ class ToricLattice_ambient(ToricLattice_generic, FreeModule_ambient_pid):
             args.extend([self._latex_name, self._latex_dual_name])
         return sib.name('ToricLattice')(*args)
 
-    def __richcmp__(self, right, op):
+    def __richcmp__(self, other, op):
         r"""
-        Compare ``self`` and ``right``.
+        Compare ``self`` and ``other``.
 
         INPUT:
 
-        - ``right`` -- anything.
+        - ``other`` -- anything
 
-        OUTPUT:
+        OUTPUT: boolean
 
-        boolean
-
-        There is equality if ``right`` is a toric lattice of the same
+        There is equality if ``other`` is a toric lattice of the same
         dimension as ``self`` and their associated names are the
         same.
 
@@ -965,28 +873,26 @@ class ToricLattice_ambient(ToricLattice_generic, FreeModule_ambient_pid):
             sage: N3 == ToricLattice(3)
             True
         """
-        if self is right:
+        if self is other:
             return rich_to_bool(op, 0)
-        if type(self) is not type(right):
+        if type(self) is not type(other):
             return NotImplemented
 
         lx = self.rank()
-        rx = right.rank()
+        rx = other.rank()
         if lx != rx:
             return richcmp_not_equal(lx, rx, op)
         # If lattices are the same as ZZ-modules, compare associated names
         return richcmp([self._name, self._dual_name,
                         self._latex_name, self._latex_dual_name],
-                       [right._name, right._dual_name,
-                        right._latex_name, right._latex_dual_name], op)
+                       [other._name, other._dual_name,
+                        other._latex_name, other._latex_dual_name], op)
 
     def _latex_(self):
         r"""
         Return a LaTeX representation of ``self``.
 
-        OUTPUT:
-
-        - string.
+        OUTPUT: string
 
         TESTS::
 
@@ -1000,9 +906,7 @@ class ToricLattice_ambient(ToricLattice_generic, FreeModule_ambient_pid):
         r"""
         Return a string representation of ``self``.
 
-        OUTPUT:
-
-        - string.
+        OUTPUT: string
 
         TESTS::
 
@@ -1016,9 +920,7 @@ class ToricLattice_ambient(ToricLattice_generic, FreeModule_ambient_pid):
         r"""
         Return the ambient module of ``self``.
 
-        OUTPUT:
-
-        - :class:`toric lattice <ToricLatticeFactory>`.
+        OUTPUT: :class:`toric lattice <ToricLatticeFactory>`
 
         .. NOTE::
 
@@ -1039,9 +941,7 @@ class ToricLattice_ambient(ToricLattice_generic, FreeModule_ambient_pid):
         r"""
         Return the lattice dual to ``self``.
 
-        OUTPUT:
-
-        - :class:`toric lattice <ToricLatticeFactory>`.
+        OUTPUT: :class:`toric lattice <ToricLatticeFactory>`
 
         EXAMPLES::
 
@@ -1077,9 +977,7 @@ class ToricLattice_ambient(ToricLattice_generic, FreeModule_ambient_pid):
         - any options for toric plots (see :func:`toric_plotter.options
           <sage.geometry.toric_plotter.options>`), none are mandatory.
 
-        OUTPUT:
-
-        - a plot.
+        OUTPUT: a plot
 
         EXAMPLES::
 
@@ -1105,17 +1003,15 @@ class ToricLattice_sublattice_with_basis(ToricLattice_generic,
     :class:`~sage.modules.free_module.FreeModule_submodule_with_basis_pid`):
 
     - ``ambient`` -- ambient :class:`toric lattice <ToricLatticeFactory>` for
-      this sublattice;
+      this sublattice
 
     - ``basis`` -- list of linearly independent elements of ``ambient``, these
       elements will be used as the default basis of the constructed
-      sublattice;
+      sublattice
 
-    - see the base class for other available options.
+    - see the base class for other available options
 
-    OUTPUT:
-
-    - sublattice of a toric lattice with a user-specified basis.
+    OUTPUT: sublattice of a toric lattice with a user-specified basis
 
     See also :class:`ToricLattice_sublattice` if you do not want to specify an
     explicit basis.
@@ -1123,35 +1019,28 @@ class ToricLattice_sublattice_with_basis(ToricLattice_generic,
     EXAMPLES:
 
     The intended way to get objects of this class is to use
-    :meth:`submodule_with_basis` method of toric lattices::
+    :meth:`~sage.modules.free_module.FreeModule_generic_pid.submodule_with_basis`
+    method of toric lattices::
 
         sage: N = ToricLattice(3)
         sage: sublattice = N.submodule_with_basis([(1,1,0), (3,2,1)])
         sage: sublattice.has_user_basis()
         True
         sage: sublattice.basis()
-        [
-        N(1, 1, 0),
-        N(3, 2, 1)
-        ]
+        [N(1, 1, 0), N(3, 2, 1)]
 
     Even if you have provided your own basis, you still can access the
     "standard" one::
 
         sage: sublattice.echelonized_basis()
-        [
-        N(1, 0, 1),
-        N(0, 1, -1)
-        ]
+        [N(1, 0, 1), N(0, 1, -1)]
     """
 
     def _repr_(self):
         r"""
         Return a string representation of ``self``.
 
-        OUTPUT:
-
-        - string.
+        OUTPUT: string
 
         TESTS::
 
@@ -1171,9 +1060,7 @@ class ToricLattice_sublattice_with_basis(ToricLattice_generic,
         r"""
         Return a LaTeX representation of ``self``.
 
-        OUTPUT:
-
-        - string.
+        OUTPUT: string
 
         TESTS::
 
@@ -1194,9 +1081,7 @@ class ToricLattice_sublattice_with_basis(ToricLattice_generic,
         r"""
         Return the lattice dual to ``self``.
 
-        OUTPUT:
-
-        - a :class:`toric lattice quotient <ToricLattice_quotient>`.
+        OUTPUT: a :class:`toric lattice quotient <ToricLattice_quotient>`
 
         EXAMPLES::
 
@@ -1223,9 +1108,7 @@ class ToricLattice_sublattice_with_basis(ToricLattice_generic,
         - any options for toric plots (see :func:`toric_plotter.options
           <sage.geometry.toric_plotter.options>`), none are mandatory.
 
-        OUTPUT:
-
-        - a plot.
+        OUTPUT: a plot
 
         EXAMPLES::
 
@@ -1236,7 +1119,7 @@ class ToricLattice_sublattice_with_basis(ToricLattice_generic,
 
         Now we plot both the ambient lattice and its sublattice::
 
-            sage: N.plot() + sublattice.plot(point_color="red")                         # needs sage.plot
+            sage: N.plot() + sublattice.plot(point_color='red')                         # needs sage.plot
             Graphics3d Object
         """
         if "show_lattice" not in options:
@@ -1262,16 +1145,14 @@ class ToricLattice_sublattice(ToricLattice_sublattice_with_basis,
     :class:`~sage.modules.free_module.FreeModule_submodule_pid`):
 
     - ``ambient`` -- ambient :class:`toric lattice <ToricLatticeFactory>` for
-      this sublattice;
+      this sublattice
 
     - ``gens`` -- list of elements of ``ambient`` generating the constructed
-      sublattice;
+      sublattice
 
-    - see the base class for other available options.
+    - see the base class for other available options
 
-    OUTPUT:
-
-    - sublattice of a toric lattice with an automatically chosen basis.
+    OUTPUT: sublattice of a toric lattice with an automatically chosen basis
 
     See also :class:`ToricLattice_sublattice_with_basis` if you want to
     specify an explicit basis.
@@ -1279,26 +1160,21 @@ class ToricLattice_sublattice(ToricLattice_sublattice_with_basis,
     EXAMPLES:
 
     The intended way to get objects of this class is to use
-    :meth:`submodule` method of toric lattices::
+    :meth:`~sage.modules.free_module.Module_free_ambient.submodule`
+    method of toric lattices::
 
         sage: N = ToricLattice(3)
         sage: sublattice = N.submodule([(1,1,0), (3,2,1)])
         sage: sublattice.has_user_basis()
         False
         sage: sublattice.basis()
-        [
-        N(1, 0, 1),
-        N(0, 1, -1)
-        ]
+        [N(1, 0, 1), N(0, 1, -1)]
 
     For sublattices without user-specified basis, the basis obtained above is
     the same as the "standard" one::
 
         sage: sublattice.echelonized_basis()
-        [
-        N(1, 0, 1),
-        N(0, 1, -1)
-        ]
+        [N(1, 0, 1), N(0, 1, -1)]
     """
     pass
 
@@ -1315,9 +1191,7 @@ class ToricLattice_quotient_element(FGP_Element):
 
     - same as for :class:`~sage.modules.fg_pid.fgp_element.FGP_Element`.
 
-    OUTPUT:
-
-    - element of a toric lattice quotient.
+    OUTPUT: element of a toric lattice quotient
 
     TESTS::
 
@@ -1342,9 +1216,7 @@ class ToricLattice_quotient_element(FGP_Element):
         r"""
         Return a LaTeX representation of ``self``.
 
-        OUTPUT:
-
-        - string.
+        OUTPUT: string
 
         TESTS::
 
@@ -1360,9 +1232,7 @@ class ToricLattice_quotient_element(FGP_Element):
         r"""
         Return a string representation of ``self``.
 
-        OUTPUT:
-
-        - string.
+        OUTPUT: string
 
         TESTS::
 
@@ -1378,11 +1248,9 @@ class ToricLattice_quotient_element(FGP_Element):
         r"""
         Make ``self`` immutable.
 
-        OUTPUT:
+        OUTPUT: none
 
-        - none.
-
-        .. note:: Elements of toric lattice quotients are always immutable, so
+        .. NOTE:: Elements of toric lattice quotients are always immutable, so
             this method does nothing, it is introduced for compatibility
             purposes only.
 
@@ -1402,12 +1270,12 @@ class ToricLattice_quotient(FGP_Module_class):
 
     INPUT:
 
-    - ``V`` -- ambient toric lattice;
+    - ``V`` -- ambient toric lattice
 
-    - ``W`` -- sublattice of ``V``;
+    - ``W`` -- sublattice of ``V``
 
-    - ``check`` -- (default: ``True``) whether to check correctness of input
-      or not.
+    - ``check`` -- boolean (default: ``True``); whether to check correctness of input
+      or not
 
     If the quotient is one-dimensional and torsion free, the following
     two mutually exclusive keyword arguments are also allowed. They
@@ -1428,14 +1296,13 @@ class ToricLattice_quotient(FGP_Module_class):
     Further given named arguments are passed to the constructor of an FGP
     module.
 
-    OUTPUT:
-
-    - quotient of ``V`` by ``W``.
+    OUTPUT: quotient of ``V`` by ``W``
 
     EXAMPLES:
 
     The intended way to get objects of this class is to use
-    :meth:`quotient` method of toric lattices::
+    :meth:`~sage.geometry.toric_lattice.ToricLattice_generic.quotient`
+    method of toric lattices::
 
         sage: N = ToricLattice(3)
         sage: sublattice = N.submodule([(1,1,0), (3,2,1)])
@@ -1472,7 +1339,7 @@ class ToricLattice_quotient(FGP_Module_class):
 
     def __init__(self, V, W, check=True, positive_point=None, positive_dual_point=None, **kwds):
         r"""
-        The constructor
+        The constructor.
 
         See :class:`ToricLattice_quotient` for an explanation of the arguments.
 
@@ -1483,7 +1350,7 @@ class ToricLattice_quotient(FGP_Module_class):
             sage: ToricLattice_quotient(N, N.span([N(1,2,3)]))
             2-d lattice, quotient of 3-d lattice N by Sublattice <N(1, 2, 3)>
 
-        An :class:`ArithmeticError` will be raised if ``W`` is not a
+        An :exc:`ArithmeticError` will be raised if ``W`` is not a
         sublattice of ``V``::
 
             sage: N = ToricLattice(3)
@@ -1547,8 +1414,7 @@ class ToricLattice_quotient(FGP_Module_class):
         if self._flip_sign_of_generator:
             assert len(gens) == 1
             return (-gens[0],)
-        else:
-            return gens
+        return gens
 
     # Should be overridden in derived classes.
     Element = ToricLattice_quotient_element
@@ -1607,9 +1473,7 @@ class ToricLattice_quotient(FGP_Module_class):
         r"""
         Return a LaTeX representation of ``self``.
 
-        OUTPUT:
-
-        - string.
+        OUTPUT: string
 
         TESTS::
 
@@ -1629,9 +1493,7 @@ class ToricLattice_quotient(FGP_Module_class):
         r"""
         Return a string representation of ``self``.
 
-        OUTPUT:
-
-        - string.
+        OUTPUT: string
 
         TESTS::
 
@@ -1650,8 +1512,7 @@ class ToricLattice_quotient(FGP_Module_class):
         if self.is_torsion_free():
             return "%d-d lattice, quotient of %s by %s" % (self.rank(),
                                                            self.V(), self.W())
-        else:
-            return "Quotient with torsion of %s by %s" % (self.V(), self.W())
+        return "Quotient with torsion of %s by %s" % (self.V(), self.W())
 
     def _module_constructor(self, V, W, check=True):
         r"""
@@ -1659,12 +1520,12 @@ class ToricLattice_quotient(FGP_Module_class):
 
         INPUT:
 
-        - ``V`` -- ambient toric lattice;
+        - ``V`` -- ambient toric lattice
 
-        - ``W`` -- sublattice of ``V``;
+        - ``W`` -- sublattice of ``V``
 
-        - ``check`` -- (default: ``True``) whether to check
-          correctness of input or not.
+        - ``check`` -- boolean (default: ``True``); whether to check
+          correctness of input or not
 
         TESTS::
 
@@ -1683,12 +1544,10 @@ class ToricLattice_quotient(FGP_Module_class):
 
         INPUT:
 
-        - ``R`` -- either `\ZZ` or `\QQ`.
+        - ``R`` -- either `\ZZ` or `\QQ`
 
-        OUTPUT:
-
-        - ``self`` if `R=\ZZ`, quotient of the base extension of the ambient
-          lattice by the base extension of the sublattice if `R=\QQ`.
+        OUTPUT: ``self`` if `R=\ZZ`, quotient of the base extension of the ambient
+        lattice by the base extension of the sublattice if `R=\QQ`
 
         EXAMPLES::
 
@@ -1716,9 +1575,7 @@ class ToricLattice_quotient(FGP_Module_class):
         r"""
         Check if ``self`` is torsion-free.
 
-        OUTPUT:
-
-        - ``True`` is ``self`` has no torsion and ``False`` otherwise.
+        OUTPUT: ``True`` if ``self`` has no torsion and ``False`` otherwise
 
         EXAMPLES::
 
@@ -1738,9 +1595,7 @@ class ToricLattice_quotient(FGP_Module_class):
         r"""
         Return the lattice dual to ``self``.
 
-        OUTPUT:
-
-        - a :class:`toric lattice quotient <ToricLattice_quotient>`.
+        OUTPUT: a :class:`toric lattice quotient <ToricLattice_quotient>`
 
         EXAMPLES::
 
@@ -1760,9 +1615,7 @@ class ToricLattice_quotient(FGP_Module_class):
         r"""
         Return the rank of ``self``.
 
-        OUTPUT:
-
-        Integer. The dimension of the free part of the quotient.
+        OUTPUT: integer; the dimension of the free part of the quotient
 
         EXAMPLES::
 
@@ -1793,12 +1646,10 @@ class ToricLattice_quotient(FGP_Module_class):
 
         - ``x`` -- element of ``self`` or convertible to ``self``
 
-        - ``reduce`` -- (default: ``False``); if ``True``, reduce coefficients
+        - ``reduce`` -- (default: ``False``) if ``True``, reduce coefficients
           modulo invariants
 
-        OUTPUT:
-
-        The coordinates as a vector.
+        OUTPUT: the coordinates as a vector
 
         EXAMPLES::
 
@@ -1815,5 +1666,4 @@ class ToricLattice_quotient(FGP_Module_class):
         if self._flip_sign_of_generator:
             assert len(coordinates) == 1, "Sign flipped for a multi-dimensional quotient!"
             return -coordinates
-        else:
-            return coordinates
+        return coordinates
