@@ -531,7 +531,7 @@ class LatticePosets(Category):
 
                 This is a partial order on the same underlying set
                 whose relations are determined by the canonical
-                brick-coloring ef the edges of the Hasse diagram.
+                brick-coloring of the edges of the Hasse diagram.
                 This is defined for all congruence uniform lattices in
                 the article [Muhle2017]_.
 
