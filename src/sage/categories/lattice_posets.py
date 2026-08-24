@@ -7,6 +7,8 @@ Lattice posets
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
+from collections.abc import Iterator
+from typing import Any
 
 from sage.categories.category import Category
 from sage.categories.category_with_axiom import CategoryWithAxiom
@@ -493,6 +495,89 @@ class LatticePosets(Category):
                 """
                 return True
 
+            def brick_coloring(self) -> dict[tuple, Any]:
+                """
+                Return the coloring of edges by join-irreducible elements.
+
+                This is defined for all congruence uniform lattices in
+                the article [Muhle2017]_.
+
+                .. SEEALSO:: :meth:`core_label_order`
+
+                EXAMPLES::
+
+                    sage: P = posets.PentagonPoset()
+                    sage: P.brick_coloring()
+                    {(0, 1): 1, (0, 2): 2, (1, 4): 2, (2, 3): 3, (3, 4): 1}
+                """
+                # precomputation for speedup
+                self._hasse_diagram._leq_storage
+
+                H = self.hasse_diagram()
+                JoinIrr_covers = [(next(H.neighbor_in_iterator(j)), j)
+                                  for j in self.join_irreducibles()]
+
+                def perspective(i, j, u, v):
+                    if self.join(j, u) == v and self.meet(j, u) == i:
+                        return True
+                    return self.join(v, i) == j and self.meet(v, i) == u
+
+                return {uv: next(j for i, j in JoinIrr_covers
+                                 if perspective(i, j, *uv))
+                        for uv in H.edges(labels=False)}
+
+            def core_label_order(self):
+                """
+                Return the core-label order of this lattice.
+
+                This is a partial order on the same underlying set
+                whose relations are determined by the canonical
+                brick-coloring ef the edges of the Hasse diagram.
+                This is defined for all congruence uniform lattices in
+                the article [Muhle2017]_.
+
+                This is also known as the shard intersection order,
+                in the terminology of Reading.
+
+                .. SEEALSO:: :meth:`brick_coloring`
+
+                EXAMPLES::
+
+                    sage: P = posets.PentagonPoset()
+                    sage: Q = P.core_label_order(); Q
+                    Finite poset containing 5 elements
+                    sage: Q.relations_number()
+                    12
+                    sage: Q.is_graded()
+                    True
+
+                    sage: P = posets.TamariLattice(4)
+                    sage: PQ = posets.NoncrossingPartitions(SymmetricGroup(4))
+                    sage: P.core_label_order().is_isomorphic(PQ)
+                    True
+                """
+                from sage.combinat.posets.all import Poset
+
+                color = self.brick_coloring()
+                dg = self.hasse_diagram()
+
+                dico_face = {}
+                for x in dg:
+                    xbar = self.join([x] + dg.neighbors_out(x))
+                    dico_face[x] = set(self.interval(x, xbar))
+
+                shard_sets: dict[Any, set] = {x: set() for x in dg}
+                for x in dg:
+                    def inface(y):
+                        return y in dico_face[x]
+
+                    for v, w in BFS_with_condition(dg, x, inface):
+                        shard_sets[x].add(color[(v, w)])
+
+                data = {elt: frozenset(s) for elt, s in shard_sets.items()}
+                return Poset([list(self),
+                              lambda U, V: U != V and data[V].issubset(data[U])])
+
     class Stone(CategoryWithAxiom):
         """
         The category of Stone lattices.
@@ -617,3 +702,43 @@ class DistributiveLattices(CategoryWithAxiom):
 
 
 LatticePosets.Trim.ChainGraded = DistributiveLattices
+
+
+def BFS_with_condition(G, v, condition) -> Iterator[tuple]:
+    """
+    Perform a breadth-first-search under condition.
+
+    This return an iterator over the traversed edges.
+
+    INPUT:
+
+    - G -- a DiGraph
+
+    - v -- a vertex of G
+
+    - condition -- a condition that must hold to accept vertices
+
+    EXAMPLES::
+
+        sage: from sage.categories.lattice_posets import BFS_with_condition
+        sage: dg = DiGraph([[0,1],[1,3],[0,2],[2,3]])
+        sage: list(BFS_with_condition(dg, 0, lambda x: not x % 2))
+        [(0, 2)]
+
+    .. NOTE:: This code was kindly provided by Nathann Cohen.
+    """
+    good_neighbors = [u for u in G.neighbors_out(v) if condition(u)]
+    seen = set([v] + good_neighbors)
+    next_layer = [(v, u) for u in good_neighbors]
+    while next_layer:
+        yield from next_layer
+        next_next_layer = []
+        for _, w in next_layer:
+            for u in G.neighbors_out(w):
+                if u in seen:
+                    yield (w, u)
+                    continue
+                if condition(u):
+                    seen.add(u)
+                    next_next_layer.append((w, u))
+        next_layer = next_next_layer
