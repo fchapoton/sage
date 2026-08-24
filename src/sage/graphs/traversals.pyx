@@ -1866,3 +1866,46 @@ def maximum_cardinality_search_M(G, initial_vertex=None):
     return ([int_to_vertex[alpha[u]] for u in range(N)],
             [(int_to_vertex[u], int_to_vertex[v]) for u, v in F],
             [int_to_vertex[u] for u in range(N) if X[u]])
+
+
+def BFS_with_condition(G, v, condition):
+    """
+    Perform a breadth-first-search under condition.
+
+    This returns an iterator over edges between the
+    allowed vertices. Some of these edges are traversed forward
+    during the search, but others are yielded but not traversed
+    when the target vertex has already been met.
+
+    INPUT:
+
+    - G -- a DiGraph
+
+    - v -- a vertex of G
+
+    - condition -- a condition that must hold to accept vertices
+
+    EXAMPLES::
+
+        sage: from sage.graphs.traversals import BFS_with_condition
+        sage: dg = DiGraph([[0,1],[1,3],[0,2],[2,3]])
+        sage: list(BFS_with_condition(dg, 0, lambda x: not x % 2))
+        [(0, 2)]
+
+    .. NOTE:: This code was kindly provided by Nathann Cohen.
+    """
+    good_neighbors = [u for u in G.neighbors_out(v) if condition(u)]
+    seen = set([v] + good_neighbors)
+    next_layer = [(v, u) for u in good_neighbors]
+    while next_layer:
+        yield from next_layer
+        next_next_layer = []
+        for _, w in next_layer:
+            for u in G.neighbors_out(w):
+                if u in seen:
+                    yield (w, u)
+                    continue
+                if condition(u):
+                    seen.add(u)
+                    next_next_layer.append((w, u))
+        next_layer = next_next_layer
