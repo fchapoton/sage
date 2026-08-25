@@ -1894,7 +1894,7 @@ def BFS_with_condition(G, v, condition):
 
     .. NOTE:: This code was kindly provided by Nathann Cohen.
     """
-    good_neighbors = [u for u in G.neighbors_out_iterator(v)
+    good_neighbors = [u for u in G.neighbor_out_iterator(v)
                       if condition(u)]
     seen = set([v] + good_neighbors)
     next_layer = [(v, u) for u in good_neighbors]
@@ -1902,7 +1902,7 @@ def BFS_with_condition(G, v, condition):
         yield from next_layer
         next_next_layer = []
         for _, w in next_layer:
-            for u in G.neighbors_out_iterator(w):
+            for u in G.neighbor_out_iterator(w):
                 if u in seen:
                     yield (w, u)
                     continue
