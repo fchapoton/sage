@@ -565,7 +565,7 @@ class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
             sage: R._magma_init_(magma)
             'SageCreateWithNames(FieldOfFractions(PolynomialRing(_sage_ref...)),["y"])'
             sage: S = magma(R); S
-            Univariate rational function field in y over Rational Field
+            Univariate rational function field over Rational Field
             Variables: y
             sage: S.1
             y
