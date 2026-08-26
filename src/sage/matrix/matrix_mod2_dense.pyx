@@ -1579,7 +1579,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: # optional - magma
             sage: A = random_matrix(GF(2),3,3)
             sage: A._magma_init_(magma)
-            'Matrix(GF(2),3,3,StringToIntegerSequence("..."))'
+            'Matrix(GF(2),3,3,[...])'
             sage: A = random_matrix(GF(2),100,100)
             sage: B = random_matrix(GF(2),100,100)
             sage: magma(A*B) == magma(A) * magma(B)
@@ -1593,7 +1593,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             Matrix with 0 rows and 3 columns
             sage: A = matrix(GF(2),2,3,[0,1,1,1,0,0])
             sage: A._magma_init_(magma)
-            'Matrix(GF(2),2,3,[0,1,1,1,0,0]])'
+            'Matrix(GF(2),2,3,[0,1,1,1,0,0])'
             sage: magma(A)
             [0 1 1]
             [1 0 0]

@@ -1833,7 +1833,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: # optional - magma
             sage: m = matrix(ZZ,2,3,[1,2,-3,1,-2,-45])
             sage: m._magma_init_(magma)
-            'Matrix(IntegerRing(),2,3,[1,2,-3,1,-2,-45]])'
+            'Matrix(IntegerRing(),2,3,[1,2,-3,1,-2,-45])'
             sage: magma(m)
             [  1   2  -3]
             [  1  -2 -45]
