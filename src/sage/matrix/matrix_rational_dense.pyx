@@ -1413,7 +1413,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         """
         return self.parent()(self.__pari__().matadjoint().sage())
 
-    def _magma_init_(self, magma) -> str:
+    def _magma_init_(self, magma):
         """
         EXAMPLES::
 

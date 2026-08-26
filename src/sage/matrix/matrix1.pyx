@@ -89,7 +89,7 @@ cdef class Matrix(Matrix0):
         from sage.libs.pari import pari
         return pari.matrix(self._nrows, self._ncols, self._list())
 
-    def _gap_init_(self) -> str:
+    def _gap_init_(self):
         """
         Return a string defining a GAP representation of ``self``.
 
@@ -289,7 +289,7 @@ cdef class Matrix(Matrix0):
         """
         return '{' + ', '.join(v._mathematica_init_() for v in self.rows()) + '}'
 
-    def _magma_init_(self, magma) -> str:
+    def _magma_init_(self, magma):
         r"""
         Return a string that evaluates in the given Magma session to this
         matrix.

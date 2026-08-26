@@ -1819,7 +1819,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
     def _echelon_strassen(self):
         raise NotImplementedError
 
-    def _magma_init_(self, magma) -> str:
+    def _magma_init_(self, magma):
         """
         EXAMPLES::
 
