@@ -361,7 +361,7 @@ cdef class Matrix(Matrix0):
         """
         if self.is_sparse():
             R = magma(self.base_ring())
-            s = f"SparseMatrix({R,name()}, {self._nrows}, {self._ncols}, ["
+            s = f"SparseMatrix({R.name()}, {self._nrows}, {self._ncols}, ["
             entries = (f"<{i + 1}, {j + 1}, {mij._magma_init_(magma)}>"
                        for (i, j), mij in self.dict().items())
             return s + ', '.join(entries) + "])"
