@@ -1568,7 +1568,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         mzd_col_swap(self._entries, col1, col2)
 
-    def _magma_init_(self, magma):
+    def _magma_init_(self, magma) -> str:
         """
         Return a string of ``self`` in ``Magma`` form.
 
@@ -1576,29 +1576,31 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         EXAMPLES::
 
+            sage: # optional - magma
             sage: A = random_matrix(GF(2),3,3)
-            sage: A._magma_init_(magma)                             # optional - magma
+            sage: A._magma_init_(magma)
             'Matrix(GF(2),3,3,StringToIntegerSequence("..."))'
             sage: A = random_matrix(GF(2),100,100)
             sage: B = random_matrix(GF(2),100,100)
-            sage: magma(A*B) == magma(A) * magma(B)                 # optional - magma
+            sage: magma(A*B) == magma(A) * magma(B)
             True
 
         TESTS::
 
+            sage: # optional - magma
             sage: A = random_matrix(GF(2),0,3)
-            sage: magma(A)                          # optional - magma
+            sage: magma(A)
             Matrix with 0 rows and 3 columns
             sage: A = matrix(GF(2),2,3,[0,1,1,1,0,0])
-            sage: A._magma_init_(magma)             # optional - magma
-            'Matrix(GF(2),2,3,StringToIntegerSequence("0 1 1 1 0 0"))'
-            sage: magma(A)                          # optional - magma
+            sage: A._magma_init_(magma)
+            'Matrix(GF(2),2,3,[0,1,1,1,0,0]])'
+            sage: magma(A)
             [0 1 1]
             [1 0 0]
         """
         s = self.base_ring()._magma_init_(magma)
-        return 'Matrix(%s,%s,%s,StringToIntegerSequence("%s"))' % (
-            s, self._nrows, self._ncols, self._export_as_string())
+        w = "[" + ",".join(str(c) for r in self for c in r) + "]"
+        return f'Matrix({s},{self._nrows},{self._ncols},{w})'
 
     def determinant(self):
         """

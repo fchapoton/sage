@@ -1413,22 +1413,20 @@ cdef class Matrix_rational_dense(Matrix_dense):
         """
         return self.parent()(self.__pari__().matadjoint().sage())
 
-    def _magma_init_(self, magma):
+    def _magma_init_(self, magma) -> str:
         """
         EXAMPLES::
 
+            sage: # optional - magma
             sage: m = matrix(QQ,2,3,[1,2/3,-3/4,1,-2/3,-45/17])
             sage: m._magma_init_(magma)
-            'Matrix(RationalField(),2,3,StringToIntegerSequence("204 136 -153 204 -136 -540"))/204'
-            sage: magma(m)                                                # optional - magma
+            'Matrix(RationalField(),2,3,[1,2/3,-3/4,1,-2/3,-45/17])'
+            sage: magma(m)
             [     1    2/3   -3/4]
             [     1   -2/3 -45/17]
         """
-        X, d = self._clear_denom()
-        s = X._magma_init_(magma).replace('IntegerRing','RationalField')
-        if d != 1:
-            s += '/%s' % d._magma_init_(magma)
-        return s
+        w = "[" + ",".join(str(c) for r in self for c in r) + "]"
+        return f'Matrix(RationalField(),{self._nrows},{self._ncols},{w})'
 
     def prod_of_row_sums(self, cols):
         cdef Py_ssize_t i, c

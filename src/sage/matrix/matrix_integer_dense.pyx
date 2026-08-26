@@ -1819,20 +1819,20 @@ cdef class Matrix_integer_dense(Matrix_dense):
     def _echelon_strassen(self):
         raise NotImplementedError
 
-    def _magma_init_(self, magma):
+    def _magma_init_(self, magma) -> str:
         """
         EXAMPLES::
 
+            sage: # optional - magma
             sage: m = matrix(ZZ,2,3,[1,2,-3,1,-2,-45])
             sage: m._magma_init_(magma)
-            'Matrix(IntegerRing(),2,3,StringToIntegerSequence("1 2 -3 1 -2 -45"))'
-            sage: magma(m)                                               # optional - magma
+            'Matrix(IntegerRing(),2,3,[1,2,-3,1,-2,-45]])'
+            sage: magma(m)
             [  1   2  -3]
             [  1  -2 -45]
         """
-        w = self._export_as_string(base=10)
-        return 'Matrix(IntegerRing(),%s,%s,StringToIntegerSequence("%s"))' % (
-            self.nrows(), self.ncols(), w)
+        w = "[" + ",".join(str(c) for r in self for c in r) + "]"
+        return f'Matrix(IntegerRing(),{self._nrows},{self._ncols},{w})'
 
     def symplectic_form(self):
         r"""

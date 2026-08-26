@@ -352,24 +352,23 @@ cdef class Matrix(Matrix0):
 
         One sparse matrix::
 
+            sage: # optional - magma
             sage: M = matrix(QQ,2,2,[4,6,55,0],sparse=True)
-            sage: T = magma(M); T    # optional - magma
+            sage: T = magma(M); T
             Sparse matrix with 2 rows and 2 columns over Rational Field
-            sage: T.Determinant()    # optional - magma
+            sage: T.Determinant()
             -330
         """
         if self.is_sparse():
             R = magma(self.base_ring())
-            s = "SparseMatrix({}, {}, {}, ["
-            s = s.format(R.name(), self.nrows(), self.ncols())
-            entries = ("<{}, {}, {}>".format(ij[0] + 1, ij[1] + 1,
-                                             mij._magma_init_(magma))
-                       for ij, mij in self.dict().items())
+            s = f"SparseMatrix({R,name()}, {self._nrows}, {self._ncols}, ["
+            entries = (f"<{i + 1}, {j + 1}, {mij._magma_init_(magma)}>"
+                       for (i, j), mij in self.dict().items())
             return s + ', '.join(entries) + "])"
-        else:
-            P = magma(self.parent())
-            v = [x._magma_init_(magma) for x in self.list()]
-            return '%s![%s]' % (P.name(), ','.join(v))
+
+        P = magma(self.parent())
+        v = (x._magma_init_(magma) for x in self.list())
+        return '%s![%s]' % (P.name(), ','.join(v))
 
     def _maple_init_(self):
         """
