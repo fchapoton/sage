@@ -371,7 +371,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
     cdef _pickle_version0(self):
         return self._export_as_string(32)
 
-    cpdef _export_as_string(self, int base=10):
+    cpdef _export_as_string(self, int base=10, bint comma=False):
         """
         Return space separated string of the entries in this matrix, in the
         given base. This is optimized for speed.
@@ -380,11 +380,16 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         - ``base`` -- integer (default: `10`)
 
+        - ``comma`` -- boolean; (default: ``False``)
+          to select comma as separator instead of space
+
         EXAMPLES::
 
             sage: m = matrix(QQ,2,3,[1,2/3,-3/4,1,-2/3,-45/17])
             sage: m._export_as_string(10)
             '1 2/3 -3/4 1 -2/3 -45/17'
+            sage: m._export_as_string(comma=True)
+            '1,2/3,-3/4,1,-2/3,-45/17'
             sage: m._export_as_string(16)
             '1 2/3 -3/4 1 -2/3 -2d/11'
         """
@@ -392,10 +397,12 @@ cdef class Matrix_rational_dense(Matrix_dense):
         cdef char *s
         cdef char *t
         cdef char *tmp
+        cdef char sep
 
         if self._nrows == 0 or self._ncols == 0:
             data = ''
         else:
+            sep = <char>44 if comma else <char>32
             n = self._nrows * self._ncols * 10
             s = <char*> sig_malloc(n * sizeof(char))
             t = s
@@ -418,7 +425,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
                     m = strlen(t)
                     len_so_far = len_so_far + m + 1
                     t = t + m
-                    t[0] = <char>32
+                    t[0] = sep
                     t[1] = <char>0
                     t = t + 1
             sig_off()
@@ -1425,8 +1432,8 @@ cdef class Matrix_rational_dense(Matrix_dense):
             [     1    2/3   -3/4]
             [     1   -2/3 -45/17]
         """
-        w = "[" + ",".join(str(c) for r in self for c in r) + "]"
-        return f'Matrix(RationalField(),{self._nrows},{self._ncols},{w})'
+        w = self._export_as_string(comma=True)
+        return f'Matrix(RationalField(),{self._nrows},{self._ncols},[{w}])'
 
     def prod_of_row_sums(self, cols):
         cdef Py_ssize_t i, c
