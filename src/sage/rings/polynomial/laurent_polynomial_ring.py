@@ -552,6 +552,29 @@ class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
         """
         return LaurentPolynomialRing_univariate, (self._R,)
 
+    def _magma_init_(self, magma):
+        """
+        Used in converting this ring to the corresponding ring in MAGMA.
+
+        This is sent to the fraction field of polynomials.
+
+        EXAMPLES::
+
+            sage: # optional - magma
+            sage: R = LaurentPolynomialRing(QQ, 'y')
+            sage: R._magma_init_(magma)
+            'SageCreateWithNames(PolynomialRing(_sage_ref...),["y"])'
+            sage: S = magma(R)
+            sage: S
+            Univariate Polynomial Ring in y over Rational Field
+            sage: S.1
+            y
+        """
+        B = magma(self.base_ring())
+        Bref = B._ref()
+        s = 'FieldOfFractions(PolynomialRing(%s))' % (Bref)
+        return magma._with_names(s, self.variable_names())
+
 
 class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
     def __init__(self, R):
@@ -788,3 +811,22 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             True
         """
         return LaurentPolynomialRing_mpair, (self._R,)
+
+    def _magma_init_(self, magma):
+        """
+        Used in converting this ring to the corresponding ring in Magma.
+
+        This is sent to the field of rational functions.
+
+        EXAMPLES::
+
+            sage: # optional - magma
+            sage: R.<a,b,c,d,e,f,g,h,i,j> = LaurentPolynomialRing(GF(127),10)
+            sage: R._magma_init_(magma)
+            'SageCreateWithNames(PolynomialRing(_sage_ref...,10,"grevlex"),["a","b","c","d","e","f","g","h","i","j"])'
+        """
+        B = magma(self.base_ring())
+        Bref = B._ref()
+        s = 'FieldOfFractions(PolynomialRing(%s,%s,%s))' % (
+            Bref, self.ngens(), self.term_order().magma_str())
+        return magma._with_names(s, self.variable_names())
