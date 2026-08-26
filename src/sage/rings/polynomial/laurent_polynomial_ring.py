@@ -556,17 +556,16 @@ class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
         """
         Used in converting this ring to the corresponding ring in MAGMA.
 
-        This is sent to the fraction field of polynomials.
+        This is sent to the fraction field of univariate polynomials.
 
         EXAMPLES::
 
             sage: # optional - magma
             sage: R = LaurentPolynomialRing(QQ, 'y')
             sage: R._magma_init_(magma)
-            'SageCreateWithNames(PolynomialRing(_sage_ref...),["y"])'
-            sage: S = magma(R)
-            sage: S
-            Univariate Polynomial Ring in y over Rational Field
+            'SageCreateWithNames(FieldOfFractions(PolynomialRing(_sage_ref...)),["y"])'
+            sage: S = magma(R); S
+            Univariate rational function field in y over Rational Field
             sage: S.1
             y
         """
@@ -816,14 +815,19 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
         """
         Used in converting this ring to the corresponding ring in Magma.
 
-        This is sent to the field of rational functions.
+        This is sent to the fraction field of multivariate polynomials.
 
         EXAMPLES::
 
             sage: # optional - magma
             sage: R.<a,b,c,d,e,f,g,h,i,j> = LaurentPolynomialRing(GF(127),10)
             sage: R._magma_init_(magma)
-            'SageCreateWithNames(PolynomialRing(_sage_ref...,10,"grevlex"),["a","b","c","d","e","f","g","h","i","j"])'
+            'SageCreateWithNames(FieldOfFractions(PolynomialRing(_sage_ref...,10,"grevlex")),["a","b","c","d","e","f","g","h","i","j"])'
+            sage: S = magma(R); S
+            Multivariate rational function field of rank 10 over GF(127)
+            Variables: a, b, c, d, e, f, g, h, i, j
+            sage: S.1
+            a
         """
         B = magma(self.base_ring())
         Bref = B._ref()
