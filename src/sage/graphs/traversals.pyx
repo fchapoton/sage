@@ -1879,9 +1879,10 @@ def BFS_with_condition(G, v, condition):
 
     INPUT:
 
-    - ``G`` -- a DiGraph
+    - ``G`` -- a simple DiGraph without loops
 
-    - ``v`` -- a vertex of ``G``
+    - ``v`` -- a vertex of ``G`` ; the vertex ``v`` is assumed to
+      satisfy the condition
 
     - ``condition`` -- a condition on vertices for them to be accepted
 
