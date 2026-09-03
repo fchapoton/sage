@@ -1330,11 +1330,11 @@ class OEISSequence(SageObject, UniqueRepresentation):
 
         return self._first_terms[1][:number]
 
-    def _repr_(self):
+    def _repr_(self) -> str:
         r"""
         Print the sequence number and a short summary of this sequence.
 
-        OUTPUT: string
+        OUTPUT: string (with active link in compatible terminal)
 
         EXAMPLES::
 
@@ -1348,7 +1348,9 @@ class OEISSequence(SageObject, UniqueRepresentation):
             sage: s
             A999999: The characteristic sequence of 42 plus one, starting from 38.
         """
-        return "%s: %s" % (self.id(), self.name())
+        sid = self.id()
+        ansi_link = f"\033]8;;https://oeis.org/{sid}\033\\{sid}\033]8;;\033\\"
+        return "%s: %s" % (ansi_link, self.name())
 
     def __call__(self, k):
         r"""
