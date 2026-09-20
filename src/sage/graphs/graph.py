@@ -9554,6 +9554,7 @@ class Graph(GenericGraph):
 
         # now newVertices is a map {0, ..., numCliques-1} -> antipodal classes
         numCliques = len(newVertices)
+
         def edges():
             for i, j in itertools.combinations(range(numCliques), 2):
                 if any(self.has_edge(u, v) for u, v in

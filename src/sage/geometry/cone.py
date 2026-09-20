@@ -6624,7 +6624,6 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=8,
             raise ValueError(f"max_rays must be at least {d} for a "
                              "solid cone in this lattice.")
 
-
     # Parameter adjustment. In some cases are are able to adjust the
     # dim/ray bounds to eliminate impossible combinations. We are
     # going to attempt those combinations at random, so avoiding the

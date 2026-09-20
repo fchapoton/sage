@@ -3991,6 +3991,7 @@ def normalized_model(E, j_tilde, l, *, all=False):
     X, Y = Phi.parent().gens()
 
     cache = {(0, 0): Phi}
+
     def deriv(a, b):
         try:
             return cache[a, b]

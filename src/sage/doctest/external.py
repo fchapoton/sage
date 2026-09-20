@@ -31,7 +31,6 @@ AUTHORS:
 # ****************************************************************************
 
 import multiprocessing
-import platform
 
 # With OS X, Python 3.8 defaults to use 'spawn' instead of 'fork' in
 # multiprocessing, and Sage doctesting doesn't work with 'spawn'. See
@@ -429,8 +428,8 @@ class AvailableSoftware:
         features.update(all_features())
         self._features = sorted(features, key=lambda feature: feature.name)
         self._indices = {feature.name: idx for idx, feature in enumerate(self._features)}
-        self._seen = Array('i', len(self._features)) # initialized to zeroes
-        self._hidden = Array('i', len(self._features)) # initialized to zeroes
+        self._seen = Array('i', len(self._features))  # initialized to zeroes
+        self._hidden = Array('i', len(self._features))  # initialized to zeroes
 
     def __contains__(self, item):
         """
@@ -486,10 +485,11 @@ class AvailableSoftware:
         # the list. Note that when defer_feature_checks is not set,
         # *no* BuildFeatures are runtime-detectable.
         from sage.features.build_feature import BuildFeature
+
         def build_time_only(f):
-            return ( isinstance(f, BuildFeature)
-                     and
-                     not f.is_runtime_detectable() )
+            return (isinstance(f, BuildFeature)
+                    and
+                    not f.is_runtime_detectable())
 
         return [feature.name
                 for feature, seen in zip(self._features, self._seen)
@@ -511,10 +511,11 @@ class AvailableSoftware:
         # the list. Note that when defer_feature_checks is not set,
         # *no* BuildFeatures are runtime-detectable.
         from sage.features.build_feature import BuildFeature
+
         def build_time_only(f):
-            return ( isinstance(f, BuildFeature)
-                     and
-                     not f.is_runtime_detectable() )
+            return (isinstance(f, BuildFeature)
+                    and
+                    not f.is_runtime_detectable())
         return [feature.name
                 for feature, seen in zip(self._features, self._seen)
                 if seen > 0

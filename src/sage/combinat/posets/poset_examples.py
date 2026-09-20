@@ -1347,6 +1347,7 @@ class Posets(metaclass=ClasscallMetaclass):
 
     # shard intersection order
     import sage.combinat.shard_order
+
     @staticmethod
     def ShardPoset(n):
         r"""

@@ -313,6 +313,7 @@ __doc__ = __doc__.format(PLOT_OPTIONS_TABLE=_PLOT_OPTIONS_TABLE)
 
 DEFAULT_SHOW_OPTIONS = {'figsize': (4, 4)}
 
+
 class GraphPlot(SageObject):
     def __init__(self, graph, options):
         """

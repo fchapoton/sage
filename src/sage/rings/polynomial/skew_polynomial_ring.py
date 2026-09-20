@@ -769,7 +769,7 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_finite_order):
 
         - ``element_class`` -- class representing the type of element to be used in ring
 
-        ..NOTE::
+        .. NOTE::
 
             Multivariate and Sparse rings are not implemented.
 

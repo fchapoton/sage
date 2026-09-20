@@ -740,7 +740,9 @@ class KnotInfoBase(Enum):
     def braid_notation(self, original=False):
         r"""
         Return the value of column ``braid_notation`` for this
-        link as a Python tuple (Tietze form). For more information
+        link as a Python tuple (Tietze form).
+
+        For more information
         type ``KnotInfo.K0_1.items.braid_notation.description_webpage()``.
 
         INPUT:
@@ -753,7 +755,7 @@ class KnotInfoBase(Enum):
         Python tuple representing the braid whose closure is ``self``
         in Tietze form.
 
-        ..NOTE::
+        .. NOTE::
 
             There has been a major change to braid representatives for
             proper links since version 2021.10.1. The former braid

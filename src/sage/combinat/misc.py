@@ -19,6 +19,7 @@ Miscellaneous
 from sage.misc.misc_c import prod
 from sage.rings.infinity import Infinity
 
+
 class DoublyLinkedList:
     """
     A doubly linked list class that provides constant time hiding and

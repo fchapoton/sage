@@ -1714,6 +1714,7 @@ def uncamelcase(s, separator=" "):
     """
     return re.sub("(?!^)[A-Z]", lambda match: separator+match.group()[0], s).lower()
 
+
 def base_category_class_and_axiom(cls):
     """
     Try to deduce the base category and the axiom from the name of ``cls``.

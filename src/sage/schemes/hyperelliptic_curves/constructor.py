@@ -58,7 +58,8 @@ from sage.schemes.hyperelliptic_curves.hyperelliptic_rational_field import (
 
 
 def HyperellipticCurve(
-    f, h=0, names = ['x', 'y'], check_squarefree: bool = True, distinguished_point=None
+        f, h=0, names=['x', 'y'], check_squarefree: bool = True,
+        distinguished_point=None
 ):
     r"""
     Constructor function for creating a hyperelliptic curve with

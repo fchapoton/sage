@@ -833,7 +833,6 @@ class StaticFile(FileFeature):
         raise FeatureNotPresentError(self, reason=reason, resolution=self.resolution())
 
 
-
 class PythonModule(Feature):
     r"""
     A :class:`Feature` which describes whether a python module can be imported.

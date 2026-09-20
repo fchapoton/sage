@@ -50,7 +50,7 @@ _available_polymake_answers = {
     6: "shows additional information",
     7: "lost connection",
     8: "fails to respond timely"
-        }
+}
 
 
 class PolymakeError(RuntimeError):
@@ -506,8 +506,8 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
         # the name returned by _create so that it can be used to
         # access the wrapped value.
         if self.eval('print scalar @{};'.format(name)).strip() == '1':
-            return '$'+name+'[0]'
-        return '@'+name
+            return '$' + name + '[0]'
+        return '@' + name
 
     def set(self, var, value):
         """
@@ -666,7 +666,7 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
         r"""
         Return a list of polymake function names.
 
-        ..NOTE::
+        .. NOTE::
 
             - The list of functions depends on the current application. The
               result is cached, of course separately for each application.

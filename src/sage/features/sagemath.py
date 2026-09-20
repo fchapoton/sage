@@ -875,7 +875,6 @@ class sage__rings__padics(JoinFeature):
                              type='standard')
 
 
-
 class sage__rings__real_mpfr(JoinFeature):
     r"""
     A :class:`~sage.features.Feature` describing the presence of :mod:`sage.rings.real_mpfr`.
@@ -899,7 +898,6 @@ class sage__rings__real_mpfr(JoinFeature):
                               PythonModule('sage.rings.complex_mpfr'),
                               ],
                              spkg='sagemath_modules', type='standard')
-
 
 
 class sage__schemes(JoinFeature):

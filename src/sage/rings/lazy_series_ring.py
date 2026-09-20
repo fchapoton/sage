@@ -3973,6 +3973,7 @@ class LazySymmetricFunctions(LazyCompletionGradedAlgebra):
 
         return self(coefficient)
 
+
 ######################################################################
 
 class LazyDirichletSeriesRing(LazySeriesRing):

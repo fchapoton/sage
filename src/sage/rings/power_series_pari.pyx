@@ -847,7 +847,7 @@ cdef class PowerSeries_pari(PowerSeries):
 
         The method ``compositional_inverse`` is an alias of ``revert``.
 
-        ..WARNING::
+        .. WARNING::
 
             This implementation can only handle some rings of positive characteristic.
 

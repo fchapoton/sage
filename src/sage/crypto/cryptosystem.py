@@ -201,11 +201,11 @@ class SymmetricKeyCryptosystem(Set_generic):
             False
         """
         return (type(self) is type(right) and
-            self._cipher_domain == right._cipher_domain and
-            self._cipher_codomain == right._cipher_codomain and
-            self._key_space == right._key_space and
-            self._block_length == right._block_length and
-            self._period == right._period)
+                self._cipher_domain == right._cipher_domain and
+                self._cipher_codomain == right._cipher_codomain and
+                self._key_space == right._key_space and
+                self._block_length == right._block_length and
+                self._period == right._period)
 
     def plaintext_space(self):
         r"""
@@ -366,7 +366,9 @@ class SymmetricKeyCryptosystem(Set_generic):
         """
         return self._cipher_domain.ngens()
 
+
 Cryptosystem = SymmetricKeyCryptosystem   # Cryptosystem is deprecated. See Issue #42322.
+
 
 # PublicKeyCryptosystem is deprecated. See Issue #42322.
 class PublicKeyCryptosystem(SageObject):

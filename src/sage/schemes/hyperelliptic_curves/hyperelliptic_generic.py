@@ -336,10 +336,11 @@ class HyperellipticCurve_generic(WeightedProjectiveCurve):
         F = 4 * f + h**2
         disc = F.discriminant() / 16**(self.genus() + 1)
 
-        if f.degree() % 2 == 1:
+        if f.degree() % 2:
             disc *= F.leading_coefficient()**2
 
         return disc
+
     def polynomial_ring(self):
         r"""
         Return the parent ring of the defining polynomials `f, h`, of this hyperelliptic curve.

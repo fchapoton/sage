@@ -1743,7 +1743,6 @@ class MolecularSpecies(IndexedFreeAbelianMonoid):
             for i, s in enumerate(dompart):
                 pi.update({e: i for e in s})
 
-
             def cycle_type(g):
                 tuples = g.cycle_tuples(singletons=True)
                 cycle_type = [[] for _ in range(k)]

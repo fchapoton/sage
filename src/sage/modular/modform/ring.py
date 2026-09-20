@@ -471,7 +471,7 @@ class ModularFormsRing(Parent):
             ...
             NotImplementedError: conversion from polynomial is not implemented if the base ring is not Q
 
-        ..TODO::
+        .. TODO::
 
             * add conversion for symbolic expressions?
         """

@@ -2676,12 +2676,15 @@ class HypergeometricFunctions(Parent, UniqueRepresentation):
             return LazyPowerSeriesRing(self.base_ring(), self._name)
         return PowerSeriesRing(self.base_ring(), self._name, default_prec=default_prec)
 
+
 # Helper functions
 ##################
 
 def insert_zeroes(P, n):
     r"""
     Return `P(x^n)`.
+
+    .. TODO: This should be a mthod of polynomials.
 
     INPUT:
 

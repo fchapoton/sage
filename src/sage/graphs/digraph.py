@@ -1259,7 +1259,6 @@ class DiGraph(GenericGraph):
 
         return G
 
-
     # Edge Handlers
 
     def incoming_edge_iterator(self, vertices, labels=True):

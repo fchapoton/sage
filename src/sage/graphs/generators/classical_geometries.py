@@ -1519,7 +1519,7 @@ def Nowhere0WordsTwoWeightCodeGraph(q, hyperoval=None, field=None,
                         raise RuntimeError("incorrect hyperoval")
     M = matrix(hyperoval)
     F_0 = F.zero()
-    C = [p for p in [M*x for x in F**3] if F_0 not in p]
+    C = [p for p in [M * x for x in F**3] if F_0 not in p]
 
     for x in C:
         x.set_immutable()
@@ -1591,7 +1591,7 @@ def OrthogonalDualPolarGraph(e, d, q, immutable=False):
     if e not in {0, 1, -1}:
         raise ValueError("e must by 0, +1 or -1")
 
-    m = 2*d + 1 - e
+    m = 2 * d + 1 - e
 
     group = libgap.GeneralOrthogonalGroup(e, m, q)
     M = Matrix(libgap.InvariantQuadraticForm(group)["matrix"])
@@ -1615,12 +1615,12 @@ def OrthogonalDualPolarGraph(e, d, q, immutable=False):
             found = False
             while not found:
                 v = candidates.pop()
-                if v*M*v == 0:
+                if v * M * v == 0:
                     # found another isotropic point
                     # check if we can add it to K
                     found = True
                     for w in isotropicBasis:
-                        if w*M*v + v*M*w != 0:
+                        if w * M * v + v * M * w != 0:
                             found = False
                             break
             # here we found a valid point
@@ -1628,7 +1628,7 @@ def OrthogonalDualPolarGraph(e, d, q, immutable=False):
 
             # remove new points of K
             newVectors = map(hashable,
-                             [k + s*v for k in K for s in nonZeroScalars])
+                             [k + s * v for k in K for s in nonZeroScalars])
             candidates.difference(newVectors)
             K = V.span(isotropicBasis)
 
@@ -1662,4 +1662,4 @@ def OrthogonalDualPolarGraph(e, d, q, immutable=False):
              == intersection_size]
 
     return Graph(edges, format='list_of_edges', immutable=immutable,
-                 name = f"Dual Polar Graph on Orthogonal group {(e, m, q)}")
+                 name=f"Dual Polar Graph on Orthogonal group {(e, m, q)}")
